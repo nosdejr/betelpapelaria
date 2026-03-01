@@ -1,5 +1,5 @@
 // ============================================================
-//  script.js — Papelaria Criativa v2
+//  script.js — Papelaria BETEL v2
 //  Funcionalidades: Auth, Pedidos com Itens, Produtos,
 //  Upload de Comprovante, Perfis Admin/Usuário, PDF Orçamento
 // ============================================================
@@ -721,7 +721,7 @@ function gerarOrcamentoPDF() {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
-  doc.text('Papelaria Criativa', 15, 16);
+  doc.text('Papelaria BETEL', 15, 16);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.text('Orçamento de Pedido', 15, 24);
@@ -794,7 +794,7 @@ function gerarOrcamentoPDF() {
   // Rodapé
   doc.setFontSize(9);
   doc.setTextColor(180, 180, 180);
-  doc.text('Orçamento gerado por Papelaria Criativa — sujeito a alterações.', 105, 285, { align: 'center' });
+  doc.text('Orçamento gerado por Papelaria BETEL — sujeito a alterações.', 105, 285, { align: 'center' });
 
   doc.save(`orcamento_${cliente.replace(/\s+/g, '_')}_${todayDate()}.pdf`);
 }
