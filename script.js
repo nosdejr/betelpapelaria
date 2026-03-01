@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // UI de perfil
   document.getElementById('user-email-display').textContent = currentUser.email;
   const badge = document.getElementById('user-badge');
-  badge.textContent  = isAdmin ? '👑 Admin' : 'Owner';
+  badge.textContent  = isAdmin ? '👑Admin' : 'Owner';
   badge.className    = 'user-badge ' + (isAdmin ? 'badge-admin' : 'badge-op');
 
   // Botão de produtos só para admin
