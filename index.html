@@ -5,73 +5,59 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Papelaria Criativa — Login</title>
   <link rel="stylesheet" href="styles.css" />
+  <!-- Google Fonts: Playfair Display + DM Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
 </head>
-<body>
+<body class="auth-body">
 
-<div class="auth-container">
-  <div class="auth-card">
-
-    <div class="auth-logo">
-      <span class="icon">✏️</span>
-      <h1>Papelaria<br>Criativa</h1>
-      <p>Controle de pedidos</p>
-    </div>
-
-    <form id="form-login" onsubmit="handleLogin(event)">
-      <div class="form-group">
-        <label>E-mail</label>
-        <input type="email" id="login-email" placeholder="seu@email.com"
-               required autocomplete="email" />
-      </div>
-      <div class="form-group">
-        <label>Senha</label>
-        <input type="password" id="login-password" placeholder="••••••••"
-               required autocomplete="current-password" />
-      </div>
-      <button type="submit" class="btn-primary" id="btn-login">Entrar</button>
-    </form>
-
-    <div class="auth-msg" id="auth-msg"></div>
-
+  <!-- Decorações de fundo -->
+  <div class="bg-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
   </div>
-</div>
 
-<!-- Supabase SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js"></script>
-<script>
-  // Redireciona se já estiver logado
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    if (session) window.location.href = 'dashboard.html';
-  });
+  <main class="auth-container">
 
-  function showMsg(text, type = 'error') {
-    const el = document.getElementById('auth-msg');
-    el.textContent = text;
-    el.className = `auth-msg ${type} show`;
-  }
+    <!-- Logo / Cabeçalho -->
+    <header class="auth-header">
+      <div class="logo-icon">✦</div>
+      <h1 class="brand-name">Papelaria<br><em>Criativa</em></h1>
+      <p class="brand-subtitle">Gestão de pedidos artesanais</p>
+    </header>
 
-  async function handleLogin(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btn-login');
-    btn.disabled = true;
-    btn.textContent = 'Entrando...';
-    document.getElementById('auth-msg').className = 'auth-msg';
+    <!-- Card de autenticação -->
+    <div class="auth-card">
 
-    const email    = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
+      <!-- Mensagem de feedback -->
+      <div id="auth-message" class="auth-message hidden"></div>
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+      <!-- Formulário de Login -->
+      <form id="form-login" class="auth-form" onsubmit="handleLogin(event)">
+        <div class="field-group">
+          <label for="login-email">E-mail</label>
+          <input type="email" id="login-email" placeholder="seu@email.com" required />
+        </div>
+        <div class="field-group">
+          <label for="login-password">Senha</label>
+          <input type="password" id="login-password" placeholder="••••••••" required />
+        </div>
+        <button type="submit" class="btn-primary" id="btn-login">
+          <span class="btn-text">Entrar</span>
+          <span class="btn-loader hidden">⟳</span>
+        </button>
+      </form>
 
-    if (error) {
-      showMsg('E-mail ou senha incorretos.');
-      btn.disabled = false;
-      btn.textContent = 'Entrar';
-    } else {
-      window.location.href = 'dashboard.html';
-    }
-  }
-</script>
+    </div><!-- /auth-card -->
 
+    <footer class="auth-footer">
+      <p>✦ Feito com carinho para sua papelaria</p>
+    </footer>
+
+  </main>
+
+  <!-- SDK do Supabase via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
 </body>
 </html>

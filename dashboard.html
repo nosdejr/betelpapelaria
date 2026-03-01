@@ -3,289 +3,148 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Papelaria Criativa — Pedidos</title>
+  <title>Papelaria Criativa — Dashboard</title>
   <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
 </head>
-<body>
+<body class="dashboard-body">
 
-<!-- HEADER -->
-<header class="dash-header">
-  <div class="header-brand">
-    <span class="icon">✏️</span>
-    <h2>Meus Pedidos</h2>
-  </div>
-  <div class="header-user">
-    <span class="user-email" id="user-email"></span>
-    <button class="btn-logout" onclick="logout()">Sair</button>
-  </div>
-</header>
-
-<div class="dash-wrapper">
-
-  <!-- RESUMO FINANCEIRO -->
-  <div class="summary-grid">
-    <div class="summary-card pending">
-      <div class="label">⏳ Pendentes</div>
-      <div class="amount" id="total-pendente">R$ 0</div>
-      <div class="count" id="count-pendente">0 pedidos</div>
-    </div>
-    <div class="summary-card done">
-      <div class="label">✅ Concluídos</div>
-      <div class="amount" id="total-concluido">R$ 0</div>
-      <div class="count" id="count-concluido">0 pedidos</div>
-    </div>
-  </div>
-
-  <!-- BOTÃO NOVO PEDIDO -->
-  <button class="btn-add" onclick="openModal()">
-    <span>＋</span> Novo Pedido
-  </button>
-
-  <!-- FILTROS -->
-  <div class="filter-tabs">
-    <button class="filter-tab active" onclick="setFilter('todos', this)">Todos</button>
-    <button class="filter-tab" onclick="setFilter('pendente', this)">Pendentes</button>
-    <button class="filter-tab" onclick="setFilter('concluido', this)">Concluídos</button>
-  </div>
-
-  <!-- LISTA DE PEDIDOS -->
-  <p class="section-title" id="orders-label">Pedidos</p>
-  <div id="orders-container">
-    <div class="loader">
-      <span></span><span></span><span></span>
-    </div>
-  </div>
-
-</div>
-
-<!-- MODAL NOVO PEDIDO -->
-<div class="modal-overlay" id="modal" onclick="handleOverlayClick(event)">
-  <div class="modal-card">
-    <div class="modal-handle"></div>
-    <h3>✏️ Novo Pedido</h3>
-    <form onsubmit="handleAddOrder(event)">
-      <div class="form-group">
-        <label>Cliente</label>
-        <input type="text" id="new-cliente" placeholder="Nome do cliente" required />
+  <!-- ===================== HEADER ===================== -->
+  <header class="dash-header">
+    <div class="dash-header-inner">
+      <div class="dash-logo">
+        <span class="logo-icon">✦</span>
+        <span class="logo-text">Papelaria <em>Criativa</em></span>
       </div>
-      <div class="form-group">
-        <label>Descrição</label>
-        <textarea id="new-desc" placeholder="Descreva o pedido..." required></textarea>
+      <div class="dash-header-right">
+        <span class="user-email" id="user-email-display"></span>
+        <button class="btn-logout" onclick="handleLogout()" title="Sair">⏻</button>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Valor (R$)</label>
-          <input type="number" id="new-valor" step="0.01" min="0" placeholder="0,00" required />
-        </div>
-        <div class="form-group">
-          <label>Entrega</label>
-          <input type="date" id="new-entrega" required />
-        </div>
+    </div>
+  </header>
+
+  <!-- ===================== CARDS DE RESUMO ===================== -->
+  <section class="summary-section">
+    <div class="summary-card card-pending">
+      <div class="summary-label">⏳ Pendentes</div>
+      <div class="summary-value" id="total-pending">R$ 0,00</div>
+      <div class="summary-count" id="count-pending">0 pedidos</div>
+    </div>
+    <div class="summary-card card-done">
+      <div class="summary-label">✅ Concluídos</div>
+      <div class="summary-value" id="total-done">R$ 0,00</div>
+      <div class="summary-count" id="count-done">0 pedidos</div>
+    </div>
+  </section>
+
+  <!-- ===================== FILTRO + BOTÃO NOVO ===================== -->
+  <section class="toolbar-section">
+    <div class="filter-tabs">
+      <button class="filter-btn active" data-filter="todos" onclick="setFilter('todos', this)">Todos</button>
+      <button class="filter-btn" data-filter="pendente" onclick="setFilter('pendente', this)">Pendentes</button>
+      <button class="filter-btn" data-filter="concluído" onclick="setFilter('concluído', this)">Concluídos</button>
+    </div>
+    <button class="btn-new-order" onclick="openModal()">+ Novo</button>
+  </section>
+
+  <!-- ===================== LISTA DE PEDIDOS ===================== -->
+  <main class="orders-section">
+    <!-- Estado de carregamento -->
+    <div id="loading-state" class="empty-state">
+      <div class="spinner">⟳</div>
+      <p>Carregando pedidos…</p>
+    </div>
+
+    <!-- Estado vazio -->
+    <div id="empty-state" class="empty-state hidden">
+      <div class="empty-icon">📋</div>
+      <p class="empty-title">Nenhum pedido ainda</p>
+      <p class="empty-sub">Toque em <strong>+ Novo</strong> para adicionar seu primeiro pedido.</p>
+    </div>
+
+    <!-- Lista de pedidos renderizada dinamicamente -->
+    <div id="orders-list" class="orders-list"></div>
+  </main>
+
+  <!-- ===================== MODAL PEDIDO ===================== -->
+  <div id="order-modal" class="modal-overlay hidden" onclick="closeModalOnOverlay(event)">
+    <div class="modal-card">
+
+      <div class="modal-header">
+        <h2 id="modal-title">Novo Pedido</h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
-      <button type="submit" class="btn-primary" id="btn-save">Salvar Pedido</button>
-    </form>
-  </div>
-</div>
 
-<!-- Supabase SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js"></script>
-<script>
-  let allOrders = [];
-  let currentFilter = 'todos';
+      <!-- Mensagem de erro no modal -->
+      <div id="modal-message" class="auth-message hidden"></div>
 
-  // ── INIT ──
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    if (!session) {
-      window.location.href = 'index.html';
-    } else {
-      document.getElementById('user-email').textContent = session.user.email;
-      loadOrders();
-    }
-  });
+      <form id="order-form" onsubmit="handleSaveOrder(event)">
+        <!-- ID oculto para edição -->
+        <input type="hidden" id="order-id" />
 
-  // ── LOGOUT ──
-  async function logout() {
-    await supabase.auth.signOut();
-    window.location.href = 'index.html';
-  }
-
-  // ── FILTRO ──
-  function setFilter(filter, btn) {
-    currentFilter = filter;
-    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderOrders();
-  }
-
-  // ── MODAL ──
-  function openModal() {
-    document.getElementById('modal').classList.add('open');
-  }
-
-  function closeModal() {
-    document.getElementById('modal').classList.remove('open');
-  }
-
-  function handleOverlayClick(e) {
-    if (e.target === document.getElementById('modal')) closeModal();
-  }
-
-  // ── FORMATAR MOEDA ──
-  function formatCurrency(val) {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
-  }
-
-  // ── FORMATAR DATA ──
-  function formatDate(dateStr) {
-    if (!dateStr) return '—';
-    const [y, m, d] = dateStr.split('-');
-    return `${d}/${m}/${y}`;
-  }
-
-  // ── CALCULAR RESUMO ──
-  function updateSummary(orders) {
-    const pendentes = orders.filter(o => o.status === 'pendente');
-    const concluidos = orders.filter(o => o.status === 'concluido');
-
-    const sumP = pendentes.reduce((acc, o) => acc + parseFloat(o.valor), 0);
-    const sumC = concluidos.reduce((acc, o) => acc + parseFloat(o.valor), 0);
-
-    document.getElementById('total-pendente').textContent = formatCurrency(sumP);
-    document.getElementById('count-pendente').textContent = `${pendentes.length} pedido${pendentes.length !== 1 ? 's' : ''}`;
-    document.getElementById('total-concluido').textContent = formatCurrency(sumC);
-    document.getElementById('count-concluido').textContent = `${concluidos.length} pedido${concluidos.length !== 1 ? 's' : ''}`;
-  }
-
-  // ── RENDERIZAR PEDIDOS ──
-  function renderOrders() {
-    const container = document.getElementById('orders-container');
-    const label = document.getElementById('orders-label');
-
-    let filtered = allOrders;
-    if (currentFilter !== 'todos') {
-      filtered = allOrders.filter(o => o.status === currentFilter);
-    }
-
-    label.textContent = `${filtered.length} pedido${filtered.length !== 1 ? 's' : ''}`;
-
-    if (filtered.length === 0) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <span class="icon">📋</span>
-          <p>Nenhum pedido encontrado.<br>Que tal adicionar um?</p>
-        </div>`;
-      return;
-    }
-
-    container.innerHTML = filtered.map(order => `
-      <div class="order-card status-${order.status}" id="card-${order.id}">
-        <div class="order-top">
-          <div class="order-client">${escapeHtml(order.cliente)}</div>
-          <div class="order-value">${formatCurrency(order.valor)}</div>
+        <div class="field-group">
+          <label for="field-cliente">Cliente *</label>
+          <input type="text" id="field-cliente" placeholder="Nome do cliente" required />
         </div>
-        <div class="order-desc">${escapeHtml(order.descricao)}</div>
-        <div class="order-meta">
-          <span class="badge badge-${order.status}">
-            ${order.status === 'pendente' ? '⏳ Pendente' : '✅ Concluído'}
-          </span>
-          <span class="order-date">📅 Entrega: ${formatDate(order.data_entrega)}</span>
+
+        <div class="field-group">
+          <label for="field-descricao">Descrição do pedido *</label>
+          <textarea id="field-descricao" placeholder="Descreva os itens do pedido…" rows="3" required></textarea>
         </div>
-        <div class="order-actions">
-          <button class="btn-action btn-toggle" onclick="toggleStatus('${order.id}', '${order.status}')">
-            ${order.status === 'pendente' ? '✓ Marcar concluído' : '↩ Reabrir'}
-          </button>
-          <button class="btn-action btn-delete" onclick="deleteOrder('${order.id}')">
-            🗑 Deletar
+
+        <div class="fields-row">
+          <div class="field-group">
+            <label for="field-valor">Valor (R$) *</label>
+            <input type="number" id="field-valor" placeholder="0,00" min="0" step="0.01" required />
+          </div>
+          <div class="field-group">
+            <label for="field-status">Status</label>
+            <select id="field-status">
+              <option value="pendente">⏳ Pendente</option>
+              <option value="concluído">✅ Concluído</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="fields-row">
+          <div class="field-group">
+            <label for="field-data-pedido">Data do pedido</label>
+            <input type="date" id="field-data-pedido" />
+          </div>
+          <div class="field-group">
+            <label for="field-data-entrega">Entrega prevista</label>
+            <input type="date" id="field-data-entrega" />
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn-primary" id="btn-save">
+            <span class="btn-text">Salvar</span>
+            <span class="btn-loader hidden">⟳</span>
           </button>
         </div>
+      </form>
+
+    </div>
+  </div><!-- /modal -->
+
+  <!-- ===================== MODAL CONFIRMAÇÃO EXCLUSÃO ===================== -->
+  <div id="delete-modal" class="modal-overlay hidden" onclick="closeDeleteModalOnOverlay(event)">
+    <div class="modal-card modal-card-small">
+      <div class="modal-header">
+        <h2>Excluir pedido?</h2>
+        <button class="modal-close" onclick="closeDeleteModal()">✕</button>
       </div>
-    `).join('');
-  }
+      <p class="delete-confirm-text">Esta ação não pode ser desfeita. Deseja continuar?</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
+        <button class="btn-danger" id="btn-confirm-delete" onclick="confirmDelete()">Excluir</button>
+      </div>
+    </div>
+  </div>
 
-  // ── ESCAPE HTML ──
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
-  // ── CARREGAR PEDIDOS ──
-  async function loadOrders() {
-    const { data, error } = await getOrders();
-
-    if (error) {
-      document.getElementById('orders-container').innerHTML =
-        '<p style="color:red;text-align:center;padding:20px">Erro ao carregar pedidos.</p>';
-      return;
-    }
-
-    allOrders = data || [];
-    updateSummary(allOrders);
-    renderOrders();
-  }
-
-  // ── ADICIONAR PEDIDO ──
-  async function handleAddOrder(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btn-save');
-    btn.disabled = true;
-    btn.textContent = 'Salvando...';
-
-    const pedido = {
-      cliente: document.getElementById('new-cliente').value,
-      descricao: document.getElementById('new-desc').value,
-      valor: parseFloat(document.getElementById('new-valor').value),
-      data_entrega: document.getElementById('new-entrega').value,
-    };
-
-    const { data, error } = await addOrder(pedido);
-
-    btn.disabled = false;
-    btn.textContent = 'Salvar Pedido';
-
-    if (error) {
-      alert('Erro ao salvar pedido: ' + error.message);
-      return;
-    }
-
-    // Limpar formulário
-    e.target.reset();
-    closeModal();
-
-    allOrders.unshift(data[0]);
-    updateSummary(allOrders);
-    renderOrders();
-  }
-
-  // ── ALTERNAR STATUS ──
-  async function toggleStatus(id, currentStatus) {
-    const newStatus = currentStatus === 'pendente' ? 'concluido' : 'pendente';
-    const { error } = await updateOrderStatus(id, newStatus);
-
-    if (error) { alert('Erro ao atualizar status.'); return; }
-
-    const idx = allOrders.findIndex(o => o.id === id);
-    if (idx !== -1) allOrders[idx].status = newStatus;
-
-    updateSummary(allOrders);
-    renderOrders();
-  }
-
-  // ── DELETAR PEDIDO ──
-  async function deleteOrder(id) {
-    if (!confirm('Tem certeza que quer deletar este pedido?')) return;
-
-    const { error } = await removeOrder(id);
-    if (error) { alert('Erro ao deletar.'); return; }
-
-    allOrders = allOrders.filter(o => o.id !== id);
-    updateSummary(allOrders);
-    renderOrders();
-  }
-</script>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
 </body>
 </html>
