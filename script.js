@@ -97,7 +97,7 @@ async function loadOrders() {
   const { data: { session } } = await db.auth.getSession();
   if (!session) return;
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('pedidos')
     .select('*')
     .eq('user_id', session.user.id)
@@ -204,7 +204,7 @@ async function handleSaveOrder(event) {
 
   if (orderId) {
     // UPDATE — editar pedido existente
-    ({ error } = await supabase
+    ({ error } = await db
       .from('pedidos')
       .update(payload)
       .eq('id', orderId)
@@ -231,7 +231,7 @@ async function toggleStatus(id, currentStatus) {
 
   const { data: { session } } = await db.auth.getSession();
 
-  const { error } = await supabase
+  const { error } = await db
     .from('pedidos')
     .update({ status: newStatus })
     .eq('id', id)
@@ -267,7 +267,7 @@ async function confirmDelete() {
 
   const { data: { session } } = await db.auth.getSession();
 
-  const { error } = await supabase
+  const { error } = await db
     .from('pedidos')
     .delete()
     .eq('id', deleteTargetId)
