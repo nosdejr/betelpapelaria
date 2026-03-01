@@ -19,86 +19,91 @@
       </div>
       <div class="dash-header-right">
         <span class="user-badge" id="user-badge"></span>
-        <span class="user-email" id="user-email-display"></span>
         <button class="btn-icon" id="btn-products-nav" onclick="openProductsModal()" title="Produtos" style="display:none">📦</button>
         <button class="btn-logout" onclick="handleLogout()" title="Sair">⏻</button>
       </div>
     </div>
   </header>
 
-  <!-- ══ SEÇÃO DE FATURAMENTO ═════════════════════════════════
-       Dividida em dois blocos:
-       1) Mês atual (fixo, sempre visível)
-       2) Período filtrado (personalizado)
+  <!-- ══ RESUMO FINANCEIRO ════════════════════════════════════
+       Dois painéis lado a lado: Mês atual | Período filtrado
   ══════════════════════════════════════════════════════════ -->
   <section class="billing-section">
 
-    <!-- Bloco 1: Mês atual -->
-    <div class="billing-block">
-      <div class="billing-block-title">📅 Mês atual — <span id="mes-label">…</span></div>
-      <div class="billing-cards-row">
-        <div class="summary-card card-done">
-          <div class="summary-label">💰 Recebido</div>
-          <div class="summary-value" id="mes-faturado">R$ 0,00</div>
+    <!-- Painel esquerdo: mês atual (fixo) -->
+    <div class="billing-panel billing-panel-fixed">
+      <div class="billing-panel-header">
+        <span class="billing-panel-icon">📅</span>
+        <span class="billing-panel-title">Mês atual</span>
+        <span class="billing-panel-sub" id="mes-label"></span>
+      </div>
+      <div class="billing-row">
+        <div class="billing-item">
+          <span class="billing-item-label">💰 Recebido</span>
+          <span class="billing-item-value green" id="mes-faturado">R$ 0,00</span>
         </div>
-        <div class="summary-card card-delivered">
-          <div class="summary-label">🕐 A receber</div>
-          <div class="summary-value" id="mes-aguardando">R$ 0,00</div>
+        <div class="billing-item">
+          <span class="billing-item-label">🕐 A receber</span>
+          <span class="billing-item-value blue" id="mes-aguardando">R$ 0,00</span>
         </div>
-        <div class="summary-card card-late">
-          <div class="summary-label">🚨 Atrasados</div>
-          <div class="summary-value" id="count-late">0</div>
+        <div class="billing-item">
+          <span class="billing-item-label">🚨 Atrasados</span>
+          <span class="billing-item-value red" id="count-late">0</span>
         </div>
       </div>
     </div>
 
-    <!-- Bloco 2: Filtro de período personalizado -->
-    <div class="billing-block">
-      <div class="billing-block-title">🔎 Período personalizado</div>
-      <div class="period-filter-row">
-        <input type="date" id="periodo-inicio" class="period-input" />
-        <span class="period-sep">até</span>
-        <input type="date" id="periodo-fim" class="period-input" />
-        <button class="btn-period-apply" onclick="applyPeriod()">Filtrar</button>
-        <button class="btn-period-clear" onclick="clearPeriod()" title="Resetar para mês atual">↺</button>
+    <!-- Painel direito: período personalizado -->
+    <div class="billing-panel billing-panel-custom">
+      <div class="billing-panel-header">
+        <span class="billing-panel-icon">🔎</span>
+        <span class="billing-panel-title">Período</span>
       </div>
-      <div class="billing-cards-row">
-        <div class="summary-card card-done">
-          <div class="summary-label">💰 Recebido</div>
-          <div class="summary-value" id="per-faturado">R$ 0,00</div>
-          <div class="summary-count" id="per-count-pago">0 pedidos</div>
+      <!-- Seletor de datas inline -->
+      <div class="period-row">
+        <input type="date" id="periodo-inicio" class="period-input" onchange="applyPeriod()" />
+        <span class="period-sep">→</span>
+        <input type="date" id="periodo-fim" class="period-input" onchange="applyPeriod()" />
+      </div>
+      <div class="billing-row">
+        <div class="billing-item">
+          <span class="billing-item-label">💰 Recebido</span>
+          <span class="billing-item-value green" id="per-faturado">R$ 0,00</span>
+          <span class="billing-item-count" id="per-count-pago"></span>
         </div>
-        <div class="summary-card card-delivered">
-          <div class="summary-label">🕐 A receber</div>
-          <div class="summary-value" id="per-aguardando">R$ 0,00</div>
-          <div class="summary-count" id="per-count-aguar">0 pedidos</div>
+        <div class="billing-item">
+          <span class="billing-item-label">🕐 A receber</span>
+          <span class="billing-item-value blue" id="per-aguardando">R$ 0,00</span>
+          <span class="billing-item-count" id="per-count-aguar"></span>
         </div>
-        <div class="summary-card card-pending">
-          <div class="summary-label">⏳ Pendente</div>
-          <div class="summary-value" id="per-pendente">R$ 0,00</div>
-          <div class="summary-count" id="per-count-pend">0 pedidos</div>
+        <div class="billing-item">
+          <span class="billing-item-label">⏳ Pendente</span>
+          <span class="billing-item-value gold" id="per-pendente">R$ 0,00</span>
+          <span class="billing-item-count" id="per-count-pend"></span>
         </div>
       </div>
     </div>
 
   </section>
 
-  <!-- ══ TOOLBAR ══════════════════════════════════════════════ -->
+  <!-- ══ TOOLBAR ══════════════════════════════════════════════
+       Filtros em 2 linhas no mobile para não empilhar
+  ══════════════════════════════════════════════════════════ -->
   <section class="toolbar-section">
-    <div class="filter-tabs">
+    <!-- Linha 1: filtros de status (2 linhas no mobile) -->
+    <div class="filter-grid">
       <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
-      <button class="filter-btn" onclick="setFilter('pendente',this)">Pendentes</button>
-      <button class="filter-btn" onclick="setFilter('entregue_nao_pago',this)">Entregues</button>
-      <button class="filter-btn" onclick="setFilter('entregue_pago',this)">Pagos</button>
-      <button class="filter-btn filter-btn-late" onclick="setFilter('atrasado',this)">Atrasados</button>
+      <button class="filter-btn" onclick="setFilter('pendente',this)">⏳ Pendentes</button>
+      <button class="filter-btn" onclick="setFilter('entregue_nao_pago',this)">📦 Entregues</button>
+      <button class="filter-btn" onclick="setFilter('entregue_pago',this)">✅ Pagos</button>
+      <button class="filter-btn filter-btn-late" onclick="setFilter('atrasado',this)">🚨 Atrasados</button>
     </div>
-    <button class="btn-new-order" onclick="openOrderModal()">+ Novo</button>
+    <!-- Linha 2: busca + botão novo -->
+    <div class="search-new-row">
+      <input type="search" id="search-input" class="search-input" placeholder="🔍 Buscar cliente…" oninput="renderOrders()" />
+      <button class="btn-new-order" onclick="openOrderModal()">+ Novo</button>
+    </div>
   </section>
-
-  <!-- Busca por cliente -->
-  <div class="search-bar-wrap">
-    <input type="search" id="search-input" class="search-input" placeholder="🔍 Buscar por cliente…" oninput="renderOrders()" />
-  </div>
 
   <!-- ══ LISTA DE PEDIDOS ══════════════════════════════════════ -->
   <main class="orders-section">
@@ -132,7 +137,6 @@
 
         <div class="section-title">🛒 Itens do pedido</div>
 
-        <!-- Produto do catálogo -->
         <div class="item-add-row">
           <select id="item-product-select" class="item-select">
             <option value="">Selecione um produto…</option>
@@ -140,9 +144,7 @@
           <input type="number" id="item-qty" class="item-qty" placeholder="Qtd" min="1" value="1" />
           <button type="button" class="btn-add-item" onclick="addItemFromSelect()">＋</button>
         </div>
-
-        <!-- Item avulso -->
-        <div class="item-add-row item-custom-row">
+        <div class="item-add-row">
           <input type="text" id="item-custom-name" class="item-custom-name" placeholder="Item avulso…" />
           <input type="number" id="item-custom-price" class="item-custom-price" placeholder="R$" min="0" step="0.01" />
           <input type="number" id="item-custom-qty" class="item-qty" placeholder="Qtd" min="1" value="1" />
@@ -161,6 +163,7 @@
           <textarea id="field-descricao" placeholder="Observações adicionais…" rows="2"></textarea>
         </div>
 
+        <!-- Datas com calendário padrão -->
         <div class="fields-row">
           <div class="field-group">
             <label for="field-data-pedido">Data do pedido</label>
@@ -172,7 +175,6 @@
           </div>
         </div>
 
-        <!-- Status com 3 opções -->
         <div class="field-group">
           <label for="field-status">Status</label>
           <select id="field-status" onchange="onStatusChange()">
@@ -182,16 +184,16 @@
           </select>
         </div>
 
-        <!-- Seção de conclusão (aparece quando entregue) -->
+        <!-- Seção que aparece quando status = entregue -->
         <div id="conclusao-section" class="conclusao-section hidden">
           <div class="section-title">🏁 Dados de entrega</div>
           <div class="field-group">
             <label for="field-data-entrega-real">Data de entrega real *</label>
             <input type="date" id="field-data-entrega-real" />
           </div>
-          <!-- Comprovante: só aparece para "entregue e pago" -->
+          <!-- Comprovante: só quando "entregue e pago" -->
           <div id="comprovante-field" class="field-group hidden">
-            <label for="field-comprovante" id="comprovante-label">Comprovante de pagamento *</label>
+            <label id="comprovante-label">Comprovante de pagamento *</label>
             <div class="upload-area" id="upload-area" onclick="document.getElementById('field-comprovante').click()">
               <div class="upload-icon">📎</div>
               <div class="upload-text">Toque para selecionar foto</div>
@@ -199,13 +201,13 @@
             </div>
             <input type="file" id="field-comprovante" accept="image/*,application/pdf" style="display:none" onchange="onComprovanteSelected(event)" />
             <div id="comprovante-preview" class="comprovante-preview hidden"></div>
-            <a id="comprovante-existing" class="comprovante-link hidden" target="_blank">Ver comprovante atual</a>
+            <a id="comprovante-existing" class="comprovante-link hidden" target="_blank">👁 Ver comprovante atual</a>
           </div>
         </div>
 
         <div class="modal-actions">
           <button type="button" class="btn-secondary" onclick="closeOrderModal()">Cancelar</button>
-          <button type="button" class="btn-outline" onclick="gerarOrcamentoPDF()" title="Gerar PDF">📄 Orçamento</button>
+          <button type="button" class="btn-outline" onclick="gerarOrcamentoPDF()">📄 Orçamento</button>
           <button type="submit" class="btn-primary" id="btn-save">
             <span class="btn-text">Salvar</span>
             <span class="btn-loader hidden">⟳</span>
@@ -262,7 +264,7 @@
     </div>
   </div>
 
-  <!-- ══ MODAL: CONFIRMAÇÃO EXCLUSÃO ══════════════════════════ -->
+  <!-- ══ MODAL: CONFIRMAR EXCLUSÃO ════════════════════════════ -->
   <div id="delete-modal" class="modal-overlay hidden" onclick="closeDeleteModalOnOverlay(event)">
     <div class="modal-card modal-card-small">
       <div class="modal-header">
