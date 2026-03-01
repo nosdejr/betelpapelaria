@@ -6,14 +6,11 @@
   <title>Papelaria BETEL - Dashboard</title>
   <link rel="stylesheet" href="styles.css" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <!-- jsPDF para geração de orçamento PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body class="dashboard-body">
 
-  <!-- ══════════════════════════════════════════════════
-       HEADER
-  ══════════════════════════════════════════════════ -->
+  <!-- ══ HEADER ══════════════════════════════════════════════ -->
   <header class="dash-header">
     <div class="dash-header-inner">
       <div class="dash-logo">
@@ -23,43 +20,77 @@
       <div class="dash-header-right">
         <span class="user-badge" id="user-badge"></span>
         <span class="user-email" id="user-email-display"></span>
-        <!-- Admin: botão para cadastro de produtos -->
         <button class="btn-icon" id="btn-products-nav" onclick="openProductsModal()" title="Produtos" style="display:none">📦</button>
         <button class="btn-logout" onclick="handleLogout()" title="Sair">⏻</button>
       </div>
     </div>
   </header>
 
-  <!-- ══════════════════════════════════════════════════
-       CARDS DE RESUMO
-  ══════════════════════════════════════════════════ -->
-  <section class="summary-section">
-    <div class="summary-card card-pending">
-      <div class="summary-label">⏳ Pendentes</div>
-      <div class="summary-value" id="total-pending">R$ 0,00</div>
-      <div class="summary-count" id="count-pending">0 pedidos</div>
+  <!-- ══ SEÇÃO DE FATURAMENTO ═════════════════════════════════
+       Dividida em dois blocos:
+       1) Mês atual (fixo, sempre visível)
+       2) Período filtrado (personalizado)
+  ══════════════════════════════════════════════════════════ -->
+  <section class="billing-section">
+
+    <!-- Bloco 1: Mês atual -->
+    <div class="billing-block">
+      <div class="billing-block-title">📅 Mês atual — <span id="mes-label">…</span></div>
+      <div class="billing-cards-row">
+        <div class="summary-card card-done">
+          <div class="summary-label">💰 Recebido</div>
+          <div class="summary-value" id="mes-faturado">R$ 0,00</div>
+        </div>
+        <div class="summary-card card-delivered">
+          <div class="summary-label">🕐 A receber</div>
+          <div class="summary-value" id="mes-aguardando">R$ 0,00</div>
+        </div>
+        <div class="summary-card card-late">
+          <div class="summary-label">🚨 Atrasados</div>
+          <div class="summary-value" id="count-late">0</div>
+        </div>
+      </div>
     </div>
-    <div class="summary-card card-done">
-      <div class="summary-label">✅ Concluídos</div>
-      <div class="summary-value" id="total-done">R$ 0,00</div>
-      <div class="summary-count" id="count-done">0 pedidos</div>
+
+    <!-- Bloco 2: Filtro de período personalizado -->
+    <div class="billing-block">
+      <div class="billing-block-title">🔎 Período personalizado</div>
+      <div class="period-filter-row">
+        <input type="date" id="periodo-inicio" class="period-input" />
+        <span class="period-sep">até</span>
+        <input type="date" id="periodo-fim" class="period-input" />
+        <button class="btn-period-apply" onclick="applyPeriod()">Filtrar</button>
+        <button class="btn-period-clear" onclick="clearPeriod()" title="Resetar para mês atual">↺</button>
+      </div>
+      <div class="billing-cards-row">
+        <div class="summary-card card-done">
+          <div class="summary-label">💰 Recebido</div>
+          <div class="summary-value" id="per-faturado">R$ 0,00</div>
+          <div class="summary-count" id="per-count-pago">0 pedidos</div>
+        </div>
+        <div class="summary-card card-delivered">
+          <div class="summary-label">🕐 A receber</div>
+          <div class="summary-value" id="per-aguardando">R$ 0,00</div>
+          <div class="summary-count" id="per-count-aguar">0 pedidos</div>
+        </div>
+        <div class="summary-card card-pending">
+          <div class="summary-label">⏳ Pendente</div>
+          <div class="summary-value" id="per-pendente">R$ 0,00</div>
+          <div class="summary-count" id="per-count-pend">0 pedidos</div>
+        </div>
+      </div>
     </div>
-    <div class="summary-card card-late">
-      <div class="summary-label">🚨 Em atraso</div>
-      <div class="summary-value" id="count-late">0</div>
-      <div class="summary-count">pedidos atrasados</div>
-    </div>
+
   </section>
 
-  <!-- ══════════════════════════════════════════════════
-       TOOLBAR
-  ══════════════════════════════════════════════════ -->
+  <!-- ══ TOOLBAR ══════════════════════════════════════════════ -->
   <section class="toolbar-section">
     <div class="filter-tabs">
-      <button class="filter-btn active" data-filter="todos" onclick="setFilter('todos',this)">Todos</button>
-      <button class="filter-btn" data-filter="pendente" onclick="setFilter('pendente',this)">Pendentes</button>
-      <button class="filter-btn" data-filter="concluído" onclick="setFilter('concluído',this)">Concluídos</button>
-      <button class="filter-btn" data-filter="atrasado" onclick="setFilter('atrasado',this)">Atrasados</button>
+      <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
+      <button class="filter-btn" onclick="setFilter('pendente',this)">Pendentes</button>
+      <button class="filter-btn" onclick="setFilter('entregue_nao_pago',this)">Entregues</button>
+      <button class="filter-btn" onclick="setFilter('entregue_pago',this)">Pagos</button>
+      <button class="filter-btn filter-btn-late" onclick="setFilter('atrasado',this)">Atrasados</button>
     </div>
     <button class="btn-new-order" onclick="openOrderModal()">+ Novo</button>
   </section>
@@ -69,9 +100,7 @@
     <input type="search" id="search-input" class="search-input" placeholder="🔍 Buscar por cliente…" oninput="renderOrders()" />
   </div>
 
-  <!-- ══════════════════════════════════════════════════
-       LISTA DE PEDIDOS
-  ══════════════════════════════════════════════════ -->
+  <!-- ══ LISTA DE PEDIDOS ══════════════════════════════════════ -->
   <main class="orders-section">
     <div id="loading-state" class="empty-state">
       <div class="spinner">⟳</div><p>Carregando pedidos…</p>
@@ -79,15 +108,12 @@
     <div id="empty-state" class="empty-state hidden">
       <div class="empty-icon">📋</div>
       <p class="empty-title">Nenhum pedido encontrado</p>
-      <p class="empty-sub">Toque em <strong>+ Novo</strong> para adicionar.</p>
+      <p class="empty-sub">Toque em <strong>+ Novo</strong> para adicionar ou ajuste os filtros.</p>
     </div>
     <div id="orders-list" class="orders-list hidden"></div>
   </main>
 
-
-  <!-- ══════════════════════════════════════════════════
-       MODAL: PEDIDO (criar / editar)
-  ══════════════════════════════════════════════════ -->
+  <!-- ══ MODAL: PEDIDO ════════════════════════════════════════ -->
   <div id="order-modal" class="modal-overlay hidden" onclick="closeModalOnOverlay(event)">
     <div class="modal-card">
       <div class="modal-header">
@@ -99,16 +125,14 @@
       <form id="order-form" onsubmit="handleSaveOrder(event)">
         <input type="hidden" id="order-id" />
 
-        <!-- Cliente -->
         <div class="field-group">
           <label for="field-cliente">Cliente *</label>
           <input type="text" id="field-cliente" placeholder="Nome do cliente" required />
         </div>
 
-        <!-- Seção de Itens do Pedido -->
         <div class="section-title">🛒 Itens do pedido</div>
 
-        <!-- Adicionar item -->
+        <!-- Produto do catálogo -->
         <div class="item-add-row">
           <select id="item-product-select" class="item-select">
             <option value="">Selecione um produto…</option>
@@ -116,7 +140,8 @@
           <input type="number" id="item-qty" class="item-qty" placeholder="Qtd" min="1" value="1" />
           <button type="button" class="btn-add-item" onclick="addItemFromSelect()">＋</button>
         </div>
-        <!-- Item avulso (sem produto cadastrado) -->
+
+        <!-- Item avulso -->
         <div class="item-add-row item-custom-row">
           <input type="text" id="item-custom-name" class="item-custom-name" placeholder="Item avulso…" />
           <input type="number" id="item-custom-price" class="item-custom-price" placeholder="R$" min="0" step="0.01" />
@@ -124,22 +149,18 @@
           <button type="button" class="btn-add-item" onclick="addCustomItem()">＋</button>
         </div>
 
-        <!-- Lista de itens adicionados -->
         <div id="items-list" class="items-list"></div>
 
-        <!-- Total calculado -->
         <div class="order-total-row">
           <span>Total do pedido:</span>
           <span class="order-total-value" id="order-total-display">R$ 0,00</span>
         </div>
 
-        <!-- Descrição / obs -->
         <div class="field-group">
           <label for="field-descricao">Observações</label>
           <textarea id="field-descricao" placeholder="Observações adicionais…" rows="2"></textarea>
         </div>
 
-        <!-- Datas -->
         <div class="fields-row">
           <div class="field-group">
             <label for="field-data-pedido">Data do pedido</label>
@@ -151,24 +172,25 @@
           </div>
         </div>
 
-        <!-- Status -->
+        <!-- Status com 3 opções -->
         <div class="field-group">
           <label for="field-status">Status</label>
           <select id="field-status" onchange="onStatusChange()">
             <option value="pendente">⏳ Pendente</option>
-            <option value="concluído">✅ Concluído</option>
+            <option value="entregue_nao_pago">📦 Entregue — Aguard. Pgto</option>
+            <option value="entregue_pago">✅ Entregue e Pago</option>
           </select>
         </div>
 
-        <!-- Seção de conclusão (data real + comprovante) — aparece ao marcar concluído -->
+        <!-- Seção de conclusão (aparece quando entregue) -->
         <div id="conclusao-section" class="conclusao-section hidden">
-          <div class="section-title">🏁 Dados de conclusão</div>
+          <div class="section-title">🏁 Dados de entrega</div>
           <div class="field-group">
             <label for="field-data-entrega-real">Data de entrega real *</label>
             <input type="date" id="field-data-entrega-real" />
           </div>
-          <!-- Comprovante: obrigatório para Nayara, opcional para admin -->
-          <div class="field-group" id="comprovante-field">
+          <!-- Comprovante: só aparece para "entregue e pago" -->
+          <div id="comprovante-field" class="field-group hidden">
             <label for="field-comprovante" id="comprovante-label">Comprovante de pagamento *</label>
             <div class="upload-area" id="upload-area" onclick="document.getElementById('field-comprovante').click()">
               <div class="upload-icon">📎</div>
@@ -177,15 +199,13 @@
             </div>
             <input type="file" id="field-comprovante" accept="image/*,application/pdf" style="display:none" onchange="onComprovanteSelected(event)" />
             <div id="comprovante-preview" class="comprovante-preview hidden"></div>
-            <!-- Link do comprovante já salvo (modo edição) -->
             <a id="comprovante-existing" class="comprovante-link hidden" target="_blank">Ver comprovante atual</a>
           </div>
         </div>
 
         <div class="modal-actions">
           <button type="button" class="btn-secondary" onclick="closeOrderModal()">Cancelar</button>
-          <!-- Botão orçamento PDF -->
-          <button type="button" class="btn-outline" id="btn-orcamento" onclick="gerarOrcamentoPDF()" title="Gerar PDF de orçamento">📄 Orçamento</button>
+          <button type="button" class="btn-outline" onclick="gerarOrcamentoPDF()" title="Gerar PDF">📄 Orçamento</button>
           <button type="submit" class="btn-primary" id="btn-save">
             <span class="btn-text">Salvar</span>
             <span class="btn-loader hidden">⟳</span>
@@ -195,9 +215,7 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════
-       MODAL: COMPROVANTE (visualizar)
-  ══════════════════════════════════════════════════ -->
+  <!-- ══ MODAL: COMPROVANTE ════════════════════════════════════ -->
   <div id="receipt-modal" class="modal-overlay hidden" onclick="closeReceiptModal()">
     <div class="modal-card modal-card-img">
       <div class="modal-header">
@@ -208,22 +226,18 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════
-       MODAL: PRODUTOS (admin)
-  ══════════════════════════════════════════════════ -->
+  <!-- ══ MODAL: PRODUTOS (admin) ══════════════════════════════ -->
   <div id="products-modal" class="modal-overlay hidden" onclick="closeProductsModalOverlay(event)">
     <div class="modal-card">
       <div class="modal-header">
         <h2>📦 Produtos</h2>
         <button class="modal-close" onclick="closeProductsModal()">✕</button>
       </div>
-
-      <!-- Formulário de produto -->
       <form id="product-form" onsubmit="handleSaveProduct(event)">
         <input type="hidden" id="product-id" />
         <div class="fields-row">
           <div class="field-group" style="flex:2">
-            <label>Nome do produto *</label>
+            <label>Nome *</label>
             <input type="text" id="prod-nome" placeholder="Ex: Caderno A5" required />
           </div>
           <div class="field-group">
@@ -243,19 +257,12 @@
           </button>
         </div>
       </form>
-
       <hr class="divider" />
-
-      <!-- Lista de produtos cadastrados -->
-      <div id="products-list" class="products-list">
-        <div class="spinner-inline">⟳ Carregando…</div>
-      </div>
+      <div id="products-list" class="products-list"></div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════
-       MODAL: CONFIRMAÇÃO DE EXCLUSÃO
-  ══════════════════════════════════════════════════ -->
+  <!-- ══ MODAL: CONFIRMAÇÃO EXCLUSÃO ══════════════════════════ -->
   <div id="delete-modal" class="modal-overlay hidden" onclick="closeDeleteModalOnOverlay(event)">
     <div class="modal-card modal-card-small">
       <div class="modal-header">

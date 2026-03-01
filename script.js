@@ -1,40 +1,57 @@
 // ============================================================
-//  script.js — Papelaria BETEL v2
-//  Funcionalidades: Auth, Pedidos com Itens, Produtos,
-//  Upload de Comprovante, Perfis Admin/Usuário, PDF Orçamento
+//  script.js — Papelaria BETEL v3
+//  Novidades: 3 status, filtro por período personalizado,
+//  faturamento mês atual + período filtrado, busca por cliente
 // ============================================================
 
 // ────────────────────────────────────────────────────────────
-// ① CONFIGURAÇÃO — substitua com suas credenciais do Supabase
-//    Supabase Dashboard → Settings → API
+// ① CONFIGURAÇÃO
 // ────────────────────────────────────────────────────────────
 const SUPABASE_URL      = 'https://ltnokzhupzqpuvirgzut.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0bm9remh1cHpxcHV2aXJnenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNTU5MTQsImV4cCI6MjA4NzkzMTkxNH0.kEkdULzmxIfNX5hKlUoHpPs9Gnfgfxfj8qjfzGvvAoE';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0bm9remh1cHpxcHV2aXJnenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNTU5MTQsImV4cCI6MjA4NzkzMTkxNH0.kEkdULzmxIfNX5hKlUoHpPs9Gnfgfxfj8qjfzGvvAoE';const ADMIN_EMAIL       = 'jrs.edson@gmail.com';
 
-// E-mail do administrador (pode concluir sem comprovante)
-const ADMIN_EMAIL = 'jrs.edson@gmail.com';
-
-// Inicializa cliente com nome diferente do global 'supabase'
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ────────────────────────────────────────────────────────────
-// ② ESTADO GLOBAL
+// ② CONSTANTES DE STATUS
 // ────────────────────────────────────────────────────────────
-let currentUser    = null;   // usuário logado
-let isAdmin        = false;  // flag de admin
-let allOrders      = [];     // cache de pedidos
-let allProducts    = [];     // cache de produtos
-let currentFilter  = 'todos';
-let deleteTargetId = null;
-let orderItems     = [];     // itens do pedido em edição
-let comprovanteFile = null;  // arquivo de comprovante selecionado
+const STATUS = {
+  PENDENTE:       'pendente',
+  ENTREGUE_NPAGO: 'entregue_nao_pago',
+  ENTREGUE_PAGO:  'entregue_pago',
+};
+
+const STATUS_LABEL = {
+  pendente:          '⏳ Pendente',
+  entregue_nao_pago: '📦 Entregue - Aguard. Pgto',
+  entregue_pago:     '✅ Entregue e Pago',
+};
+
+const STATUS_BADGE_CLASS = {
+  pendente:          'badge-pending',
+  entregue_nao_pago: 'badge-delivered',
+  entregue_pago:     'badge-done',
+};
 
 // ────────────────────────────────────────────────────────────
-// ③ INICIALIZAÇÃO
+// ③ ESTADO GLOBAL
+// ────────────────────────────────────────────────────────────
+let currentUser     = null;
+let isAdmin         = false;
+let allOrders       = [];
+let allProducts     = [];
+let currentFilter   = 'todos';
+let deleteTargetId  = null;
+let orderItems      = [];
+let comprovanteFile = null;
+let periodoInicio   = '';
+let periodoFim      = '';
+
+// ────────────────────────────────────────────────────────────
+// ④ INICIALIZAÇÃO
 // ────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   const page = window.location.pathname.includes('dashboard') ? 'dashboard' : 'auth';
-
   const { data: { session } } = await db.auth.getSession();
 
   if (page === 'auth') {
@@ -42,40 +59,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // Dashboard: exige sessão
   if (!session) { window.location.href = 'index.html'; return; }
 
   currentUser = session.user;
   isAdmin     = currentUser.email === ADMIN_EMAIL;
 
-  // UI de perfil
   document.getElementById('user-email-display').textContent = currentUser.email;
   const badge = document.getElementById('user-badge');
-  badge.textContent  = isAdmin ? '👑Admin' : 'Owner';
-  badge.className    = 'user-badge ' + (isAdmin ? 'badge-admin' : 'badge-op');
+  badge.textContent = isAdmin ? '👑ADMIN' : 'OWNER';
+  badge.className   = 'user-badge ' + (isAdmin ? 'badge-admin' : 'badge-op');
 
-  // Botão de produtos só para admin
   if (isAdmin) document.getElementById('btn-products-nav').style.display = 'flex';
+
+  // Período padrão: mês atual
+  const hoje = new Date();
+  periodoInicio = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-01`;
+  periodoFim    = todayDate();
+  document.getElementById('periodo-inicio').value = periodoInicio;
+  document.getElementById('periodo-fim').value    = periodoFim;
 
   await loadProducts();
   await loadOrders();
 });
 
 // ────────────────────────────────────────────────────────────
-// ④ AUTENTICAÇÃO
+// ⑤ AUTH
 // ────────────────────────────────────────────────────────────
 async function handleLogin(event) {
   event.preventDefault();
   const email    = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
-
   setButtonLoading('btn-login', true);
   const { error } = await db.auth.signInWithPassword({ email, password });
-  if (error) {
-    showAuthMessage(translateError(error.message), 'error');
-    setButtonLoading('btn-login', false);
-    return;
-  }
+  if (error) { showAuthMessage(translateError(error.message), 'error'); setButtonLoading('btn-login', false); return; }
   window.location.href = 'dashboard.html';
 }
 
@@ -85,7 +101,45 @@ async function handleLogout() {
 }
 
 // ────────────────────────────────────────────────────────────
-// ⑤ PRODUTOS — CRUD
+// ⑥ FILTRO DE PERÍODO
+// ────────────────────────────────────────────────────────────
+function applyPeriod() {
+  const ini = document.getElementById('periodo-inicio').value;
+  const fim = document.getElementById('periodo-fim').value;
+  if (!ini || !fim) { alert('Selecione data de início e fim.'); return; }
+  if (ini > fim)    { alert('A data de início deve ser anterior à data fim.'); return; }
+  periodoInicio = ini;
+  periodoFim    = fim;
+  renderOrders();
+  updateSummaryCards();
+}
+
+function clearPeriod() {
+  const hoje = new Date();
+  periodoInicio = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-01`;
+  periodoFim    = todayDate();
+  document.getElementById('periodo-inicio').value = periodoInicio;
+  document.getElementById('periodo-fim').value    = periodoFim;
+  renderOrders();
+  updateSummaryCards();
+}
+
+function inPeriod(order) {
+  const d = order.data_pedido || order.created_at?.split('T')[0] || '';
+  if (!d) return false;
+  return d >= periodoInicio && d <= periodoFim;
+}
+
+function inCurrentMonth(order) {
+  const hoje = new Date();
+  const ini  = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-01`;
+  const fim  = todayDate();
+  const d    = order.data_pedido || order.created_at?.split('T')[0] || '';
+  return d >= ini && d <= fim;
+}
+
+// ────────────────────────────────────────────────────────────
+// ⑦ PRODUTOS — CRUD
 // ────────────────────────────────────────────────────────────
 async function loadProducts() {
   const { data, error } = await db.from('produtos').select('*').order('nome');
@@ -95,29 +149,24 @@ async function loadProducts() {
   renderProductsList();
 }
 
-// Popula o <select> de produtos no form de pedido
 function populateProductSelect() {
   const sel = document.getElementById('item-product-select');
   if (!sel) return;
   sel.innerHTML = '<option value="">Selecione um produto…</option>';
   allProducts.forEach(p => {
     const opt = document.createElement('option');
-    opt.value       = p.id;
-    opt.textContent = `${p.nome} — R$ ${formatCurrency(p.preco)}`;
+    opt.value = p.id;
+    opt.textContent   = `${p.nome} — R$ ${formatCurrency(p.preco)}`;
     opt.dataset.preco = p.preco;
     opt.dataset.nome  = p.nome;
     sel.appendChild(opt);
   });
 }
 
-// Renderiza lista de produtos no modal de gestão
 function renderProductsList() {
   const el = document.getElementById('products-list');
   if (!el) return;
-  if (allProducts.length === 0) {
-    el.innerHTML = '<p class="empty-inline">Nenhum produto cadastrado ainda.</p>';
-    return;
-  }
+  if (allProducts.length === 0) { el.innerHTML = '<p class="empty-inline">Nenhum produto cadastrado ainda.</p>'; return; }
   el.innerHTML = allProducts.map(p => `
     <div class="product-item">
       <div class="product-info">
@@ -126,34 +175,26 @@ function renderProductsList() {
       </div>
       <span class="product-price">R$ ${formatCurrency(p.preco)}</span>
       <div class="product-actions">
-        <button class="btn-icon-sm" onclick="editProduct('${p.id}')" title="Editar">✏️</button>
-        <button class="btn-icon-sm btn-icon-del" onclick="deleteProduct('${p.id}')" title="Excluir">🗑️</button>
+        <button class="btn-icon-sm" onclick="editProduct('${p.id}')">✏️</button>
+        <button class="btn-icon-sm btn-icon-del" onclick="deleteProduct('${p.id}')">🗑️</button>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 async function handleSaveProduct(event) {
   event.preventDefault();
   setButtonLoading('btn-save-product', true);
-
-  const id      = document.getElementById('product-id').value;
+  const id = document.getElementById('product-id').value;
   const payload = {
     nome:      document.getElementById('prod-nome').value.trim(),
     preco:     parseFloat(document.getElementById('prod-preco').value) || 0,
     descricao: document.getElementById('prod-descricao').value.trim(),
   };
-
   let error;
-  if (id) {
-    ({ error } = await db.from('produtos').update(payload).eq('id', id));
-  } else {
-    ({ error } = await db.from('produtos').insert(payload));
-  }
-
+  if (id) { ({ error } = await db.from('produtos').update(payload).eq('id', id)); }
+  else    { ({ error } = await db.from('produtos').insert(payload)); }
   setButtonLoading('btn-save-product', false);
   if (error) { alert('Erro ao salvar produto.'); return; }
-
   clearProductForm();
   await loadProducts();
 }
@@ -161,10 +202,10 @@ async function handleSaveProduct(event) {
 function editProduct(id) {
   const p = allProducts.find(x => x.id === id);
   if (!p) return;
-  document.getElementById('product-id').value       = p.id;
-  document.getElementById('prod-nome').value        = p.nome;
-  document.getElementById('prod-preco').value       = p.preco;
-  document.getElementById('prod-descricao').value   = p.descricao || '';
+  document.getElementById('product-id').value     = p.id;
+  document.getElementById('prod-nome').value      = p.nome;
+  document.getElementById('prod-preco').value     = p.preco;
+  document.getElementById('prod-descricao').value = p.descricao || '';
 }
 
 async function deleteProduct(id) {
@@ -173,32 +214,20 @@ async function deleteProduct(id) {
   await loadProducts();
 }
 
-function clearProductForm() {
-  document.getElementById('product-id').value     = '';
-  document.getElementById('product-form').reset();
-}
-
-// Modais de produtos
+function clearProductForm() { document.getElementById('product-id').value = ''; document.getElementById('product-form').reset(); }
 function openProductsModal()          { loadProducts(); document.getElementById('products-modal').classList.remove('hidden'); }
 function closeProductsModal()         { document.getElementById('products-modal').classList.add('hidden'); }
 function closeProductsModalOverlay(e) { if (e.target === document.getElementById('products-modal')) closeProductsModal(); }
 
 // ────────────────────────────────────────────────────────────
-// ⑥ ITENS DO PEDIDO
+// ⑧ ITENS DO PEDIDO
 // ────────────────────────────────────────────────────────────
 function addItemFromSelect() {
   const sel = document.getElementById('item-product-select');
   const qty = parseInt(document.getElementById('item-qty').value) || 1;
   if (!sel.value) { alert('Selecione um produto.'); return; }
-
   const opt = sel.options[sel.selectedIndex];
-  addItem({
-    product_id: sel.value,
-    nome:       opt.dataset.nome,
-    preco:      parseFloat(opt.dataset.preco),
-    quantidade: qty,
-  });
-
+  addItem({ product_id: sel.value, nome: opt.dataset.nome, preco: parseFloat(opt.dataset.preco), quantidade: qty });
   sel.value = '';
   document.getElementById('item-qty').value = 1;
 }
@@ -208,39 +237,24 @@ function addCustomItem() {
   const preco = parseFloat(document.getElementById('item-custom-price').value) || 0;
   const qty   = parseInt(document.getElementById('item-custom-qty').value) || 1;
   if (!nome) { alert('Digite o nome do item avulso.'); return; }
-
   addItem({ product_id: null, nome, preco, quantidade: qty });
-
   document.getElementById('item-custom-name').value  = '';
   document.getElementById('item-custom-price').value = '';
   document.getElementById('item-custom-qty').value   = 1;
 }
 
 function addItem(item) {
-  // Se produto já existe, soma quantidade
-  const existing = item.product_id
-    ? orderItems.find(i => i.product_id === item.product_id)
-    : null;
-  if (existing) {
-    existing.quantidade += item.quantidade;
-  } else {
-    orderItems.push({ ...item, _tempId: Date.now() + Math.random() });
-  }
+  const existing = item.product_id ? orderItems.find(i => i.product_id === item.product_id) : null;
+  if (existing) { existing.quantidade += item.quantidade; }
+  else          { orderItems.push({ ...item, _tempId: Date.now() + Math.random() }); }
   renderItemsList();
 }
 
-function removeItem(tempId) {
-  orderItems = orderItems.filter(i => i._tempId !== tempId);
-  renderItemsList();
-}
+function removeItem(tempId) { orderItems = orderItems.filter(i => i._tempId !== tempId); renderItemsList(); }
 
 function renderItemsList() {
   const el = document.getElementById('items-list');
-  if (orderItems.length === 0) {
-    el.innerHTML = '<p class="empty-inline">Nenhum item adicionado.</p>';
-    updateOrderTotal();
-    return;
-  }
+  if (orderItems.length === 0) { el.innerHTML = '<p class="empty-inline">Nenhum item adicionado.</p>'; updateOrderTotal(); return; }
   el.innerHTML = orderItems.map(item => `
     <div class="item-row">
       <div class="item-info">
@@ -249,27 +263,22 @@ function renderItemsList() {
       </div>
       <span class="item-subtotal">R$ ${formatCurrency(item.preco * item.quantidade)}</span>
       <button type="button" class="btn-remove-item" onclick="removeItem(${item._tempId})">✕</button>
-    </div>
-  `).join('');
+    </div>`).join('');
   updateOrderTotal();
 }
 
 function updateOrderTotal() {
-  const total = orderItems.reduce((acc, i) => acc + i.preco * i.quantidade, 0);
   const el = document.getElementById('order-total-display');
-  if (el) el.textContent = `R$ ${formatCurrency(total)}`;
+  if (el) el.textContent = `R$ ${formatCurrency(getOrderTotal())}`;
 }
 
-function getOrderTotal() {
-  return orderItems.reduce((acc, i) => acc + i.preco * i.quantidade, 0);
-}
+function getOrderTotal() { return orderItems.reduce((acc, i) => acc + i.preco * i.quantidade, 0); }
 
 // ────────────────────────────────────────────────────────────
-// ⑦ PEDIDOS — CRUD
+// ⑨ PEDIDOS — CARREGAR E RENDERIZAR
 // ────────────────────────────────────────────────────────────
 async function loadOrders() {
   showLoadingState(true);
-
   const { data, error } = await db
     .from('pedidos')
     .select(`*, itens_pedido(*, produtos(nome, preco))`)
@@ -278,28 +287,22 @@ async function loadOrders() {
 
   showLoadingState(false);
   if (error) { console.error('Erro pedidos:', error); return; }
-
   allOrders = data || [];
   renderOrders();
   updateSummaryCards();
 }
 
-// Verifica se um pedido está atrasado
 function isLate(order) {
   if (!order.data_entrega) return false;
-  if (order.status === 'concluído') {
-    // Atrasado se entregou depois do previsto
-    if (!order.data_entrega_real) return false;
-    return order.data_entrega_real > order.data_entrega;
-  }
-  // Pendente e passou da data prevista
+  const entregue = order.status === STATUS.ENTREGUE_PAGO || order.status === STATUS.ENTREGUE_NPAGO;
+  if (entregue) return order.data_entrega_real ? order.data_entrega_real > order.data_entrega : false;
   return todayDate() > order.data_entrega;
 }
 
 function renderOrders() {
   const list       = document.getElementById('orders-list');
   const emptyState = document.getElementById('empty-state');
-  const search     = (document.getElementById('search-input')?.value || '').toLowerCase();
+  const search     = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
 
   let filtered = allOrders;
 
@@ -310,14 +313,14 @@ function renderOrders() {
     filtered = filtered.filter(p => p.status === currentFilter);
   }
 
+  // Filtro de período
+  filtered = filtered.filter(inPeriod);
+
   // Busca por cliente
-  if (search) {
-    filtered = filtered.filter(p => p.cliente.toLowerCase().includes(search));
-  }
+  if (search) filtered = filtered.filter(p => p.cliente.toLowerCase().includes(search));
 
   if (filtered.length === 0) {
-    list.innerHTML = '';
-    list.classList.add('hidden');
+    list.innerHTML = ''; list.classList.add('hidden');
     emptyState.classList.remove('hidden');
     return;
   }
@@ -327,43 +330,46 @@ function renderOrders() {
 
   list.innerHTML = filtered.map(order => {
     const late       = isLate(order);
-    const isConcluido = order.status === 'concluído';
-    const prazoLabel  = buildPrazoLabel(order);
+    const prazoLabel = buildPrazoLabel(order);
+    const isPago     = order.status === STATUS.ENTREGUE_PAGO;
+    const isPendente = order.status === STATUS.PENDENTE;
+    const isNPago    = order.status === STATUS.ENTREGUE_NPAGO;
 
-    // Resumo de itens
-    const itensHtml = order.itens_pedido && order.itens_pedido.length > 0
+    const itensHtml = order.itens_pedido?.length
       ? `<div class="order-items-preview">${order.itens_pedido.map(i =>
-          `<span class="item-chip">${i.quantidade}x ${escapeHtml(i.nome || (i.produtos && i.produtos.nome) || '?')}</span>`
-        ).join('')}</div>`
-      : '';
+          `<span class="item-chip">${i.quantidade}x ${escapeHtml(i.nome || i.produtos?.nome || '?')}</span>`
+        ).join('')}</div>` : '';
+
+    let statusBtns = '';
+    if (isPendente) {
+      statusBtns = `<button class="btn-status-toggle btn-entregue" onclick="setStatusEntregueNPago('${order.id}')">📦 Entregar</button>`;
+    } else if (isNPago) {
+      statusBtns = `
+        <button class="btn-status-toggle btn-pago" onclick="openEditOrderModal('${order.id}', true)">💰 Receber pgto</button>
+        <button class="btn-status-sm" title="Reverter para pendente" onclick="setStatusPendente('${order.id}')">↩</button>`;
+    } else if (isPago) {
+      statusBtns = `<button class="btn-status-toggle btn-reverter" onclick="setStatusPendente('${order.id}')">↩ Reabrir</button>`;
+    }
 
     return `
-    <article class="order-card ${isConcluido ? 'status-concluido' : 'status-pendente'} ${late ? 'status-late' : ''}" data-id="${order.id}">
+    <article class="order-card status-${order.status.replace(/_/g,'-')} ${late ? 'status-late' : ''}">
       <div class="order-card-top">
         <div class="order-client">${escapeHtml(order.cliente)}</div>
-        <span class="status-badge ${isConcluido ? 'badge-done' : 'badge-pending'}">
-          ${isConcluido ? '✅ Concluído' : '⏳ Pendente'}
-        </span>
+        <span class="status-badge ${STATUS_BADGE_CLASS[order.status] || 'badge-pending'}">${STATUS_LABEL[order.status] || order.status}</span>
       </div>
-
       ${itensHtml}
       ${order.descricao ? `<div class="order-desc">${escapeHtml(order.descricao)}</div>` : ''}
-
       <div class="order-card-meta">
         <span class="order-value">R$ ${formatCurrency(order.valor)}</span>
         <div class="order-dates-block">
-          ${order.data_pedido ? `<span class="date-tag">📅 ${formatDate(order.data_pedido)}</span>` : ''}
-          ${order.data_entrega ? `<span class="date-tag ${late ? 'date-late' : ''}">🚚 ${formatDate(order.data_entrega)}</span>` : ''}
-          ${order.data_entrega_real ? `<span class="date-tag date-real">🏁 ${formatDate(order.data_entrega_real)}</span>` : ''}
+          ${order.data_pedido      ? `<span class="date-tag">📅 ${formatDate(order.data_pedido)}</span>` : ''}
+          ${order.data_entrega     ? `<span class="date-tag ${late?'date-late':''}">🚚 ${formatDate(order.data_entrega)}</span>` : ''}
+          ${order.data_entrega_real? `<span class="date-tag date-real">🏁 ${formatDate(order.data_entrega_real)}</span>` : ''}
         </div>
       </div>
-
       ${prazoLabel}
-
       <div class="order-card-actions">
-        <button class="btn-status-toggle" onclick="toggleStatus('${order.id}', '${order.status}')">
-          ${isConcluido ? '↩ Pendente' : '✓ Concluir'}
-        </button>
+        ${statusBtns}
         <button class="btn-edit" onclick="openEditOrderModal('${order.id}')">✏️</button>
         ${order.comprovante_url
           ? `<button class="btn-receipt" onclick="viewReceipt('${escapeHtml(order.comprovante_url)}')" title="Ver comprovante">🧾</button>`
@@ -376,29 +382,73 @@ function renderOrders() {
 
 function buildPrazoLabel(order) {
   if (!order.data_entrega) return '';
-  if (order.status === 'concluído' && order.data_entrega_real) {
+  const entregue = order.status === STATUS.ENTREGUE_PAGO || order.status === STATUS.ENTREGUE_NPAGO;
+  if (entregue && order.data_entrega_real) {
     const ok = order.data_entrega_real <= order.data_entrega;
-    return `<div class="prazo-tag ${ok ? 'prazo-ok' : 'prazo-atraso'}">${ok ? '✅ Entregue no prazo' : '⚠️ Entregue com atraso'}</div>`;
+    return `<div class="prazo-tag ${ok?'prazo-ok':'prazo-atraso'}">${ok?'✅ Entregue no prazo':'⚠️ Entregue com atraso'}</div>`;
   }
-  if (order.status === 'pendente' && todayDate() > order.data_entrega) {
+  if (order.status === STATUS.PENDENTE && todayDate() > order.data_entrega) {
     return `<div class="prazo-tag prazo-atraso">🚨 Prazo vencido</div>`;
   }
   return '';
 }
 
 function updateSummaryCards() {
-  const pending = allOrders.filter(p => p.status === 'pendente');
-  const done    = allOrders.filter(p => p.status === 'concluído');
-  const late    = allOrders.filter(isLate);
+  // Mês atual (fixo)
+  const doMes  = allOrders.filter(inCurrentMonth);
+  const pagMes  = doMes.filter(o => o.status === STATUS.ENTREGUE_PAGO);
+  const aguMes  = doMes.filter(o => o.status === STATUS.ENTREGUE_NPAGO);
+  document.getElementById('mes-faturado').textContent   = `R$ ${formatCurrency(pagMes.reduce((a,o)=>a+Number(o.valor),0))}`;
+  document.getElementById('mes-aguardando').textContent = `R$ ${formatCurrency(aguMes.reduce((a,o)=>a+Number(o.valor),0))}`;
+  document.getElementById('mes-label').textContent      = labelMesAtual();
 
-  document.getElementById('total-pending').textContent = `R$ ${formatCurrency(pending.reduce((a, p) => a + Number(p.valor), 0))}`;
-  document.getElementById('total-done').textContent    = `R$ ${formatCurrency(done.reduce((a, p) => a + Number(p.valor), 0))}`;
-  document.getElementById('count-pending').textContent = `${pending.length} pedido${pending.length !== 1 ? 's' : ''}`;
-  document.getElementById('count-done').textContent    = `${done.length} pedido${done.length !== 1 ? 's' : ''}`;
-  document.getElementById('count-late').textContent    = late.length;
+  // Período filtrado
+  const doPer  = allOrders.filter(inPeriod);
+  const pagPer  = doPer.filter(o => o.status === STATUS.ENTREGUE_PAGO);
+  const aguPer  = doPer.filter(o => o.status === STATUS.ENTREGUE_NPAGO);
+  const pendPer = doPer.filter(o => o.status === STATUS.PENDENTE);
+  const atras   = allOrders.filter(isLate);
+
+  document.getElementById('per-faturado').textContent   = `R$ ${formatCurrency(pagPer.reduce((a,o)=>a+Number(o.valor),0))}`;
+  document.getElementById('per-aguardando').textContent = `R$ ${formatCurrency(aguPer.reduce((a,o)=>a+Number(o.valor),0))}`;
+  document.getElementById('per-pendente').textContent   = `R$ ${formatCurrency(pendPer.reduce((a,o)=>a+Number(o.valor),0))}`;
+  document.getElementById('count-late').textContent     = atras.length;
+  document.getElementById('per-count-pago').textContent  = `${pagPer.length} pedido${pagPer.length!==1?'s':''}`;
+  document.getElementById('per-count-aguar').textContent = `${aguPer.length} pedido${aguPer.length!==1?'s':''}`;
+  document.getElementById('per-count-pend').textContent  = `${pendPer.length} pedido${pendPer.length!==1?'s':''}`;
 }
 
-// Salva pedido (insert ou update)
+function labelMesAtual() {
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const hoje  = new Date();
+  return `${meses[hoje.getMonth()]}/${hoje.getFullYear()}`;
+}
+
+// Ação rápida: marcar entregue (não pago) via prompt de data
+async function setStatusEntregueNPago(id) {
+  const dataReal = prompt('Data de entrega real (DD/MM/AAAA):');
+  if (!dataReal) return;
+  const parts = dataReal.trim().split('/');
+  if (parts.length !== 3) { alert('Formato inválido. Use DD/MM/AAAA'); return; }
+  const iso = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+  const { error } = await db.from('pedidos')
+    .update({ status: STATUS.ENTREGUE_NPAGO, data_entrega_real: iso })
+    .eq('id', id).eq('user_id', currentUser.id);
+  if (!error) await loadOrders();
+}
+
+// Reverter para pendente
+async function setStatusPendente(id) {
+  if (!confirm('Reverter para Pendente? A data de entrega real e o comprovante serão removidos.')) return;
+  const { error } = await db.from('pedidos')
+    .update({ status: STATUS.PENDENTE, data_entrega_real: null, comprovante_url: null })
+    .eq('id', id).eq('user_id', currentUser.id);
+  if (!error) await loadOrders();
+}
+
+// ────────────────────────────────────────────────────────────
+// ⑩ SALVAR PEDIDO
+// ────────────────────────────────────────────────────────────
 async function handleSaveOrder(event) {
   event.preventDefault();
   setButtonLoading('btn-save', true);
@@ -406,61 +456,50 @@ async function handleSaveOrder(event) {
 
   const orderId    = document.getElementById('order-id').value;
   const status     = document.getElementById('field-status').value;
-  const isConcluido = status === 'concluído';
+  const isPago     = status === STATUS.ENTREGUE_PAGO;
+  const isEntregue = isPago || status === STATUS.ENTREGUE_NPAGO;
 
-  // Validação de itens
   if (orderItems.length === 0) {
     showModalMessage('Adicione ao menos um item ao pedido.', 'error');
-    setButtonLoading('btn-save', false);
-    return;
+    setButtonLoading('btn-save', false); return;
   }
 
-  // Validação de conclusão
-  if (isConcluido) {
-    const dataReal = document.getElementById('field-data-entrega-real').value;
-    if (!dataReal) {
-      showModalMessage('Informe a data de entrega real.', 'error');
-      setButtonLoading('btn-save', false);
-      return;
-    }
-    // Nayara precisa de comprovante obrigatório
+  if (isEntregue && !document.getElementById('field-data-entrega-real').value) {
+    showModalMessage('Informe a data de entrega real.', 'error');
+    setButtonLoading('btn-save', false); return;
+  }
+
+  // Comprovante obrigatório para Nayara APENAS ao marcar "entregue e pago"
+  if (isPago && !isAdmin) {
     const jaTemComprovante = !document.getElementById('comprovante-existing').classList.contains('hidden');
-    if (!isAdmin && !comprovanteFile && !jaTemComprovante) {
-      showModalMessage('O comprovante de pagamento é obrigatório para concluir o pedido.', 'error');
-      setButtonLoading('btn-save', false);
-      return;
+    if (!comprovanteFile && !jaTemComprovante) {
+      showModalMessage('O comprovante de pagamento é obrigatório para registrar o recebimento.', 'error');
+      setButtonLoading('btn-save', false); return;
     }
   }
 
-  // Upload do comprovante (se selecionado)
   let comprovanteUrl = null;
   if (comprovanteFile) {
     comprovanteUrl = await uploadComprovante(comprovanteFile, orderId || 'new_' + Date.now());
     if (!comprovanteUrl) {
-      showModalMessage('Erro ao enviar comprovante. Tente novamente.', 'error');
-      setButtonLoading('btn-save', false);
-      return;
+      showModalMessage('Erro ao enviar comprovante.', 'error');
+      setButtonLoading('btn-save', false); return;
     }
   }
-
-  // Busca URL existente se estiver editando e não enviou novo
   if (!comprovanteUrl && orderId) {
-    const existingOrder = allOrders.find(o => o.id === orderId);
-    comprovanteUrl = existingOrder?.comprovante_url || null;
+    comprovanteUrl = allOrders.find(o => o.id === orderId)?.comprovante_url || null;
   }
 
-  const total = getOrderTotal();
-
   const payload = {
-    cliente:            document.getElementById('field-cliente').value.trim(),
-    descricao:          document.getElementById('field-descricao').value.trim(),
-    valor:              total,
+    cliente:           document.getElementById('field-cliente').value.trim(),
+    descricao:         document.getElementById('field-descricao').value.trim(),
+    valor:             getOrderTotal(),
     status,
-    data_pedido:        document.getElementById('field-data-pedido').value || null,
-    data_entrega:       document.getElementById('field-data-entrega').value || null,
-    data_entrega_real:  isConcluido ? (document.getElementById('field-data-entrega-real').value || null) : null,
-    comprovante_url:    isConcluido ? comprovanteUrl : null,
-    user_id:            currentUser.id,
+    data_pedido:       document.getElementById('field-data-pedido').value || null,
+    data_entrega:      document.getElementById('field-data-entrega').value || null,
+    data_entrega_real: isEntregue ? (document.getElementById('field-data-entrega-real').value || null) : null,
+    comprovante_url:   isPago ? comprovanteUrl : null,
+    user_id:           currentUser.id,
   };
 
   let savedOrderId = orderId;
@@ -469,224 +508,152 @@ async function handleSaveOrder(event) {
   if (orderId) {
     ({ error } = await db.from('pedidos').update(payload).eq('id', orderId).eq('user_id', currentUser.id));
   } else {
-    const { data: inserted, error: insertError } = await db.from('pedidos').insert(payload).select().single();
-    error = insertError;
+    const { data: inserted, error: ie } = await db.from('pedidos').insert(payload).select().single();
+    error = ie;
     if (inserted) savedOrderId = inserted.id;
   }
 
-  if (error) {
-    showModalMessage('Erro ao salvar pedido.', 'error');
-    setButtonLoading('btn-save', false);
-    return;
-  }
+  if (error) { showModalMessage('Erro ao salvar pedido.', 'error'); setButtonLoading('btn-save', false); return; }
 
-  // Salva itens: remove os antigos e reinsere
   await db.from('itens_pedido').delete().eq('pedido_id', savedOrderId);
-  const itensPayload = orderItems.map(i => ({
-    pedido_id:  savedOrderId,
-    product_id: i.product_id || null,
-    nome:       i.nome,
-    preco:      i.preco,
-    quantidade: i.quantidade,
-    subtotal:   i.preco * i.quantidade,
-  }));
-  if (itensPayload.length > 0) {
-    await db.from('itens_pedido').insert(itensPayload);
+  if (orderItems.length > 0) {
+    await db.from('itens_pedido').insert(orderItems.map(i => ({
+      pedido_id:  savedOrderId,
+      product_id: i.product_id || null,
+      nome:       i.nome,
+      preco:      i.preco,
+      quantidade: i.quantidade,
+      subtotal:   i.preco * i.quantidade,
+    })));
   }
 
   closeOrderModal();
   await loadOrders();
 }
 
-// Alterna status (com validações)
-async function toggleStatus(id, currentStatus) {
-  const newStatus = currentStatus === 'concluído' ? 'pendente' : 'concluído';
-
-  // Se for concluir, abre o modal de edição para preencher dados obrigatórios
-  if (newStatus === 'concluído') {
-    openEditOrderModal(id, true);
-    return;
-  }
-
-  // Revertendo para pendente: limpa dados de conclusão
-  const { error } = await db.from('pedidos')
-    .update({ status: 'pendente', data_entrega_real: null, comprovante_url: null })
-    .eq('id', id).eq('user_id', currentUser.id);
-
-  if (!error) await loadOrders();
-}
-
 // ────────────────────────────────────────────────────────────
-// ⑧ MODAL DE PEDIDO
+// ⑪ MODAL DE PEDIDO
 // ────────────────────────────────────────────────────────────
 function openOrderModal() {
   document.getElementById('modal-title').textContent = 'Novo Pedido';
   document.getElementById('order-form').reset();
-  document.getElementById('order-id').value = '';
+  document.getElementById('order-id').value          = '';
   document.getElementById('field-data-pedido').value = todayDate();
-  orderItems     = [];
-  comprovanteFile = null;
+  document.getElementById('field-status').value      = STATUS.PENDENTE;
+  orderItems = []; comprovanteFile = null;
   renderItemsList();
-  hideConclusaoSection();
+  updateConclusaoSection();
   hideModalMessage();
   resetComprovanteUI();
   document.getElementById('order-modal').classList.remove('hidden');
 }
 
-function openEditOrderModal(id, forceConclusion = false) {
+function openEditOrderModal(id, forcePayment = false) {
   const order = allOrders.find(p => p.id === id);
   if (!order) return;
 
-  document.getElementById('modal-title').textContent = 'Editar Pedido';
-  document.getElementById('order-id').value          = order.id;
-  document.getElementById('field-cliente').value     = order.cliente;
-  document.getElementById('field-descricao').value   = order.descricao || '';
-  document.getElementById('field-status').value      = forceConclusion ? 'concluído' : order.status;
-  document.getElementById('field-data-pedido').value = order.data_pedido || '';
-  document.getElementById('field-data-entrega').value = order.data_entrega || '';
-  document.getElementById('field-data-entrega-real').value = order.data_entrega_real || '';
+  document.getElementById('modal-title').textContent           = 'Editar Pedido';
+  document.getElementById('order-id').value                    = order.id;
+  document.getElementById('field-cliente').value               = order.cliente;
+  document.getElementById('field-descricao').value             = order.descricao || '';
+  document.getElementById('field-data-pedido').value           = order.data_pedido || '';
+  document.getElementById('field-data-entrega').value          = order.data_entrega || '';
+  document.getElementById('field-data-entrega-real').value     = order.data_entrega_real || '';
+  document.getElementById('field-status').value                = forcePayment ? STATUS.ENTREGUE_PAGO : order.status;
 
-  // Itens
   orderItems = (order.itens_pedido || []).map(i => ({
-    _tempId:    Date.now() + Math.random(),
+    _tempId: Date.now() + Math.random(),
     product_id: i.product_id,
-    nome:       i.nome || (i.produtos && i.produtos.nome) || '',
+    nome:       i.nome || i.produtos?.nome || '',
     preco:      i.preco,
     quantidade: i.quantidade,
   }));
   renderItemsList();
 
-  // Comprovante existente
   comprovanteFile = null;
   resetComprovanteUI();
   if (order.comprovante_url) {
-    const existingLink = document.getElementById('comprovante-existing');
-    existingLink.href = order.comprovante_url;
-    existingLink.classList.remove('hidden');
+    const link = document.getElementById('comprovante-existing');
+    link.href = order.comprovante_url;
+    link.classList.remove('hidden');
   }
 
-  // Seção de conclusão
-  if (forceConclusion || order.status === 'concluído') {
-    showConclusaoSection();
-  } else {
-    hideConclusaoSection();
-  }
-
+  updateConclusaoSection();
   hideModalMessage();
   document.getElementById('order-modal').classList.remove('hidden');
 }
 
-function closeOrderModal() {
-  document.getElementById('order-modal').classList.add('hidden');
-  comprovanteFile = null;
-}
+function closeOrderModal() { document.getElementById('order-modal').classList.add('hidden'); comprovanteFile = null; }
+function closeModalOnOverlay(e) { if (e.target === document.getElementById('order-modal')) closeOrderModal(); }
+function onStatusChange() { updateConclusaoSection(); }
 
-function closeModalOnOverlay(event) {
-  if (event.target === document.getElementById('order-modal')) closeOrderModal();
-}
-
-// Mostra/esconde seção de conclusão conforme status selecionado
-function onStatusChange() {
-  const status = document.getElementById('field-status').value;
-  if (status === 'concluído') showConclusaoSection();
-  else hideConclusaoSection();
-}
-
-function showConclusaoSection() {
-  document.getElementById('conclusao-section').classList.remove('hidden');
-  // Ajusta obrigatoriedade do comprovante
-  const label = document.getElementById('comprovante-label');
-  if (isAdmin) {
-    label.textContent = 'Comprovante de pagamento (opcional para admin)';
-  } else {
-    label.textContent = 'Comprovante de pagamento *';
+function updateConclusaoSection() {
+  const status     = document.getElementById('field-status').value;
+  const isEntregue = status === STATUS.ENTREGUE_PAGO || status === STATUS.ENTREGUE_NPAGO;
+  const isPago     = status === STATUS.ENTREGUE_PAGO;
+  document.getElementById('conclusao-section').classList.toggle('hidden', !isEntregue);
+  if (isEntregue) {
+    document.getElementById('comprovante-field').classList.toggle('hidden', !isPago);
+    document.getElementById('comprovante-label').textContent = isAdmin
+      ? 'Comprovante de pagamento (opcional para admin)'
+      : 'Comprovante de pagamento *';
   }
 }
 
-function hideConclusaoSection() {
-  document.getElementById('conclusao-section').classList.add('hidden');
-}
-
 // ────────────────────────────────────────────────────────────
-// ⑨ UPLOAD DE COMPROVANTE
+// ⑫ COMPROVANTE
 // ────────────────────────────────────────────────────────────
 function onComprovanteSelected(event) {
   const file = event.target.files[0];
   if (!file) return;
   comprovanteFile = file;
-
   const preview = document.getElementById('comprovante-preview');
   preview.classList.remove('hidden');
-
   if (file.type.startsWith('image/')) {
     const reader = new FileReader();
-    reader.onload = e => {
-      preview.innerHTML = `<img src="${e.target.result}" class="comprovante-img-preview" alt="Comprovante" />`;
-    };
+    reader.onload = e => { preview.innerHTML = `<img src="${e.target.result}" class="comprovante-img-preview" />`; };
     reader.readAsDataURL(file);
   } else {
     preview.innerHTML = `<div class="file-preview-tag">📄 ${escapeHtml(file.name)}</div>`;
   }
-
-  // Esconde área de upload e mostra preview
   document.getElementById('upload-area').style.display = 'none';
 }
 
 function resetComprovanteUI() {
-  document.getElementById('field-comprovante').value   = '';
+  document.getElementById('field-comprovante').value       = '';
   document.getElementById('comprovante-preview').innerHTML = '';
   document.getElementById('comprovante-preview').classList.add('hidden');
   document.getElementById('comprovante-existing').classList.add('hidden');
-  document.getElementById('comprovante-existing').href = '';
-  document.getElementById('upload-area').style.display = 'flex';
+  document.getElementById('comprovante-existing').href     = '';
+  document.getElementById('upload-area').style.display    = 'flex';
   comprovanteFile = null;
 }
 
 async function uploadComprovante(file, pedidoId) {
   const ext      = file.name.split('.').pop();
   const fileName = `comprovantes/${pedidoId}_${Date.now()}.${ext}`;
-
-  const { data, error } = await db.storage
-    .from('comprovantes')
-    .upload(fileName, file, { upsert: true });
-
+  const { error } = await db.storage.from('comprovantes').upload(fileName, file, { upsert: true });
   if (error) { console.error('Upload error:', error); return null; }
-
   const { data: urlData } = db.storage.from('comprovantes').getPublicUrl(fileName);
   return urlData.publicUrl;
 }
 
-// Visualiza comprovante
 function viewReceipt(url) {
-  const modal   = document.getElementById('receipt-modal');
-  const content = document.getElementById('receipt-content');
   const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
-
-  content.innerHTML = isImage
-    ? `<img src="${escapeHtml(url)}" class="receipt-full-img" alt="Comprovante" />`
+  document.getElementById('receipt-content').innerHTML = isImage
+    ? `<img src="${escapeHtml(url)}" class="receipt-full-img" />`
     : `<div class="receipt-pdf-link"><a href="${escapeHtml(url)}" target="_blank" class="btn-primary" style="display:inline-block;text-decoration:none">📄 Abrir PDF</a></div>`;
-
-  modal.classList.remove('hidden');
+  document.getElementById('receipt-modal').classList.remove('hidden');
 }
 
-function closeReceiptModal() {
-  document.getElementById('receipt-modal').classList.add('hidden');
-}
+function closeReceiptModal() { document.getElementById('receipt-modal').classList.add('hidden'); }
 
 // ────────────────────────────────────────────────────────────
-// ⑩ EXCLUSÃO DE PEDIDO
+// ⑬ EXCLUSÃO
 // ────────────────────────────────────────────────────────────
-function openDeleteModal(id) {
-  deleteTargetId = id;
-  document.getElementById('delete-modal').classList.remove('hidden');
-}
-function closeDeleteModal() {
-  deleteTargetId = null;
-  document.getElementById('delete-modal').classList.add('hidden');
-}
-function closeDeleteModalOnOverlay(e) {
-  if (e.target === document.getElementById('delete-modal')) closeDeleteModal();
-}
+function openDeleteModal(id)  { deleteTargetId = id; document.getElementById('delete-modal').classList.remove('hidden'); }
+function closeDeleteModal()   { deleteTargetId = null; document.getElementById('delete-modal').classList.add('hidden'); }
+function closeDeleteModalOnOverlay(e) { if (e.target === document.getElementById('delete-modal')) closeDeleteModal(); }
 async function confirmDelete() {
   if (!deleteTargetId) return;
   await db.from('itens_pedido').delete().eq('pedido_id', deleteTargetId);
@@ -696,121 +663,63 @@ async function confirmDelete() {
 }
 
 // ────────────────────────────────────────────────────────────
-// ⑪ GERAÇÃO DE ORÇAMENTO EM PDF
+// ⑭ PDF ORÇAMENTO
 // ────────────────────────────────────────────────────────────
 function gerarOrcamentoPDF() {
-  const cliente  = document.getElementById('field-cliente').value.trim() || 'Cliente';
-  const obs      = document.getElementById('field-descricao').value.trim();
-  const dataHoje = formatDate(todayDate());
-
-  if (orderItems.length === 0) {
-    alert('Adicione itens ao pedido antes de gerar o orçamento.');
-    return;
-  }
-
+  const cliente = document.getElementById('field-cliente').value.trim() || 'Cliente';
+  const obs     = document.getElementById('field-descricao').value.trim();
+  if (orderItems.length === 0) { alert('Adicione itens antes de gerar o orçamento.'); return; }
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const doc   = new jsPDF({ unit: 'mm', format: 'a4' });
+  const coral = [232,99,74], tinta = [44,35,24], suave = [107,94,82];
 
-  const corPrincipal = [232, 99, 74];   // coral
-  const corTexto     = [44, 35, 24];    // ink
-  const corSuave     = [107, 94, 82];   // ink-soft
+  doc.setFillColor(...coral); doc.rect(0,0,210,35,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(22); doc.setFont('helvetica','bold'); doc.text('Papelaria BETEL',15,16);
+  doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.text('Orçamento de Pedido',15,24); doc.text(`Data: ${formatDate(todayDate())}`,15,30);
 
-  // Cabeçalho
-  doc.setFillColor(...corPrincipal);
-  doc.rect(0, 0, 210, 35, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(22);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Papelaria BETEL', 15, 16);
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Orçamento de Pedido', 15, 24);
-  doc.text(`Data: ${dataHoje}`, 15, 30);
+  doc.setTextColor(...tinta); doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.text('Cliente',15,48);
+  doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.text(cliente,15,55);
+  doc.setDrawColor(...coral); doc.setLineWidth(0.5); doc.line(15,60,195,60);
 
-  // Dados do cliente
-  doc.setTextColor(...corTexto);
-  doc.setFontSize(13);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Cliente', 15, 48);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(11);
-  doc.text(cliente, 15, 55);
+  doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(...tinta);
+  doc.text('Item',15,68); doc.text('Qtd',120,68,{align:'center'}); doc.text('Unit.',150,68,{align:'right'}); doc.text('Subtotal',195,68,{align:'right'});
+  doc.setLineWidth(0.2); doc.setDrawColor(200,200,200); doc.line(15,70,195,70);
 
-  // Linha divisória
-  doc.setDrawColor(...corPrincipal);
-  doc.setLineWidth(0.5);
-  doc.line(15, 60, 195, 60);
-
-  // Tabela de itens
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...corTexto);
-  doc.text('Item', 15, 68);
-  doc.text('Qtd', 120, 68, { align: 'center' });
-  doc.text('Unit.', 150, 68, { align: 'right' });
-  doc.text('Subtotal', 195, 68, { align: 'right' });
-
-  doc.setLineWidth(0.2);
-  doc.setDrawColor(200, 200, 200);
-  doc.line(15, 70, 195, 70);
-
-  let y = 77;
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...corSuave);
-
+  let y = 77; doc.setFont('helvetica','normal'); doc.setTextColor(...suave);
   orderItems.forEach(item => {
     if (y > 260) { doc.addPage(); y = 20; }
-    doc.text(item.nome.substring(0, 45), 15, y);
-    doc.text(String(item.quantidade), 120, y, { align: 'center' });
-    doc.text(`R$ ${formatCurrency(item.preco)}`, 150, y, { align: 'right' });
-    doc.text(`R$ ${formatCurrency(item.preco * item.quantidade)}`, 195, y, { align: 'right' });
-    y += 8;
-    doc.line(15, y - 2, 195, y - 2);
+    doc.text(item.nome.substring(0,45),15,y); doc.text(String(item.quantidade),120,y,{align:'center'});
+    doc.text(`R$ ${formatCurrency(item.preco)}`,150,y,{align:'right'}); doc.text(`R$ ${formatCurrency(item.preco*item.quantidade)}`,195,y,{align:'right'});
+    y += 8; doc.line(15,y-2,195,y-2);
   });
 
-  // Total
-  y += 4;
-  doc.setFillColor(250, 247, 242);
-  doc.rect(120, y - 5, 75, 12, 'F');
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...corPrincipal);
-  doc.text('TOTAL', 125, y + 2);
-  doc.text(`R$ ${formatCurrency(getOrderTotal())}`, 195, y + 2, { align: 'right' });
+  y += 4; doc.setFillColor(250,247,242); doc.rect(120,y-5,75,12,'F');
+  doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(...coral);
+  doc.text('TOTAL',125,y+2); doc.text(`R$ ${formatCurrency(getOrderTotal())}`,195,y+2,{align:'right'});
 
-  // Observações
   if (obs) {
-    y += 20;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...corTexto);
-    doc.text('Observações:', 15, y);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...corSuave);
-    const lines = doc.splitTextToSize(obs, 170);
-    doc.text(lines, 15, y + 7);
+    y += 20; doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(...tinta); doc.text('Observações:',15,y);
+    doc.setFont('helvetica','normal'); doc.setTextColor(...suave); doc.text(doc.splitTextToSize(obs,170),15,y+7);
   }
 
-  // Rodapé
-  doc.setFontSize(9);
-  doc.setTextColor(180, 180, 180);
-  doc.text('Orçamento gerado por Papelaria BETEL — sujeito a alterações.', 105, 285, { align: 'center' });
-
-  doc.save(`orcamento_${cliente.replace(/\s+/g, '_')}_${todayDate()}.pdf`);
+  doc.setFontSize(9); doc.setTextColor(180,180,180);
+  doc.text('Orçamento gerado por Papelaria BETEL - sujeito a alterações.',105,285,{align:'center'});
+  doc.save(`orcamento_${cliente.replace(/\s+/g,'_')}_${todayDate()}.pdf`);
 }
 
 // ────────────────────────────────────────────────────────────
-// ⑫ FILTROS E BUSCA
+// ⑮ FILTROS DE STATUS
 // ────────────────────────────────────────────────────────────
 function setFilter(filter, btn) {
   currentFilter = filter;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderOrders();
+  updateSummaryCards();
 }
 
 // ────────────────────────────────────────────────────────────
-// ⑬ HELPERS DE UI
+// ⑯ HELPERS DE UI
 // ────────────────────────────────────────────────────────────
 function showLoadingState(show) {
   document.getElementById('loading-state').classList.toggle('hidden', !show);
@@ -818,58 +727,23 @@ function showLoadingState(show) {
   if (show) document.getElementById('empty-state').classList.add('hidden');
 }
 
-function showAuthMessage(msg, type) {
-  const el = document.getElementById('auth-message');
-  if (!el) return;
-  el.textContent = msg;
-  el.className   = `auth-message ${type}`;
-}
-
-function showModalMessage(msg, type) {
-  const el = document.getElementById('modal-message');
-  if (!el) return;
-  el.textContent = msg;
-  el.className   = `auth-message ${type}`;
-}
-
-function hideModalMessage() {
-  const el = document.getElementById('modal-message');
-  if (el) el.className = 'auth-message hidden';
-}
-
+function showAuthMessage(msg, type) { const el = document.getElementById('auth-message'); if (!el) return; el.textContent = msg; el.className = `auth-message ${type}`; }
+function showModalMessage(msg, type) { const el = document.getElementById('modal-message'); if (!el) return; el.textContent = msg; el.className = `auth-message ${type}`; }
+function hideModalMessage() { const el = document.getElementById('modal-message'); if (el) el.className = 'auth-message hidden'; }
 function setButtonLoading(btnId, loading) {
-  const btn = document.getElementById(btnId);
-  if (!btn) return;
+  const btn = document.getElementById(btnId); if (!btn) return;
   btn.disabled = loading;
-  const t = btn.querySelector('.btn-text');
-  const l = btn.querySelector('.btn-loader');
-  if (t) t.classList.toggle('hidden', loading);
-  if (l) l.classList.toggle('hidden', !loading);
+  btn.querySelector('.btn-text')?.classList.toggle('hidden', loading);
+  btn.querySelector('.btn-loader')?.classList.toggle('hidden', !loading);
 }
 
 // ────────────────────────────────────────────────────────────
-// ⑭ UTILITÁRIOS
+// ⑰ UTILITÁRIOS
 // ────────────────────────────────────────────────────────────
-function formatCurrency(value) {
-  return Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const [y, m, d] = dateStr.split('-');
-  return `${d}/${m}/${y}`;
-}
-
-function todayDate() {
-  return new Date().toISOString().split('T')[0];
-}
-
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.appendChild(document.createTextNode(str || ''));
-  return div.innerHTML;
-}
-
+function formatCurrency(v) { return Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function formatDate(d) { if (!d) return ''; const [y,m,dd] = d.split('-'); return `${dd}/${m}/${y}`; }
+function todayDate()   { return new Date().toISOString().split('T')[0]; }
+function escapeHtml(str) { const d = document.createElement('div'); d.appendChild(document.createTextNode(str||'')); return d.innerHTML; }
 function translateError(msg) {
   if (msg.includes('Invalid login credentials')) return 'E-mail ou senha incorretos.';
   if (msg.includes('Email not confirmed'))        return 'Confirme seu e-mail antes de entrar.';
