@@ -3,14 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Papelaria BETEL - Login</title>
+  <title>Papelaria Criativa — Login</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- Google Fonts: Playfair Display + DM Sans -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
 </head>
 <body class="auth-body">
-
-  <!-- Decorações de fundo -->
   <div class="bg-shapes">
     <div class="shape shape-1"></div>
     <div class="shape shape-2"></div>
@@ -18,21 +15,14 @@
   </div>
 
   <main class="auth-container">
-
-    <!-- Logo / Cabeçalho -->
     <header class="auth-header">
       <div class="logo-icon">✦</div>
-      <h1 class="brand-name">Papelaria<br><em>BETEL</em></h1>
-      <p class="brand-subtitle">Gestão de pedidos</p>
+      <h1 class="brand-name">Papelaria<br><em>Criativa</em></h1>
+      <p class="brand-subtitle">Gestão de pedidos artesanais</p>
     </header>
 
-    <!-- Card de autenticação -->
     <div class="auth-card">
-
-      <!-- Mensagem de feedback -->
       <div id="auth-message" class="auth-message hidden"></div>
-
-      <!-- Formulário de Login -->
       <form id="form-login" class="auth-form" onsubmit="handleLogin(event)">
         <div class="field-group">
           <label for="login-email">E-mail</label>
@@ -47,16 +37,11 @@
           <span class="btn-loader hidden">⟳</span>
         </button>
       </form>
+    </div>
 
-    </div><!-- /auth-card -->
-
-    <footer class="auth-footer">
-      <p>✦ Feito com carinho</p>
-    </footer>
-
+    <footer class="auth-footer"><p>✦ Feito com carinho para sua papelaria</p></footer>
   </main>
 
-  <!-- SDK do Supabase via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
 </body>
