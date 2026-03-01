@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Papelaria Criativa — Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body class="dashboard-body">
+
+  <!-- ===================== HEADER ===================== -->
+  <header class="dash-header">
+    <div class="dash-header-inner">
+      <div class="dash-logo">
+        <span class="logo-icon">✦</span>
+        <span class="logo-text">Papelaria <em>Criativa</em></span>
+      </div>
+      <div class="dash-header-right">
+        <span class="user-email" id="user-email-display"></span>
+        <button class="btn-logout" onclick="handleLogout()" title="Sair">⏻</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================== CARDS DE RESUMO ===================== -->
+  <section class="summary-section">
+    <div class="summary-card card-pending">
+      <div class="summary-label">⏳ Pendentes</div>
+      <div class="summary-value" id="total-pending">R$ 0,00</div>
+      <div class="summary-count" id="count-pending">0 pedidos</div>
+    </div>
+    <div class="summary-card card-done">
+      <div class="summary-label">✅ Concluídos</div>
+      <div class="summary-value" id="total-done">R$ 0,00</div>
+      <div class="summary-count" id="count-done">0 pedidos</div>
+    </div>
+  </section>
+
+  <!-- ===================== FILTRO + BOTÃO NOVO ===================== -->
+  <section class="toolbar-section">
+    <div class="filter-tabs">
+      <button class="filter-btn active" data-filter="todos" onclick="setFilter('todos', this)">Todos</button>
+      <button class="filter-btn" data-filter="pendente" onclick="setFilter('pendente', this)">Pendentes</button>
+      <button class="filter-btn" data-filter="concluído" onclick="setFilter('concluído', this)">Concluídos</button>
+    </div>
+    <button class="btn-new-order" onclick="openModal()">+ Novo</button>
+  </section>
+
+  <!-- ===================== LISTA DE PEDIDOS ===================== -->
+  <main class="orders-section">
+    <!-- Estado de carregamento -->
+    <div id="loading-state" class="empty-state">
+      <div class="spinner">⟳</div>
+      <p>Carregando pedidos…</p>
+    </div>
+
+    <!-- Estado vazio -->
+    <div id="empty-state" class="empty-state hidden">
+      <div class="empty-icon">📋</div>
+      <p class="empty-title">Nenhum pedido ainda</p>
+      <p class="empty-sub">Toque em <strong>+ Novo</strong> para adicionar seu primeiro pedido.</p>
+    </div>
+
+    <!-- Lista de pedidos renderizada dinamicamente -->
+    <div id="orders-list" class="orders-list"></div>
+  </main>
+
+  <!-- ===================== MODAL PEDIDO ===================== -->
+  <div id="order-modal" class="modal-overlay hidden" onclick="closeModalOnOverlay(event)">
+    <div class="modal-card">
+
+      <div class="modal-header">
+        <h2 id="modal-title">Novo Pedido</h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+
+      <!-- Mensagem de erro no modal -->
+      <div id="modal-message" class="auth-message hidden"></div>
+
+      <form id="order-form" onsubmit="handleSaveOrder(event)">
+        <!-- ID oculto para edição -->
+        <input type="hidden" id="order-id" />
+
+        <div class="field-group">
+          <label for="field-cliente">Cliente *</label>
+          <input type="text" id="field-cliente" placeholder="Nome do cliente" required />
+        </div>
+
+        <div class="field-group">
+          <label for="field-descricao">Descrição do pedido *</label>
+          <textarea id="field-descricao" placeholder="Descreva os itens do pedido…" rows="3" required></textarea>
+        </div>
+
+        <div class="fields-row">
+          <div class="field-group">
+            <label for="field-valor">Valor (R$) *</label>
+            <input type="number" id="field-valor" placeholder="0,00" min="0" step="0.01" required />
+          </div>
+          <div class="field-group">
+            <label for="field-status">Status</label>
+            <select id="field-status">
+              <option value="pendente">⏳ Pendente</option>
+              <option value="concluído">✅ Concluído</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="fields-row">
+          <div class="field-group">
+            <label for="field-data-pedido">Data do pedido</label>
+            <input type="date" id="field-data-pedido" />
+          </div>
+          <div class="field-group">
+            <label for="field-data-entrega">Entrega prevista</label>
+            <input type="date" id="field-data-entrega" />
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn-primary" id="btn-save">
+            <span class="btn-text">Salvar</span>
+            <span class="btn-loader hidden">⟳</span>
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div><!-- /modal -->
+
+  <!-- ===================== MODAL CONFIRMAÇÃO EXCLUSÃO ===================== -->
+  <div id="delete-modal" class="modal-overlay hidden" onclick="closeDeleteModalOnOverlay(event)">
+    <div class="modal-card modal-card-small">
+      <div class="modal-header">
+        <h2>Excluir pedido?</h2>
+        <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+      </div>
+      <p class="delete-confirm-text">Esta ação não pode ser desfeita. Deseja continuar?</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
+        <button class="btn-danger" id="btn-confirm-delete" onclick="confirmDelete()">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
+</body>
+</html>
