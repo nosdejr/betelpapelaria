@@ -8,11 +8,11 @@
 //    Substitua os valores abaixo pelas suas credenciais.
 //    Encontre-as em: Supabase Dashboard → Settings → API
 // ────────────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://ltnokzhupzqpuvirgzut.supabase.co';   // ← substitua
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0bm9remh1cHpxcHV2aXJnenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNTU5MTQsImV4cCI6MjA4NzkzMTkxNH0.kEkdULzmxIfNX5hKlUoHpPs9Gnfgfxfj8qjfzGvvAoE';               // ← substitua
+const SUPABASE_URL = 'https://SEU_PROJECT_ID.supabase.co';   // ← substitua
+const SUPABASE_ANON_KEY = 'SUA_ANON_KEY_AQUI';               // ← substitua
 
 // Inicializa o cliente Supabase (disponível via CDN)
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ────────────────────────────────────────────────────────────
 // ② VARIÁVEIS GLOBAIS
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (page === 'auth') {
     // Se já estiver logado, vai direto para o dashboard
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await db.auth.getSession();
     if (session) {
       window.location.href = 'dashboard.html';
     }
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (page === 'dashboard') {
     // Verifica sessão; se não houver, volta para login
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await db.auth.getSession();
     if (!session) {
       window.location.href = 'index.html';
       return;
@@ -68,7 +68,7 @@ async function handleLogin(event) {
 
   setButtonLoading('btn-login', true);
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await db.auth.signInWithPassword({ email, password });
 
   if (error) {
     showAuthMessage(translateError(error.message), 'error');
@@ -82,7 +82,7 @@ async function handleLogin(event) {
 
 // Logout
 async function handleLogout() {
-  await supabase.auth.signOut();
+  await db.auth.signOut();
   window.location.href = 'index.html';
 }
 
@@ -94,7 +94,7 @@ async function handleLogout() {
 async function loadOrders() {
   showLoadingState(true);
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await db.auth.getSession();
   if (!session) return;
 
   const { data, error } = await supabase
@@ -187,7 +187,7 @@ async function handleSaveOrder(event) {
   setButtonLoading('btn-save', true);
   hideModalMessage();
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await db.auth.getSession();
   const orderId = document.getElementById('order-id').value;
 
   const payload = {
@@ -211,7 +211,7 @@ async function handleSaveOrder(event) {
       .eq('user_id', session.user.id));
   } else {
     // INSERT — novo pedido
-    ({ error } = await supabase.from('pedidos').insert(payload));
+    ({ error } = await db.from('pedidos').insert(payload));
   }
 
   setButtonLoading('btn-save', false);
@@ -229,7 +229,7 @@ async function handleSaveOrder(event) {
 async function toggleStatus(id, currentStatus) {
   const newStatus = currentStatus === 'concluído' ? 'pendente' : 'concluído';
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await db.auth.getSession();
 
   const { error } = await supabase
     .from('pedidos')
@@ -265,7 +265,7 @@ function closeDeleteModalOnOverlay(event) {
 async function confirmDelete() {
   if (!deleteTargetId) return;
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await db.auth.getSession();
 
   const { error } = await supabase
     .from('pedidos')
