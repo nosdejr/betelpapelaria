@@ -66,10 +66,10 @@
       </div>
       <!-- ✅ MELHORIA 3: atalhos atualizados — Hoje, Mês Anterior, Ano, Todos -->
       <div class="period-shortcuts">
-        <button class="period-shortcut" onclick="setPeriodShortcut('hoje',this)">👉 Hoje</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('mes-anterior',this)">📅 Mês Anterior</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('ano',this)">🗓 Ano</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('todos',this)">📋 Todos</button>
+        <button class="period-shortcut" onclick="setPeriodShortcut('hoje',this)">Hoje</button>
+        <button class="period-shortcut" onclick="setPeriodShortcut('mes-anterior',this)">Mês Anterior</button>
+        <button class="period-shortcut" onclick="setPeriodShortcut('ano',this)">Ano</button>
+        <button class="period-shortcut" onclick="setPeriodShortcut('todos',this)">Todos</button>
       </div>
       <!-- Seletor de datas inline -->
       <div class="period-row">
@@ -110,10 +110,10 @@
     <!-- Linha 1: filtros de status (2 linhas no mobile) -->
     <div class="filter-grid">
       <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
-      <button class="filter-btn" onclick="setFilter('pendente',this)">⏳ Pendentes</button>
-      <button class="filter-btn" onclick="setFilter('entregue_nao_pago',this)">📦 Entregues</button>
-      <button class="filter-btn" onclick="setFilter('entregue_pago',this)">✅ Pagos</button>
-      <button class="filter-btn filter-btn-late" onclick="setFilter('atrasado',this)">🚨 Atrasados</button>
+      <button class="filter-btn" onclick="setFilter('pendente',this)">Pendentes</button>
+      <button class="filter-btn" onclick="setFilter('entregue_nao_pago',this)">Entregues</button>
+      <button class="filter-btn" onclick="setFilter('entregue_pago',this)">Pagos</button>
+      <button class="filter-btn filter-btn-late" onclick="setFilter('atrasado',this)">Atrasados</button>
     </div>
     <!-- Linha 2: busca + botão novo -->
     <div class="search-new-row">
@@ -195,9 +195,9 @@
         <div class="field-group">
           <label for="field-status">Status</label>
           <select id="field-status" onchange="onStatusChange()">
-            <option value="pendente">⏳ Pendente</option>
-            <option value="entregue_nao_pago">📦 Entregue — Aguard. Pgto</option>
-            <option value="entregue_pago">✅ Entregue e Pago</option>
+            <option value="pendente">Pendente</option>
+            <option value="entregue_nao_pago">Entregue - Aguard. Pgto</option>
+            <option value="entregue_pago">Entregue e Pago</option>
           </select>
         </div>
 
