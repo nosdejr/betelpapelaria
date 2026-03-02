@@ -1,5 +1,5 @@
 // ============================================================
-//  script.js — Papelaria Criativa v4
+//  script.js — Papelaria BETEL v4
 //  Correções: pedidos compartilhados, bug botão salvar,
 //  datas com calendário, filtro de período automático
 // ============================================================
@@ -7,8 +7,8 @@
 // ────────────────────────────────────────────────────────────
 // ① CONFIGURAÇÃO
 // ────────────────────────────────────────────────────────────
-const SUPABASE_URL      = 'https://SEU_PROJECT_ID.supabase.co';
-const SUPABASE_ANON_KEY = 'SUA_ANON_KEY_AQUI';
+const SUPABASE_URL      = 'https://ltnokzhupzqpuvirgzut.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0bm9remh1cHpxcHV2aXJnenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNTU5MTQsImV4cCI6MjA4NzkzMTkxNH0.kEkdULzmxIfNX5hKlUoHpPs9Gnfgfxfj8qjfzGvvAoE';
 const ADMIN_EMAIL       = 'jrs.edson@gmail.com';
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -762,7 +762,7 @@ function gerarOrcamentoPDF() {
   const coral = [232,99,74], tinta = [44,35,24], suave = [107,94,82];
 
   doc.setFillColor(...coral); doc.rect(0,0,210,35,'F');
-  doc.setTextColor(255,255,255); doc.setFontSize(22); doc.setFont('helvetica','bold'); doc.text('Papelaria Criativa',15,16);
+  doc.setTextColor(255,255,255); doc.setFontSize(22); doc.setFont('helvetica','bold'); doc.text('Papelaria BETEL',15,16);
   doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.text('Orçamento de Pedido',15,24); doc.text(`Data: ${formatDate(todayDate())}`,15,30);
 
   doc.setTextColor(...tinta); doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.text('Cliente',15,48);
@@ -790,7 +790,7 @@ function gerarOrcamentoPDF() {
     doc.setFont('helvetica','normal'); doc.setTextColor(...suave); doc.text(doc.splitTextToSize(obs,170),15,y+7);
   }
   doc.setFontSize(9); doc.setTextColor(180,180,180);
-  doc.text('Orçamento gerado por Papelaria Criativa — sujeito a alterações.',105,285,{align:'center'});
+  doc.text('Orçamento gerado por Papelaria BETEL - sujeito a alterações.',105,285,{align:'center'});
   doc.save(`orcamento_${cliente.replace(/\s+/g,'_')}_${todayDate()}.pdf`);
 }
 
