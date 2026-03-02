@@ -1,9 +1,10 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Papelaria BETEL - Dashboard</title>
+  <title>Papelaria Criativa — Dashboard</title>
   <link rel="stylesheet" href="styles.css" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -11,11 +12,12 @@
 <body class="dashboard-body">
 
   <!-- ══ HEADER ══════════════════════════════════════════════ -->
+
   <header class="dash-header">
     <div class="dash-header-inner">
       <div class="dash-logo">
         <span class="logo-icon">✦</span>
-        <span class="logo-text">Papelaria <em>BETEL</em></span>
+        <span class="logo-text">Papelaria <em>Criativa</em></span>
       </div>
       <div class="dash-header-right">
         <span class="user-badge" id="user-badge"></span>
@@ -25,72 +27,112 @@
     </div>
   </header>
 
-  <!-- ══ RESUMO FINANCEIRO ════════════════════════════════════
-       Dois painéis lado a lado: Mês atual | Período filtrado
+  <!-- ══════════════════════════════════════════════════════════
+       MELHORIA 1: DASHBOARD COM NAVEGAÇÃO DE MÊS + INDICADORES
   ══════════════════════════════════════════════════════════ -->
+
   <section class="billing-section">
 
-    <!-- Painel esquerdo: mês atual (fixo) -->
-    <div class="billing-panel billing-panel-fixed">
-      <div class="billing-panel-header">
-        <span class="billing-panel-icon">📅</span>
-        <span class="billing-panel-title">Mês atual</span>
-        <span class="billing-panel-sub" id="mes-label"></span>
-      </div>
-      <div class="billing-row">
-        <div class="billing-item">
-          <span class="billing-item-label">💰 Recebido</span>
-          <span class="billing-item-value green" id="mes-faturado">R$ 0,00</span>
-        </div>
-        <div class="billing-item">
-          <span class="billing-item-label">🕐 A receber</span>
-          <span class="billing-item-value blue" id="mes-aguardando">R$ 0,00</span>
-        </div>
-        <div class="billing-item">
-          <span class="billing-item-label">🚨 Atrasados</span>
-          <span class="billing-item-value red" id="count-late">0</span>
-        </div>
-      </div>
-    </div>
+```
+<!-- Painel esquerdo: mês atual com navegação ‹ › -->
+<div class="billing-panel billing-panel-fixed">
 
-    <!-- Painel direito: período personalizado -->
-    <div class="billing-panel billing-panel-custom">
-      <div class="billing-panel-header">
-        <span class="billing-panel-icon">🔎</span>
-        <span class="billing-panel-title">Período</span>
-      </div>
-      <!-- Seletor de datas inline -->
-      <div class="period-row">
-        <input type="date" id="periodo-inicio" class="period-input" onchange="applyPeriod()" />
-        <span class="period-sep">→</span>
-        <input type="date" id="periodo-fim" class="period-input" onchange="applyPeriod()" />
-      </div>
-      <div class="billing-row">
-        <div class="billing-item">
-          <span class="billing-item-label">💰 Recebido</span>
-          <span class="billing-item-value green" id="per-faturado">R$ 0,00</span>
-          <span class="billing-item-count" id="per-count-pago"></span>
-        </div>
-        <div class="billing-item">
-          <span class="billing-item-label">🕐 A receber</span>
-          <span class="billing-item-value blue" id="per-aguardando">R$ 0,00</span>
-          <span class="billing-item-count" id="per-count-aguar"></span>
-        </div>
-        <div class="billing-item">
-          <span class="billing-item-label">⏳ Pendente</span>
-          <span class="billing-item-value gold" id="per-pendente">R$ 0,00</span>
-          <span class="billing-item-count" id="per-count-pend"></span>
-        </div>
-      </div>
+  <!-- NOVO: Navegação de mês clicável -->
+  <div class="month-nav">
+    <button class="month-nav-btn" onclick="navegarMes(-1)" title="Mês anterior">‹</button>
+    <div class="month-nav-labels">
+      <span class="month-nav-prev" id="mes-prev-label"></span>
+      <span class="month-nav-current" id="mes-label"></span>
+      <span class="month-nav-next" id="mes-next-label"></span>
     </div>
+    <button class="month-nav-btn" onclick="navegarMes(+1)" title="Próximo mês">›</button>
+  </div>
+
+  <!-- Cards clicáveis que filtram a lista -->
+  <div class="billing-row">
+    <div class="billing-item billing-item-clickable" onclick="filtrarPorCard('entregue_pago')" title="Clique para filtrar pagos">
+      <span class="billing-item-label">💰 Recebido</span>
+      <span class="billing-item-value green" id="mes-faturado">R$ 0,00</span>
+    </div>
+    <div class="billing-item billing-item-clickable" onclick="filtrarPorCard('entregue_nao_pago')" title="Clique para filtrar a receber">
+      <span class="billing-item-label">🕐 A receber</span>
+      <span class="billing-item-value blue" id="mes-aguardando">R$ 0,00</span>
+    </div>
+    <div class="billing-item billing-item-clickable" onclick="filtrarPorCard('atrasado')" title="Clique para filtrar atrasados">
+      <span class="billing-item-label">🚨 Atrasados</span>
+      <span class="billing-item-value red" id="count-late">0</span>
+    </div>
+  </div>
+
+  <!-- NOVO: Indicadores adicionais do mês -->
+  <div class="mes-indicadores">
+    <div class="mes-ind-item">
+      <span class="mes-ind-label">Pedidos</span>
+      <span class="mes-ind-value" id="mes-total-pedidos">0</span>
+    </div>
+    <div class="mes-ind-item">
+      <span class="mes-ind-label">Ticket médio</span>
+      <span class="mes-ind-value" id="mes-ticket-medio">R$ 0,00</span>
+    </div>
+    <div class="mes-ind-item">
+      <span class="mes-ind-label">Clientes</span>
+      <span class="mes-ind-value" id="mes-clientes">0</span>
+    </div>
+    <div class="mes-ind-item">
+      <span class="mes-ind-label">Melhor dia</span>
+      <span class="mes-ind-value" id="mes-melhor-dia">--</span>
+    </div>
+  </div>
+</div>
+
+<!-- Painel direito: período personalizado -->
+<div class="billing-panel billing-panel-custom">
+  <div class="billing-panel-header">
+    <span class="billing-panel-icon">🔎</span>
+    <span class="billing-panel-title">Período</span>
+  </div>
+
+  <!-- MELHORIA 2: Atalhos rápidos de período -->
+  <div class="period-shortcuts">
+    <button class="period-shortcut" onclick="setPeriodShortcut('hoje')">👉 Hoje</button>
+    <button class="period-shortcut" onclick="setPeriodShortcut('semana')">📅 Semana</button>
+    <button class="period-shortcut" onclick="setPeriodShortcut('mes')">📆 Mês</button>
+    <button class="period-shortcut" onclick="setPeriodShortcut('30dias')">📊 30 dias</button>
+    <button class="period-shortcut" onclick="setPeriodShortcut('ano')">📅 Ano</button>
+  </div>
+
+  <!-- Campos personalizados mantidos -->
+  <div class="period-row">
+    <input type="date" id="periodo-inicio" class="period-input" onchange="applyPeriod()" />
+    <span class="period-sep">→</span>
+    <input type="date" id="periodo-fim" class="period-input" onchange="applyPeriod()" />
+  </div>
+
+  <div class="billing-row">
+    <div class="billing-item">
+      <span class="billing-item-label">💰 Recebido</span>
+      <span class="billing-item-value green" id="per-faturado">R$ 0,00</span>
+      <span class="billing-item-count" id="per-count-pago"></span>
+    </div>
+    <div class="billing-item">
+      <span class="billing-item-label">🕐 A receber</span>
+      <span class="billing-item-value blue" id="per-aguardando">R$ 0,00</span>
+      <span class="billing-item-count" id="per-count-aguar"></span>
+    </div>
+    <div class="billing-item">
+      <span class="billing-item-label">⏳ Pendente</span>
+      <span class="billing-item-value gold" id="per-pendente">R$ 0,00</span>
+      <span class="billing-item-count" id="per-count-pend"></span>
+    </div>
+  </div>
+</div>
+```
 
   </section>
 
-  <!-- ══ TOOLBAR ══════════════════════════════════════════════
-       Filtros em 2 linhas no mobile para não empilhar
-  ══════════════════════════════════════════════════════════ -->
+  <!-- ══ TOOLBAR ══════════════════════════════════════════════ -->
+
   <section class="toolbar-section">
-    <!-- Linha 1: filtros de status (2 linhas no mobile) -->
     <div class="filter-grid">
       <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
       <button class="filter-btn" onclick="setFilter('pendente',this)">⏳ Pendentes</button>
@@ -98,126 +140,291 @@
       <button class="filter-btn" onclick="setFilter('entregue_pago',this)">✅ Pagos</button>
       <button class="filter-btn filter-btn-late" onclick="setFilter('atrasado',this)">🚨 Atrasados</button>
     </div>
-    <!-- Linha 2: busca + botão novo -->
     <div class="search-new-row">
       <input type="search" id="search-input" class="search-input" placeholder="🔍 Buscar cliente…" oninput="renderOrders()" />
-      <button class="btn-new-order" onclick="openOrderModal()">+ Novo</button>
+      <!-- MELHORIA 4: abre wizard em vez do modal direto -->
+      <button class="btn-new-order" onclick="openWizard()">+ Novo</button>
     </div>
   </section>
 
-  <!-- ══ LISTA DE PEDIDOS ══════════════════════════════════════ -->
+  <!-- ══ LISTA DE PEDIDOS ══════════════════════════════════════
+       MELHORIA 3: Preview + lista sempre visível
+  ══════════════════════════════════════════════════════════ -->
+
   <main class="orders-section">
     <div id="loading-state" class="empty-state">
       <div class="spinner">⟳</div><p>Carregando pedidos…</p>
     </div>
-    <div id="empty-state" class="empty-state hidden">
-      <div class="empty-icon">📋</div>
-      <p class="empty-title">Nenhum pedido encontrado</p>
-      <p class="empty-sub">Toque em <strong>+ Novo</strong> para adicionar ou ajuste os filtros.</p>
-    </div>
-    <div id="orders-list" class="orders-list hidden"></div>
+
+```
+<!-- NOVO: Preview de contagem + total -->
+<div id="orders-preview" class="orders-preview hidden">
+  📊 Mostrando <strong id="preview-count">0</strong> pedidos —
+  Total <strong id="preview-total">R$ 0,00</strong>
+</div>
+
+<div id="empty-state" class="empty-state hidden">
+  <div class="empty-icon">📋</div>
+  <p class="empty-title">Nenhum pedido encontrado</p>
+  <p class="empty-sub">Toque em <strong>+ Novo</strong> para adicionar ou ajuste os filtros.</p>
+</div>
+<div id="orders-list" class="orders-list hidden"></div>
+```
+
   </main>
 
-  <!-- ══ MODAL: PEDIDO ════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════════════════════
+       MELHORIA 4: WIZARD "+ NOVO" (4 passos)
+  ══════════════════════════════════════════════════════════ -->
+
+  <div id="wizard-modal" class="modal-overlay hidden" onclick="closeWizardOnOverlay(event)">
+    <div class="modal-card wizard-card">
+
+```
+  <!-- Cabeçalho com steps -->
+  <div class="wizard-header">
+    <div class="wizard-steps">
+      <div class="wizard-step active" id="wstep-1">
+        <span class="wstep-num">1</span><span class="wstep-label">Cliente</span>
+      </div>
+      <div class="wizard-step-line"></div>
+      <div class="wizard-step" id="wstep-2">
+        <span class="wstep-num">2</span><span class="wstep-label">Itens</span>
+      </div>
+      <div class="wizard-step-line"></div>
+      <div class="wizard-step" id="wstep-3">
+        <span class="wstep-num">3</span><span class="wstep-label">Pagamento</span>
+      </div>
+      <div class="wizard-step-line"></div>
+      <div class="wizard-step" id="wstep-4">
+        <span class="wstep-num">4</span><span class="wstep-label">Confirmar</span>
+      </div>
+    </div>
+    <button class="modal-close" onclick="closeWizard()">✕</button>
+  </div>
+
+  <!-- Rascunho aviso -->
+  <div id="draft-banner" class="draft-banner hidden">
+    📝 Rascunho salvo encontrado.
+    <button onclick="loadDraft()">Continuar</button>
+    <button onclick="discardDraft()">Descartar</button>
+  </div>
+
+  <!-- PASSO 1: CLIENTE -->
+  <div class="wizard-pane" id="wpane-1">
+    <h3 class="wizard-pane-title">👤 Quem é o cliente?</h3>
+    <div class="field-group">
+      <label>Nome do cliente *</label>
+      <!-- autocomplete com datalist de clientes existentes -->
+      <input type="text" id="w-cliente" list="clientes-list"
+             placeholder="Digite ou selecione…" autocomplete="off"
+             oninput="saveDraftDebounced()" />
+      <datalist id="clientes-list"></datalist>
+    </div>
+    <div class="fields-row">
+      <div class="field-group">
+        <label>Data do pedido</label>
+        <input type="date" id="w-data-pedido" oninput="saveDraftDebounced()" />
+      </div>
+      <div class="field-group">
+        <label>Entrega prevista</label>
+        <input type="date" id="w-data-entrega" oninput="saveDraftDebounced()" />
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Observações</label>
+      <textarea id="w-descricao" rows="2" placeholder="Detalhes do pedido…" oninput="saveDraftDebounced()"></textarea>
+    </div>
+  </div>
+
+  <!-- PASSO 2: ITENS -->
+  <div class="wizard-pane hidden" id="wpane-2">
+    <h3 class="wizard-pane-title">🛒 O que foi pedido?</h3>
+    <div class="item-add-row">
+      <select id="w-product-select" class="item-select" onchange="wizardAddFromSelect()">
+        <option value="">＋ Adicionar produto…</option>
+      </select>
+    </div>
+    <div class="item-add-row">
+      <input type="text"   id="w-custom-name"  class="item-custom-name"  placeholder="Item avulso…" />
+      <input type="number" id="w-custom-price" class="item-custom-price" placeholder="R$" min="0" step="0.01" />
+      <input type="number" id="w-custom-qty"   class="item-qty"          placeholder="Qtd" min="1" value="1" />
+      <button type="button" class="btn-add-item" onclick="wizardAddCustom()">＋</button>
+    </div>
+    <div id="w-items-list" class="items-list"></div>
+    <div class="order-total-row">
+      <span>Total:</span>
+      <span class="order-total-value" id="w-total-display">R$ 0,00</span>
+    </div>
+  </div>
+
+  <!-- PASSO 3: PAGAMENTO -->
+  <div class="wizard-pane hidden" id="wpane-3">
+    <h3 class="wizard-pane-title">💳 Como vai pagar?</h3>
+    <div class="field-group">
+      <label>Valor total</label>
+      <div class="valor-total-display" id="w-valor-confirm">R$ 0,00</div>
+    </div>
+    <div class="field-group">
+      <label>Forma de pagamento</label>
+      <div class="payment-options">
+        <button type="button" class="payment-opt" data-forma="dinheiro" onclick="selectPayment(this)">💵 Dinheiro</button>
+        <button type="button" class="payment-opt" data-forma="cartao"   onclick="selectPayment(this)">💳 Cartão</button>
+        <button type="button" class="payment-opt" data-forma="pix"      onclick="selectPayment(this)">📱 Pix</button>
+        <button type="button" class="payment-opt" data-forma="fiado"    onclick="selectPayment(this)">🤝 Fiado</button>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Status do pedido</label>
+      <select id="w-status" onchange="wizardOnStatusChange()">
+        <option value="pendente">⏳ Pendente</option>
+        <option value="entregue_nao_pago">📦 Entregue — Aguard. Pgto</option>
+        <option value="entregue_pago">✅ Entregue e Pago</option>
+      </select>
+    </div>
+    <!-- Seção de entrega (aparece se status = entregue) -->
+    <div id="w-conclusao-section" class="conclusao-section hidden">
+      <div class="section-title">🏁 Dados de entrega</div>
+      <div class="field-group">
+        <label>Data de entrega real *</label>
+        <input type="date" id="w-data-entrega-real" />
+      </div>
+      <div id="w-comprovante-field" class="field-group hidden">
+        <label id="w-comprovante-label">Comprovante *</label>
+        <div class="upload-area" id="w-upload-area" onclick="document.getElementById('w-comprovante').click()">
+          <div class="upload-icon">📎</div>
+          <div class="upload-text">Toque para selecionar foto</div>
+          <div class="upload-hint">JPG, PNG ou PDF</div>
+        </div>
+        <input type="file" id="w-comprovante" accept="image/*,application/pdf" style="display:none" onchange="onWizardComprovanteSelected(event)" />
+        <div id="w-comprovante-preview" class="comprovante-preview hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASSO 4: CONFIRMAR -->
+  <div class="wizard-pane hidden" id="wpane-4">
+    <h3 class="wizard-pane-title">✅ Confirmar pedido</h3>
+    <div id="w-review" class="wizard-review"></div>
+  </div>
+
+  <!-- Mensagem de erro do wizard -->
+  <div id="wizard-message" class="auth-message hidden"></div>
+
+  <!-- Navegação do wizard -->
+  <div class="wizard-nav">
+    <button class="btn-secondary" id="w-btn-back" onclick="wizardBack()" style="display:none">← Voltar</button>
+    <div style="flex:1"></div>
+    <div id="w-draft-status" class="draft-status"></div>
+    <button class="btn-primary" id="w-btn-next" onclick="wizardNext()" style="max-width:160px">
+      <span class="btn-text">Próximo →</span>
+      <span class="btn-loader hidden">⟳</span>
+    </button>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- ══ MODAL: EDITAR PEDIDO EXISTENTE (mantido do v4) ═══════ -->
+
   <div id="order-modal" class="modal-overlay hidden" onclick="closeModalOnOverlay(event)">
     <div class="modal-card">
       <div class="modal-header">
-        <h2 id="modal-title">Novo Pedido</h2>
+        <h2 id="modal-title">Editar Pedido</h2>
         <button class="modal-close" onclick="closeOrderModal()">✕</button>
       </div>
       <div id="modal-message" class="auth-message hidden"></div>
 
-      <form id="order-form" onsubmit="handleSaveOrder(event)">
-        <input type="hidden" id="order-id" />
+```
+  <form id="order-form" onsubmit="handleSaveOrder(event)">
+    <input type="hidden" id="order-id" />
 
-        <div class="field-group">
-          <label for="field-cliente">Cliente *</label>
-          <input type="text" id="field-cliente" placeholder="Nome do cliente" required />
-        </div>
-
-        <div class="section-title">🛒 Itens do pedido</div>
-
-        <div class="item-add-row">
-          <select id="item-product-select" class="item-select">
-            <option value="">Selecione um produto…</option>
-          </select>
-          <input type="number" id="item-qty" class="item-qty" placeholder="Qtd" min="1" value="1" />
-          <button type="button" class="btn-add-item" onclick="addItemFromSelect()">＋</button>
-        </div>
-        <div class="item-add-row">
-          <input type="text" id="item-custom-name" class="item-custom-name" placeholder="Item avulso…" />
-          <input type="number" id="item-custom-price" class="item-custom-price" placeholder="R$" min="0" step="0.01" />
-          <input type="number" id="item-custom-qty" class="item-qty" placeholder="Qtd" min="1" value="1" />
-          <button type="button" class="btn-add-item" onclick="addCustomItem()">＋</button>
-        </div>
-
-        <div id="items-list" class="items-list"></div>
-
-        <div class="order-total-row">
-          <span>Total do pedido:</span>
-          <span class="order-total-value" id="order-total-display">R$ 0,00</span>
-        </div>
-
-        <div class="field-group">
-          <label for="field-descricao">Observações</label>
-          <textarea id="field-descricao" placeholder="Observações adicionais…" rows="2"></textarea>
-        </div>
-
-        <!-- Datas com calendário padrão -->
-        <div class="fields-row">
-          <div class="field-group">
-            <label for="field-data-pedido">Data do pedido</label>
-            <input type="date" id="field-data-pedido" />
-          </div>
-          <div class="field-group">
-            <label for="field-data-entrega">Entrega prevista</label>
-            <input type="date" id="field-data-entrega" />
-          </div>
-        </div>
-
-        <div class="field-group">
-          <label for="field-status">Status</label>
-          <select id="field-status" onchange="onStatusChange()">
-            <option value="pendente">⏳ Pendente</option>
-            <option value="entregue_nao_pago">📦 Entregue — Aguard. Pgto</option>
-            <option value="entregue_pago">✅ Entregue e Pago</option>
-          </select>
-        </div>
-
-        <!-- Seção que aparece quando status = entregue -->
-        <div id="conclusao-section" class="conclusao-section hidden">
-          <div class="section-title">🏁 Dados de entrega</div>
-          <div class="field-group">
-            <label for="field-data-entrega-real">Data de entrega real *</label>
-            <input type="date" id="field-data-entrega-real" />
-          </div>
-          <!-- Comprovante: só quando "entregue e pago" -->
-          <div id="comprovante-field" class="field-group hidden">
-            <label id="comprovante-label">Comprovante de pagamento *</label>
-            <div class="upload-area" id="upload-area" onclick="document.getElementById('field-comprovante').click()">
-              <div class="upload-icon">📎</div>
-              <div class="upload-text">Toque para selecionar foto</div>
-              <div class="upload-hint">JPG, PNG ou PDF</div>
-            </div>
-            <input type="file" id="field-comprovante" accept="image/*,application/pdf" style="display:none" onchange="onComprovanteSelected(event)" />
-            <div id="comprovante-preview" class="comprovante-preview hidden"></div>
-            <a id="comprovante-existing" class="comprovante-link hidden" target="_blank">👁 Ver comprovante atual</a>
-          </div>
-        </div>
-
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" onclick="closeOrderModal()">Cancelar</button>
-          <button type="button" class="btn-outline" onclick="gerarOrcamentoPDF()">📄 Orçamento</button>
-          <button type="submit" class="btn-primary" id="btn-save">
-            <span class="btn-text">Salvar</span>
-            <span class="btn-loader hidden">⟳</span>
-          </button>
-        </div>
-      </form>
+    <div class="field-group">
+      <label for="field-cliente">Cliente *</label>
+      <input type="text" id="field-cliente" placeholder="Nome do cliente" required />
     </div>
+
+    <div class="section-title">🛒 Itens do pedido</div>
+    <div class="item-add-row">
+      <select id="item-product-select" class="item-select">
+        <option value="">Selecione um produto…</option>
+      </select>
+      <input type="number" id="item-qty" class="item-qty" placeholder="Qtd" min="1" value="1" />
+      <button type="button" class="btn-add-item" onclick="addItemFromSelect()">＋</button>
+    </div>
+    <div class="item-add-row">
+      <input type="text"   id="item-custom-name"  class="item-custom-name"  placeholder="Item avulso…" />
+      <input type="number" id="item-custom-price" class="item-custom-price" placeholder="R$" min="0" step="0.01" />
+      <input type="number" id="item-custom-qty"   class="item-qty"          placeholder="Qtd" min="1" value="1" />
+      <button type="button" class="btn-add-item" onclick="addCustomItem()">＋</button>
+    </div>
+    <div id="items-list" class="items-list"></div>
+    <div class="order-total-row">
+      <span>Total do pedido:</span>
+      <span class="order-total-value" id="order-total-display">R$ 0,00</span>
+    </div>
+
+    <div class="field-group">
+      <label for="field-descricao">Observações</label>
+      <textarea id="field-descricao" placeholder="Observações adicionais…" rows="2"></textarea>
+    </div>
+
+    <div class="fields-row">
+      <div class="field-group">
+        <label for="field-data-pedido">Data do pedido</label>
+        <input type="date" id="field-data-pedido" />
+      </div>
+      <div class="field-group">
+        <label for="field-data-entrega">Entrega prevista</label>
+        <input type="date" id="field-data-entrega" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label for="field-status">Status</label>
+      <select id="field-status" onchange="onStatusChange()">
+        <option value="pendente">⏳ Pendente</option>
+        <option value="entregue_nao_pago">📦 Entregue — Aguard. Pgto</option>
+        <option value="entregue_pago">✅ Entregue e Pago</option>
+      </select>
+    </div>
+
+    <div id="conclusao-section" class="conclusao-section hidden">
+      <div class="section-title">🏁 Dados de entrega</div>
+      <div class="field-group">
+        <label for="field-data-entrega-real">Data de entrega real *</label>
+        <input type="date" id="field-data-entrega-real" />
+      </div>
+      <div id="comprovante-field" class="field-group hidden">
+        <label id="comprovante-label">Comprovante de pagamento *</label>
+        <div class="upload-area" id="upload-area" onclick="document.getElementById('field-comprovante').click()">
+          <div class="upload-icon">📎</div>
+          <div class="upload-text">Toque para selecionar foto</div>
+          <div class="upload-hint">JPG, PNG ou PDF</div>
+        </div>
+        <input type="file" id="field-comprovante" accept="image/*,application/pdf" style="display:none" onchange="onComprovanteSelected(event)" />
+        <div id="comprovante-preview" class="comprovante-preview hidden"></div>
+        <a id="comprovante-existing" class="comprovante-link hidden" target="_blank">👁 Ver comprovante atual</a>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" onclick="closeOrderModal()">Cancelar</button>
+      <button type="button" class="btn-outline"   onclick="gerarOrcamentoPDF()">📄 Orçamento</button>
+      <button type="submit" class="btn-primary"   id="btn-save">
+        <span class="btn-text">Salvar</span>
+        <span class="btn-loader hidden">⟳</span>
+      </button>
+    </div>
+  </form>
+</div>
+```
+
   </div>
 
   <!-- ══ MODAL: COMPROVANTE ════════════════════════════════════ -->
+
   <div id="receipt-modal" class="modal-overlay hidden" onclick="closeReceiptModal()">
     <div class="modal-card modal-card-img">
       <div class="modal-header">
@@ -229,6 +436,7 @@
   </div>
 
   <!-- ══ MODAL: PRODUTOS (admin) ══════════════════════════════ -->
+
   <div id="products-modal" class="modal-overlay hidden" onclick="closeProductsModalOverlay(event)">
     <div class="modal-card">
       <div class="modal-header">
@@ -265,6 +473,7 @@
   </div>
 
   <!-- ══ MODAL: CONFIRMAR EXCLUSÃO ════════════════════════════ -->
+
   <div id="delete-modal" class="modal-overlay hidden" onclick="closeDeleteModalOnOverlay(event)">
     <div class="modal-card modal-card-small">
       <div class="modal-header">
@@ -274,12 +483,14 @@
       <p class="delete-confirm-text">Esta ação não pode ser desfeita.</p>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
-        <button class="btn-danger" onclick="confirmDelete()">Excluir</button>
+        <button class="btn-danger"    onclick="confirmDelete()">Excluir</button>
       </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script src="script.js"></script>
+
 </body>
 </html>
