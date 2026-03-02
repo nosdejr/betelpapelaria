@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Papelaria BETEL - Dashboard</title>
+  <title>Papelaria Criativa — Dashboard</title>
   <link rel="stylesheet" href="styles.css" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -15,7 +15,7 @@
     <div class="dash-header-inner">
       <div class="dash-logo">
         <span class="logo-icon">✦</span>
-        <span class="logo-text">Papelaria <em>BETEL</em></span>
+        <span class="logo-text">Papelaria <em>Criativa</em></span>
       </div>
       <div class="dash-header-right">
         <span class="user-badge" id="user-badge"></span>
@@ -59,6 +59,14 @@
         <span class="billing-panel-icon">🔎</span>
         <span class="billing-panel-title">Período</span>
       </div>
+      <!-- Atalhos rápidos de período -->
+      <div class="period-shortcuts">
+        <button class="period-shortcut" onclick="setPeriodShortcut('hoje',this)">👉 Hoje</button>
+        <button class="period-shortcut" onclick="setPeriodShortcut('semana',this)">📅 Semana</button>
+        <button class="period-shortcut" onclick="setPeriodShortcut('mes',this)">📆 Mês</button>
+        <button class="period-shortcut" onclick="setPeriodShortcut('30dias',this)">📊 30 dias</button>
+        <button class="period-shortcut" onclick="setPeriodShortcut('ano',this)">🗓 Ano</button>
+      </div>
       <!-- Seletor de datas inline -->
       <div class="period-row">
         <input type="date" id="periodo-inicio" class="period-input" onchange="applyPeriod()" />
@@ -101,7 +109,7 @@
     <!-- Linha 2: busca + botão novo -->
     <div class="search-new-row">
       <input type="search" id="search-input" class="search-input" placeholder="🔍 Buscar cliente…" oninput="renderOrders()" />
-      <button class="btn-new-order" onclick="openOrderModal()">+ Novo</button>
+      <!-- botão flutuante no rodapé -->
     </div>
   </section>
 
@@ -278,6 +286,9 @@
       </div>
     </div>
   </div>
+
+  <!-- ── BOTÃO FLUTUANTE + NOVO ───────────────────────── -->
+  <button class="fab-new" onclick="openOrderModal()" title="Novo pedido">＋</button>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>

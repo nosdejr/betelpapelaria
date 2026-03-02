@@ -1,5 +1,5 @@
 /* ============================================================
-   styles.css — Papelaria BETEL v4
+   styles.css — Papelaria Criativa v4
    Mobile-first · Warm Artisan palette
    ============================================================ */
 
@@ -169,6 +169,58 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
 .period-input:focus { border-color: var(--blue); }
 
 .period-sep { font-size: 12px; color: var(--ink-muted); flex-shrink: 0; }
+
+/* ── ATALHOS RÁPIDOS DE PERÍODO (NOVO) ─────────────────────── */
+.period-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+.period-shortcut {
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--cream);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .18s;
+}
+.period-shortcut:hover { border-color: var(--coral); color: var(--coral); }
+.period-shortcut.active {
+  background: var(--coral);
+  border-color: var(--coral);
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ── BOTÃO FLUTUANTE + NOVO (NOVO) ──────────────────────────── */
+.fab-new {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--coral);
+  color: #fff;
+  border: none;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(232,99,74,.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 150;
+  transition: background .18s, transform .15s, box-shadow .18s;
+}
+.fab-new:hover  { background: var(--coral-dark); box-shadow: 0 6px 24px rgba(232,99,74,.6); }
+.fab-new:active { transform: scale(.93); }
 
 /* Grid de valores financeiros dentro de cada painel */
 .billing-row {
