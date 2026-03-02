@@ -10,8 +10,8 @@
 // ────────────────────────────────────────────────────────────
 // ① CONFIGURAÇÃO (inalterado)
 // ────────────────────────────────────────────────────────────
-const SUPABASE_URL      = ‘https://SEU_PROJECT_ID.supabase.co’;
-const SUPABASE_ANON_KEY = ‘SUA_ANON_KEY_AQUI’;
+const SUPABASE_URL      = 'https://ltnokzhupzqpuvirgzut.supabase.co';
+const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0bm9remh1cHpxcHV2aXJnenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNTU5MTQsImV4cCI6MjA4NzkzMTkxNH0.kEkdULzmxIfNX5hKlUoHpPs9Gnfgfxfj8qjfzGvvAoE';
 const ADMIN_EMAIL       = ‘jrs.edson@gmail.com’;
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
