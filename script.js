@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Badge de perfil
   const badge = document.getElementById('user-badge');
-  badge.textContent = isAdmin ? `👑 ${currentUser.email.split('@')[0]}` : `✏️ ${currentUser.email.split('@')[0]}`;
+  badge.textContent = isAdmin ? `${currentUser.email.split('@')[0]}` : `${currentUser.email.split('@')[0]}`;
   badge.className   = 'user-badge ' + (isAdmin ? 'badge-admin' : 'badge-op');
 
   // Botão de produtos só para admin
