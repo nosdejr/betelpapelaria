@@ -51,6 +51,11 @@
           <span class="billing-item-value red" id="count-late">0</span>
         </div>
       </div>
+      <!-- ✅ MELHORIA 4: total mês atual -->
+      <div class="billing-total-row">
+        <span>TOTAL MÊS:</span>
+        <span class="billing-total-value" id="mes-total">R$ 0,00</span>
+      </div>
     </div>
 
     <!-- Painel direito: período personalizado -->
@@ -59,13 +64,12 @@
         <span class="billing-panel-icon">🔎</span>
         <span class="billing-panel-title">Período</span>
       </div>
-      <!-- Atalhos rápidos de período -->
+      <!-- ✅ MELHORIA 3: atalhos atualizados — Hoje, Mês Anterior, Ano, Todos -->
       <div class="period-shortcuts">
         <button class="period-shortcut" onclick="setPeriodShortcut('hoje',this)">👉 Hoje</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('semana',this)">📅 Semana</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('mes',this)">📆 Mês</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('30dias',this)">📊 30 dias</button>
+        <button class="period-shortcut" onclick="setPeriodShortcut('mes-anterior',this)">📅 Mês Anterior</button>
         <button class="period-shortcut" onclick="setPeriodShortcut('ano',this)">🗓 Ano</button>
+        <button class="period-shortcut" onclick="setPeriodShortcut('todos',this)">📋 Todos</button>
       </div>
       <!-- Seletor de datas inline -->
       <div class="period-row">
@@ -89,6 +93,11 @@
           <span class="billing-item-value gold" id="per-pendente">R$ 0,00</span>
           <span class="billing-item-count" id="per-count-pend"></span>
         </div>
+      </div>
+      <!-- ✅ MELHORIA 4: total período -->
+      <div class="billing-total-row">
+        <span>TOTAL PERÍODO:</span>
+        <span class="billing-total-value" id="per-total">R$ 0,00</span>
       </div>
     </div>
 

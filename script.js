@@ -10,6 +10,7 @@
 const SUPABASE_URL      = 'https://ltnokzhupzqpuvirgzut.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0bm9remh1cHpxcHV2aXJnenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNTU5MTQsImV4cCI6MjA4NzkzMTkxNH0.kEkdULzmxIfNX5hKlUoHpPs9Gnfgfxfj8qjfzGvvAoE';
 const ADMIN_EMAIL       = 'jrs.edson@gmail.com';
+const NAYARA_EMAIL      = 'nayaraa_garciaa@hotmail.com'; // ✅ MELHORIA 6
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -63,7 +64,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!session) { window.location.href = 'index.html'; return; }
 
   currentUser = session.user;
-  isAdmin     = currentUser.email === ADMIN_EMAIL;
+  isAdmin          = currentUser.email === ADMIN_EMAIL;
+  const canManageProducts = currentUser.email === ADMIN_EMAIL || currentUser.email === NAYARA_EMAIL; // ✅ MELHORIA 6
 
   // Badge de perfil
   const badge = document.getElementById('user-badge');
@@ -71,7 +73,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   badge.className   = 'user-badge ' + (isAdmin ? 'badge-admin' : 'badge-op');
 
   // Botão de produtos só para admin
-  if (isAdmin) document.getElementById('btn-products-nav').style.display = 'flex';
+  // ✅ MELHORIA 6: botão de produtos visível para admin E Nayara
+  if (canManageProducts) document.getElementById('btn-products-nav').style.display = 'flex';
 
   // Período padrão = mês atual
   const hoje = new Date();
@@ -127,6 +130,7 @@ function applyPeriod() {
   updateSummaryCards();
 }
 // ── Atalhos rápidos de período (NOVO) ────────────────────────
+// ✅ MELHORIA 3: atalhos atualizados — Hoje, Mês Anterior, Ano, Todos
 function setPeriodShortcut(tipo, btn) {
   const hoje = new Date();
   const y = hoje.getFullYear();
@@ -135,18 +139,18 @@ function setPeriodShortcut(tipo, btn) {
 
   if (tipo === 'hoje') {
     ini = fim;
-  } else if (tipo === 'semana') {
-    const d = new Date(hoje);
-    d.setDate(d.getDate() - d.getDay());
-    ini = d.toISOString().split('T')[0];
-  } else if (tipo === 'mes') {
-    ini = `${y}-${String(m+1).padStart(2,'0')}-01`;
-  } else if (tipo === '30dias') {
-    const d = new Date(hoje);
-    d.setDate(d.getDate() - 29);
-    ini = d.toISOString().split('T')[0];
+  } else if (tipo === 'mes-anterior') {
+    // Mês anterior: do dia 1 ao último dia do mês passado
+    const primeiroDiaMesAnterior = new Date(y, m - 1, 1);
+    const ultimoDiaMesAnterior   = new Date(y, m, 0);
+    ini = primeiroDiaMesAnterior.toISOString().split('T')[0];
+    fim = ultimoDiaMesAnterior.toISOString().split('T')[0];
   } else if (tipo === 'ano') {
     ini = `${y}-01-01`;
+  } else if (tipo === 'todos') {
+    // Todos: intervalo bem amplo para capturar tudo
+    ini = '2020-01-01';
+    fim = `${y+1}-12-31`;
   }
 
   document.getElementById('periodo-inicio').value = ini;
@@ -423,10 +427,25 @@ function renderOrders() {
         ${order.comprovante_url
           ? `<button class="btn-receipt" onclick="viewReceipt('${escapeHtml(order.comprovante_url)}')" title="Ver comprovante">🧾</button>`
           : ''}
+        <!-- ✅ MELHORIA 5: botão cobrança WhatsApp -->
+        <a class="btn-whatsapp" href="${gerarLinkWhatsApp(order)}" target="_blank" rel="noopener">Cobrar 💬</a>
         <button class="btn-delete" onclick="openDeleteModal('${order.id}')">🗑️</button>
       </div>
     </article>`;
   }).join('');
+}
+
+
+// ✅ MELHORIA 5: gera link de cobrança WhatsApp com dados Pix fixos
+function gerarLinkWhatsApp(order) {
+  const valor = formatCurrency(order.valor || 0);
+  const msg =
+    `Agradecemos pela sua compra!\n` +
+    `Para concluir o pagamento via Pix, utilize os dados abaixo:\n` +
+    `- Chave PIX (CPF): 367.427.448-55\n` +
+    `- Nome: Nayara Pereira Mendes Garcia\n` +
+    `- Valor R$: R$ ${valor}`;
+  return `https://wa.me/?text=${encodeURIComponent(msg)}`;
 }
 
 function buildPrazoLabel(order) {
@@ -449,10 +468,16 @@ function updateSummaryCards() {
   const aguMes = doMes.filter(o => o.status === STATUS.ENTREGUE_NPAGO);
   const atras  = allOrders.filter(isLate);
 
-  document.getElementById('mes-faturado').textContent   = `R$ ${formatCurrency(pagMes.reduce((a,o)=>a+Number(o.valor),0))}`;
-  document.getElementById('mes-aguardando').textContent = `R$ ${formatCurrency(aguMes.reduce((a,o)=>a+Number(o.valor),0))}`;
+  const mesFaturadoVal   = pagMes.reduce((a,o)=>a+Number(o.valor),0);
+  const mesAguardandoVal = aguMes.reduce((a,o)=>a+Number(o.valor),0);
+  const mesAtrasadosVal  = atras.reduce((a,o)=>a+Number(o.valor),0);
+
+  document.getElementById('mes-faturado').textContent   = `R$ ${formatCurrency(mesFaturadoVal)}`;
+  document.getElementById('mes-aguardando').textContent = `R$ ${formatCurrency(mesAguardandoVal)}`;
   document.getElementById('count-late').textContent     = atras.length;
   document.getElementById('mes-label').textContent      = labelMesAtual();
+  // ✅ MELHORIA 4: total mês atual (recebido + a receber + atrasados)
+  document.getElementById('mes-total').textContent = `R$ ${formatCurrency(mesFaturadoVal + mesAguardandoVal + mesAtrasadosVal)}`;
 
   // Período filtrado
   const doPer  = allOrders.filter(inPeriod);
@@ -460,12 +485,19 @@ function updateSummaryCards() {
   const aguPer  = doPer.filter(o => o.status === STATUS.ENTREGUE_NPAGO);
   const pendPer = doPer.filter(o => o.status === STATUS.PENDENTE);
 
-  document.getElementById('per-faturado').textContent   = `R$ ${formatCurrency(pagPer.reduce((a,o)=>a+Number(o.valor),0))}`;
-  document.getElementById('per-aguardando').textContent = `R$ ${formatCurrency(aguPer.reduce((a,o)=>a+Number(o.valor),0))}`;
-  document.getElementById('per-pendente').textContent   = `R$ ${formatCurrency(pendPer.reduce((a,o)=>a+Number(o.valor),0))}`;
+  const perFaturadoVal  = pagPer.reduce((a,o)=>a+Number(o.valor),0);
+  const perAguardandoVal= aguPer.reduce((a,o)=>a+Number(o.valor),0);
+  const perPendenteVal  = pendPer.reduce((a,o)=>a+Number(o.valor),0);
+
+  document.getElementById('per-faturado').textContent   = `R$ ${formatCurrency(perFaturadoVal)}`;
+  document.getElementById('per-aguardando').textContent = `R$ ${formatCurrency(perAguardandoVal)}`;
+  document.getElementById('per-pendente').textContent   = `R$ ${formatCurrency(perPendenteVal)}`;
   document.getElementById('per-count-pago').textContent  = `${pagPer.length} pedido${pagPer.length!==1?'s':''}`;
   document.getElementById('per-count-aguar').textContent = `${aguPer.length} pedido${aguPer.length!==1?'s':''}`;
   document.getElementById('per-count-pend').textContent  = `${pendPer.length} pedido${pendPer.length!==1?'s':''}`;
+
+  // ✅ MELHORIA 4: total período
+  document.getElementById('per-total').textContent = `R$ ${formatCurrency(perFaturadoVal + perAguardandoVal + perPendenteVal)}`;
 }
 
 function labelMesAtual() {
