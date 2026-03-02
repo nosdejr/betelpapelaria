@@ -21,6 +21,11 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 //  Correções: pedidos compartilhados, bug botão salvar,
 //  datas com calendário, filtro de período automático
 // ============================================================
+// ============================================================
+//  script.js — Papelaria Criativa v4
+//  Correções: pedidos compartilhados, bug botão salvar,
+//  datas com calendário, filtro de período automático
+// ============================================================
 
 // ────────────────────────────────────────────────────────────
 // ② STATUS
@@ -845,5 +850,5 @@ function translateError(msg) {
 if (msg.includes(‘Invalid login credentials’)) return ‘E-mail ou senha incorretos.’;
 if (msg.includes(‘Email not confirmed’))        return ‘Confirme seu e-mail antes de entrar.’;
 return ‘Ocorreu um erro. Tente novamente.’;
-}return ‘Ocorreu um erro. Tente novamente.’;
+}}return ‘Ocorreu um erro. Tente novamente.’;
 }
