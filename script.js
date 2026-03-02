@@ -395,13 +395,13 @@ function renderOrders() {
 
     let statusBtns = '';
     if (isPendente) {
-      statusBtns = `<button class="btn-status-toggle btn-entregue" onclick="openEntregueModal('${order.id}')">📦 Entregar</button>`;
+      statusBtns = `<button class="btn-status-toggle btn-entregue" onclick="openEntregueModal('${order.id}')">Conc. Entrega</button>`;
     } else if (isNPago) {
       statusBtns = `
-        <button class="btn-status-toggle btn-pago" onclick="openEditOrderModal('${order.id}', true)">💰 Receber pgto</button>
+        <button class="btn-status-toggle btn-pago" onclick="openEditOrderModal('${order.id}', true)">Conc. Pgto</button>
         <button class="btn-status-sm" title="Reverter para pendente" onclick="setStatusPendente('${order.id}')">↩</button>`;
     } else if (isPago) {
-      statusBtns = `<button class="btn-status-toggle btn-reverter" onclick="setStatusPendente('${order.id}')">↩ Reabrir</button>`;
+      statusBtns = `<button class="btn-status-toggle btn-reverter" onclick="setStatusPendente('${order.id}')">Reabrir</button>`;
     }
 
     return `
@@ -428,7 +428,7 @@ function renderOrders() {
           ? `<button class="btn-receipt" onclick="viewReceipt('${escapeHtml(order.comprovante_url)}')" title="Ver comprovante">🧾</button>`
           : ''}
         <!-- ✅ MELHORIA 5: botão cobrança WhatsApp -->
-        <a class="btn-whatsapp" href="${gerarLinkWhatsApp(order)}" target="_blank" rel="noopener">Cobrar 💬</a>
+        <a class="btn-whatsapp" href="${gerarLinkWhatsApp(order)}" target="_blank" rel="noopener">PIX</a>
         <button class="btn-delete" onclick="openDeleteModal('${order.id}')">🗑️</button>
       </div>
     </article>`;
