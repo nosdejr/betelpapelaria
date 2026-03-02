@@ -395,10 +395,10 @@ function renderOrders() {
 
     let statusBtns = '';
     if (isPendente) {
-      statusBtns = `<button class="btn-status-toggle btn-entregue" onclick="openEntregueModal('${order.id}')">Conc. Entrega</button>`;
+      statusBtns = `<button class="btn-status-toggle btn-entregue" onclick="openEntregueModal('${order.id}')">Conf. Entrega</button>`;
     } else if (isNPago) {
       statusBtns = `
-        <button class="btn-status-toggle btn-pago" onclick="openEditOrderModal('${order.id}', true)">Conc. Pgto</button>
+        <button class="btn-status-toggle btn-pago" onclick="openEditOrderModal('${order.id}', true)">Conf. Pgto</button>
         <button class="btn-status-sm" title="Reverter para pendente" onclick="setStatusPendente('${order.id}')">↩</button>`;
     } else if (isPago) {
       statusBtns = `<button class="btn-status-toggle btn-reverter" onclick="setStatusPendente('${order.id}')">Reabrir</button>`;
