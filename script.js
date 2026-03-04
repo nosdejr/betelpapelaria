@@ -402,13 +402,16 @@ function renderOrders() {
 
   let filtered = [...allOrders];
 
-  // [MELHORIA STATUS PEDIDO] — pendente agrupa todos status pré-entrega
+  // Filtro por etapa — cada status tem seu próprio botão
   if (currentFilter === 'atrasado') {
     filtered = filtered.filter(isLate);
-  } else if (currentFilter === 'pendente') {
-    filtered = filtered.filter(p => ['pendente','recebido','em_arte','em_producao','pronto'].includes(p.status));
   } else if (currentFilter !== 'todos') {
-    filtered = filtered.filter(p => p.status === currentFilter);
+    // 'recebido' captura também dados legados com status 'pendente' no banco
+    if (currentFilter === 'recebido') {
+      filtered = filtered.filter(p => p.status === 'recebido' || p.status === 'pendente');
+    } else {
+      filtered = filtered.filter(p => p.status === currentFilter);
+    }
   }
 
   // Filtro de período

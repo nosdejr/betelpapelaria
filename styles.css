@@ -271,7 +271,7 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
    Evita scroll lateral e empilhamento
 ═══════════════════════════════════════════════════════════ */
 .toolbar-section {
-  padding: 0 16px 10px;
+  padding: 0 0 10px;
   max-width: 680px;
   margin: 0 auto;
   display: flex;
@@ -279,28 +279,36 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
   gap: 10px;
 }
 
-/* Linha 1: grid de filtros — 3 colunas + 2 colunas = 2 linhas */
-.filter-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+/* Scroll horizontal de filtros — cabe todos os status no mobile */
+.filter-scroll {
+  display: flex;
   gap: 6px;
+  overflow-x: auto;
+  padding: 8px 16px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  scroll-snap-type: x proximity;
 }
+.filter-scroll::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 
 .filter-btn {
-  padding: 9px 6px;
+  flex-shrink: 0; /* nunca encolhe — mantém texto numa linha */
+  padding: 8px 13px;
   border: 2px solid var(--border);
   background: var(--warm-white);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   font-family: 'DM Sans', sans-serif;
   font-size: 12px;
   font-weight: 500;
   color: var(--ink-muted);
   cursor: pointer;
   text-align: center;
-  transition: all .2s;
+  transition: all .18s;
   white-space: nowrap;
+  scroll-snap-align: start;
 }
 
+/* Ativo: cor coral padrão */
 .filter-btn.active {
   background: var(--coral);
   border-color: var(--coral);
@@ -308,16 +316,19 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
   font-weight: 700;
   box-shadow: 0 2px 8px rgba(232,99,74,.3);
 }
+.filter-btn:hover:not(.active) { border-color: var(--coral); color: var(--coral); }
 
-.filter-btn:hover:not(.active) {
-  border-color: var(--coral);
-  color: var(--coral);
-}
+/* Cores específicas por etapa quando ativo */
+.filter-recebido.active  { background: #795548; border-color: #795548; box-shadow: 0 2px 8px rgba(121,85,72,.3); }
+.filter-arte.active      { background: #6A1B9A; border-color: #6A1B9A; box-shadow: 0 2px 8px rgba(106,27,154,.3); }
+.filter-producao.active  { background: #0D47A1; border-color: #0D47A1; box-shadow: 0 2px 8px rgba(13,71,161,.3); }
+.filter-pronto.active    { background: #1B5E20; border-color: #1B5E20; box-shadow: 0 2px 8px rgba(27,94,32,.3); }
+.filter-entregue.active  { background: #E65100; border-color: #E65100; box-shadow: 0 2px 8px rgba(230,81,0,.3); }
+.filter-pago.active      { background: var(--sage); border-color: var(--sage); box-shadow: 0 2px 8px rgba(107,143,113,.3); }
+.filter-late.active      { background: var(--red); border-color: var(--red); box-shadow: 0 2px 8px rgba(220,53,69,.3); }
 
-.filter-btn-late.active { background: var(--red); border-color: var(--red); }
-
-/* Linha 2: busca + botão novo */
-.search-new-row {
+/* Linha 2: busca */
+.search-new-row { padding: 0 16px;
   display: flex;
   gap: 10px;
   align-items: center;
@@ -354,12 +365,7 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
 .btn-new-order:hover { background: var(--coral-dark); }
 .btn-new-order:active { transform: scale(.97); }
 
-/* Em telas maiores: filtros em 1 linha */
-@media (min-width: 520px) {
-  .filter-grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
+/* filtros agora usam scroll horizontal — sem necessidade de media query */
 
 /* ── LISTA DE PEDIDOS ────────────────────────────────────────── */
 .orders-section { padding: 0 16px; max-width: 680px; margin: 0 auto; }
