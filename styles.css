@@ -411,10 +411,8 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
 .prazo-ok     { background: var(--sage-light); color: #2E7D32; }
 .prazo-atraso { background: #FDECEA; color: var(--red); }
 
-.order-card-actions { display: flex; gap: 4px; align-items: center; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-.order-card-actions::-webkit-scrollbar { display: none; }
-/* [FIX BOTÕES] — compacto com quebra de linha para texto longo */
-.btn-status-toggle { flex-shrink: 0; max-width: 72px; padding: 5px 7px; border: none; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; cursor: pointer; min-height: 36px; white-space: normal; word-break: break-word; text-align: center; line-height: 1.2; transition: all .2s; }
+.order-card-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.btn-status-toggle { flex: 1; min-width: 90px; padding: 9px 10px; border: none; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; min-height: 40px; transition: all .2s; }
 .btn-entregue { background: var(--blue-light); color: #1A4A7A; border: 1px solid var(--blue-border); }
 .btn-entregue:hover { background: var(--blue); color: #fff; }
 .btn-pago     { background: var(--sage-light); color: #2E7D32; border: 1px solid #A5D6A7; }
@@ -423,7 +421,7 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
 .btn-reverter:hover { background: var(--ink); color: #fff; }
 .btn-status-sm { width: 36px; height: 40px; background: var(--paper); color: var(--ink-muted); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .2s; }
 .btn-status-sm:hover { background: var(--ink); color: #fff; }
-.btn-edit, .btn-delete, .btn-receipt { width: 36px; height: 36px; border-radius: var(--radius-sm); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .2s; }
+.btn-edit, .btn-delete, .btn-receipt { width: 40px; height: 40px; border-radius: var(--radius-sm); font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .2s; }
 .btn-edit    { background: var(--paper); color: var(--ink-soft); border: 1px solid var(--border); }
 .btn-edit:hover { background: var(--ink); color: #fff; }
 .btn-receipt { background: var(--gold-light); color: #9A6F00; border: 1px solid var(--gold-border); }
@@ -766,3 +764,91 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
 }
 .btn-whatsapp:hover  { background: #1ebe5a; }
 .btn-whatsapp:active { transform: scale(.97); }
+
+
+/* ══════════════════════════════════════════════════════════
+   [MELHORIA FLUXO STATUS] — badges de status de produção
+   (os antigos badge-recebido/arte/producao/pronto são mantidos)
+══════════════════════════════════════════════════════════ */
+.badge-entregue {
+  background: #E0F2F1;
+  color: #00695C;
+  border: 1px solid #80CBC4;
+}
+
+/* ── badges de pagamento separado do fluxo ── */
+.order-badges {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Badge "A pagar" — neutro/amarelo */
+.badge-pgto {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  white-space: nowrap;
+}
+.badge-pgto-aberto {
+  background: #FFF8E1;
+  color: #F57F17;
+  border: 1px solid #FFCC02;
+}
+/* Badge "Pago" — verde */
+.badge-pgto-pago {
+  background: #E8F5E9;
+  color: #2E7D32;
+  border: 1px solid #A5D6A7;
+}
+
+/* ══════════════════════════════════════════════════════════
+   [MELHORIA FLUXO STATUS] — botão de pagamento separado
+   Posicionado ao lado dos botões de fluxo de produção,
+   ANTES do botão WhatsApp
+══════════════════════════════════════════════════════════ */
+.btn-pagamento {
+  padding: 7px 12px;
+  border-radius: var(--radius-pill);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 2px solid;
+  transition: all .18s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+/* Estado: não pago — laranja/dourado */
+.btn-pago-nao {
+  background: #FFF8E1;
+  color: #F57F17;
+  border-color: #FFCC02;
+}
+.btn-pago-nao:hover {
+  background: #F57F17;
+  color: #fff;
+  border-color: #F57F17;
+}
+/* Estado: já pago — verde */
+.btn-pago-sim {
+  background: #E8F5E9;
+  color: #2E7D32;
+  border-color: #A5D6A7;
+}
+.btn-pago-sim:hover {
+  background: #C8E6C9;
+  border-color: #66BB6A;
+}
+
+/* ══════════════════════════════════════════════════════════
+   [MELHORIA FILTROS PEDIDOS] — cores dos 4 filtros
+══════════════════════════════════════════════════════════ */
+.filter-pendentes.active   { background: #795548; border-color: #795548; color: #fff; box-shadow: 0 2px 8px rgba(121,85,72,.3); }
+.filter-finalizados.active { background: #1B5E20; border-color: #1B5E20; color: #fff; box-shadow: 0 2px 8px rgba(27,94,32,.3); }
+.filter-late.active        { background: var(--red); border-color: var(--red); color: #fff; }
