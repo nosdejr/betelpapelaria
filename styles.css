@@ -764,3 +764,91 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
 }
 .btn-whatsapp:hover  { background: #1ebe5a; }
 .btn-whatsapp:active { transform: scale(.97); }
+
+
+/* ══════════════════════════════════════════════════════════
+   [MELHORIA FLUXO STATUS] — badges de status de produção
+   (os antigos badge-recebido/arte/producao/pronto são mantidos)
+══════════════════════════════════════════════════════════ */
+.badge-entregue {
+  background: #E0F2F1;
+  color: #00695C;
+  border: 1px solid #80CBC4;
+}
+
+/* ── badges de pagamento separado do fluxo ── */
+.order-badges {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Badge "A pagar" — neutro/amarelo */
+.badge-pgto {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  white-space: nowrap;
+}
+.badge-pgto-aberto {
+  background: #FFF8E1;
+  color: #F57F17;
+  border: 1px solid #FFCC02;
+}
+/* Badge "Pago" — verde */
+.badge-pgto-pago {
+  background: #E8F5E9;
+  color: #2E7D32;
+  border: 1px solid #A5D6A7;
+}
+
+/* ══════════════════════════════════════════════════════════
+   [MELHORIA FLUXO STATUS] — botão de pagamento separado
+   Posicionado ao lado dos botões de fluxo de produção,
+   ANTES do botão WhatsApp
+══════════════════════════════════════════════════════════ */
+.btn-pagamento {
+  padding: 7px 12px;
+  border-radius: var(--radius-pill);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 2px solid;
+  transition: all .18s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+/* Estado: não pago — laranja/dourado */
+.btn-pago-nao {
+  background: #FFF8E1;
+  color: #F57F17;
+  border-color: #FFCC02;
+}
+.btn-pago-nao:hover {
+  background: #F57F17;
+  color: #fff;
+  border-color: #F57F17;
+}
+/* Estado: já pago — verde */
+.btn-pago-sim {
+  background: #E8F5E9;
+  color: #2E7D32;
+  border-color: #A5D6A7;
+}
+.btn-pago-sim:hover {
+  background: #C8E6C9;
+  border-color: #66BB6A;
+}
+
+/* ══════════════════════════════════════════════════════════
+   [MELHORIA FILTROS PEDIDOS] — cores dos 4 filtros
+══════════════════════════════════════════════════════════ */
+.filter-pendentes.active   { background: #795548; border-color: #795548; color: #fff; box-shadow: 0 2px 8px rgba(121,85,72,.3); }
+.filter-finalizados.active { background: #1B5E20; border-color: #1B5E20; color: #fff; box-shadow: 0 2px 8px rgba(27,94,32,.3); }
+.filter-late.active        { background: var(--red); border-color: var(--red); color: #fff; }
