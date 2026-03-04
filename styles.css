@@ -715,3 +715,24 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
   box-shadow: 0 4px 20px rgba(46,125,50,.45);
 }
 .fab-despesa:hover  { background: #1B5E20; box-shadow: 0 6px 24px rgba(46,125,50,.55); }
+
+/* ── Total rows nos painéis financeiros ── */
+.billing-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding: 7px 10px;
+  background: #D1FAE5;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 700;
+  color: #065F46;
+}
+.billing-total-value {
+  font-family: 'Inter', 'Roboto', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #065F46;
+}

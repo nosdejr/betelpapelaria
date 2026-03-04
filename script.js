@@ -105,9 +105,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!session) { window.location.href = 'index.html'; return; }
 
   currentUser       = session.user;
-  isAdmin           = currentUser.email === ADMIN_EMAIL;
-  // [MELHORIA PERMISSÕES NAYARA] — Edson e Nayara têm acesso total a produtos
-  canManageProducts = currentUser.email === ADMIN_EMAIL || currentUser.email === NAYARA_EMAIL;
+  // Nayara tem exatamente os mesmos poderes que Edson — ambos são admin
+  isAdmin           = currentUser.email === ADMIN_EMAIL || currentUser.email === NAYARA_EMAIL;
+  canManageProducts = isAdmin;
 
   // Badge de perfil
   const badge = document.getElementById('user-badge');
@@ -181,26 +181,23 @@ function setPeriodShortcut(tipo, btn) {
 
   if (tipo === 'hoje') {
     ini = fim;
-  } else if (tipo === 'semana') {
-    const d = new Date(hoje);
-    d.setDate(d.getDate() - d.getDay());
-    ini = d.toISOString().split('T')[0];
-  } else if (tipo === 'mes') {
-    ini = `${y}-${String(m+1).padStart(2,'0')}-01`;
-  } else if (tipo === '30dias') {
-    const d = new Date(hoje);
-    d.setDate(d.getDate() - 29);
-    ini = d.toISOString().split('T')[0];
+  } else if (tipo === 'mes-anterior') {
+    ini = new Date(y, m - 1, 1).toISOString().split('T')[0];
+    fim = new Date(y, m, 0).toISOString().split('T')[0];
   } else if (tipo === 'ano') {
     ini = `${y}-01-01`;
+  } else if (tipo === 'todos') {
+    ini = '2020-01-01';
+    fim = `${y + 1}-12-31`;
   }
+
+  if (!ini) return;
 
   document.getElementById('periodo-inicio').value = ini;
   document.getElementById('periodo-fim').value    = fim;
   periodoInicio = ini;
   periodoFim    = fim;
 
-  // Marca botão ativo
   document.querySelectorAll('.period-shortcut').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
 
@@ -511,24 +508,34 @@ function updateSummaryCards() {
   const aguMes = doMes.filter(o => o.status === STATUS.ENTREGUE_NPAGO);
   const atras  = allOrders.filter(isLate);
 
-  document.getElementById('mes-faturado').textContent   = `R$ ${formatCurrency(pagMes.reduce((a,o)=>a+Number(o.valor),0))}`;
-  document.getElementById('mes-aguardando').textContent = `R$ ${formatCurrency(aguMes.reduce((a,o)=>a+Number(o.valor),0))}`;
+  const mesFatVal = pagMes.reduce((a,o)=>a+Number(o.valor),0);
+  const mesAguVal = aguMes.reduce((a,o)=>a+Number(o.valor),0);
+
+  document.getElementById('mes-faturado').textContent   = `R$ ${formatCurrency(mesFatVal)}`;
+  document.getElementById('mes-aguardando').textContent = `R$ ${formatCurrency(mesAguVal)}`;
   document.getElementById('count-late').textContent     = atras.length;
   document.getElementById('mes-label').textContent      = labelMesAtual();
+  const elMesTot = document.getElementById('mes-total');
+  if (elMesTot) elMesTot.textContent = `R$ ${formatCurrency(mesFatVal + mesAguVal)}`;
 
   // Período filtrado
   const doPer   = allOrders.filter(inPeriod);
   const pagPer  = doPer.filter(o => o.status === STATUS.ENTREGUE_PAGO);
   const aguPer  = doPer.filter(o => o.status === STATUS.ENTREGUE_NPAGO);
-  // [MELHORIA STATUS PEDIDO] — pendente inclui todos status pré-entrega
   const pendPer = doPer.filter(o => ['pendente','recebido','em_arte','em_producao','pronto'].includes(o.status));
 
-  document.getElementById('per-faturado').textContent   = `R$ ${formatCurrency(pagPer.reduce((a,o)=>a+Number(o.valor),0))}`;
-  document.getElementById('per-aguardando').textContent = `R$ ${formatCurrency(aguPer.reduce((a,o)=>a+Number(o.valor),0))}`;
-  document.getElementById('per-pendente').textContent   = `R$ ${formatCurrency(pendPer.reduce((a,o)=>a+Number(o.valor),0))}`;
+  const perFatVal  = pagPer.reduce((a,o)=>a+Number(o.valor),0);
+  const perAguVal  = aguPer.reduce((a,o)=>a+Number(o.valor),0);
+  const perPendVal = pendPer.reduce((a,o)=>a+Number(o.valor),0);
+
+  document.getElementById('per-faturado').textContent   = `R$ ${formatCurrency(perFatVal)}`;
+  document.getElementById('per-aguardando').textContent = `R$ ${formatCurrency(perAguVal)}`;
+  document.getElementById('per-pendente').textContent   = `R$ ${formatCurrency(perPendVal)}`;
   document.getElementById('per-count-pago').textContent  = `${pagPer.length} pedido${pagPer.length!==1?'s':''}`;
   document.getElementById('per-count-aguar').textContent = `${aguPer.length} pedido${aguPer.length!==1?'s':''}`;
   document.getElementById('per-count-pend').textContent  = `${pendPer.length} pedido${pendPer.length!==1?'s':''}`;
+  const elPerTot = document.getElementById('per-total');
+  if (elPerTot) elPerTot.textContent = `R$ ${formatCurrency(perFatVal + perAguVal + perPendVal)}`;
 }
 
 function labelMesAtual() {
@@ -546,9 +553,16 @@ function openEntregueModal(id) {
 async function avancarStatus(id, statusAtual) {
   const prox = proximoStatus(statusAtual);
   if (!prox) return;
-  // entregue_nao_pago e entregue_pago precisam de modal — não avançar aqui
   if (prox === 'entregue_nao_pago' || prox === 'entregue_pago') return;
-  await db.from('pedidos').update({ status: prox }).eq('id', id);
+  const { error } = await db.from('pedidos').update({ status: prox }).eq('id', id);
+  if (error) {
+    if (error.message && error.message.includes('check constraint')) {
+      alert('Para usar os novos status (Arte, Produção, Pronto), execute o SQL de migração "migracao_novos_status.sql" no Supabase primeiro.');
+    } else {
+      alert('Erro ao atualizar status: ' + error.message);
+    }
+    return;
+  }
   await loadOrders();
 }
 
@@ -556,7 +570,7 @@ async function avancarStatus(id, statusAtual) {
 async function setStatusRecebido(id) {
   if (!confirm('Reabrir pedido? A data real e o comprovante serão removidos.')) return;
   await db.from('pedidos')
-    .update({ status: STATUS.RECEBIDO, data_entrega_real: null, comprovante_url: null })
+    .update({ status: 'pendente', data_entrega_real: null, comprovante_url: null })
     .eq('id', id);
   await loadOrders();
 }
@@ -678,7 +692,7 @@ function openOrderModal() {
   document.getElementById('order-form').reset();
   document.getElementById('order-id').value          = '';
   document.getElementById('field-data-pedido').value = todayDate();
-  document.getElementById('field-status').value      = STATUS.RECEBIDO; // [MELHORIA STATUS PEDIDO]
+  document.getElementById('field-status').value      = 'pendente';
   orderItems      = [];
   comprovanteFile = null;
   renderItemsList();
