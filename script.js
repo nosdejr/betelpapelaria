@@ -483,10 +483,22 @@ function renderOrders() {
         ${order.comprovante_url
           ? `<button class="btn-receipt" onclick="viewReceipt('${escapeHtml(order.comprovante_url)}')" title="Ver comprovante">🧾</button>`
           : ''}
+        <a class="btn-whatsapp" href="${gerarLinkWhatsApp(order)}" target="_blank" rel="noopener">PIX</a>
         <button class="btn-delete" onclick="openDeleteModal('${order.id}')">🗑️</button>
       </div>
     </article>`;
   }).join('');
+}
+
+function gerarLinkWhatsApp(order) {
+  const valor = formatCurrency(order.valor || 0);
+  const msg =
+    `Agradecemos pela sua compra!\n` +
+    `Para concluir o pagamento via Pix, utilize os dados abaixo:\n` +
+    `- Chave PIX (CPF): 367.427.448-55\n` +
+    `- Nome: Nayara Pereira Mendes Garcia\n` +
+    `- Valor R$: R$ ${valor}`;
+  return `https://wa.me/?text=${encodeURIComponent(msg)}`;
 }
 
 // [MELHORIA STATUS PEDIDO]
