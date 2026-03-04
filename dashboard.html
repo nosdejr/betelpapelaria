@@ -119,7 +119,7 @@
     <!-- ── Toolbar: filtros + busca ──────────────────────── -->
     <!-- [MELHORIA STATUS PEDIDO] — filtros atualizados -->
     <section class="toolbar-section">
-      <!-- [MELHORIA FILTROS PEDIDOS] — 4 filtros: Todos / Pendentes / Finalizados / Atrasados -->
+      <!-- [MELHORIA FILTROS PEDIDOS] — 4 filtros simples -->
       <div class="filter-scroll">
         <button class="filter-btn active"             onclick="setFilter('todos',this)">Todos</button>
         <button class="filter-btn filter-pendentes"   onclick="setFilter('pendentes',this)">Pendentes</button>
@@ -287,7 +287,7 @@
           </div>
         </div>
 
-        <!-- [MELHORIA FLUXO STATUS] — 5 etapas de produção/entrega -->
+        <!-- [MELHORIA FLUXO STATUS] — 5 etapas de produção -->
         <div class="field-group">
           <label for="field-status">Status de produção</label>
           <select id="field-status" onchange="onStatusChange()">
@@ -299,13 +299,15 @@
           </select>
         </div>
 
-        <!-- [MELHORIA FLUXO STATUS] — seção de entrega: data real + comprovante opcional -->
+        <!-- [MELHORIA FLUXO STATUS] — seção de entrega: só data real -->
+        <!-- O comprovante de pagamento é gerenciado pelo modal de pagamento separado -->
         <div id="conclusao-section" class="conclusao-section hidden">
           <div class="section-title">Dados de entrega</div>
           <div class="field-group">
             <label for="field-data-entrega-real">Data de entrega real *</label>
             <input type="date" id="field-data-entrega-real" />
           </div>
+          <!-- campo comprovante mantido no DOM para compatibilidade, mas ocultado -->
           <div id="comprovante-field" class="field-group hidden">
             <label id="comprovante-label">Comprovante (opcional)</label>
             <div class="upload-area" id="upload-area" onclick="document.getElementById('field-comprovante').click()">
@@ -432,5 +434,49 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
+
+  <!-- [CORREÇÃO COMPROVANTE] — Modal de pagamento com upload de comprovante -->
+  <div id="pgto-modal" class="modal-overlay hidden" onclick="closePgtoModalOnOverlay(event)">
+    <div class="modal-box" style="max-width:400px">
+      <div class="modal-header">
+        <h2 class="modal-title">Registrar Pagamento</h2>
+        <button class="modal-close" onclick="closePgtoModal()">✕</button>
+      </div>
+
+      <div class="pgto-resumo">
+        <div class="pgto-resumo-row">
+          <span class="pgto-label">Cliente</span>
+          <span id="pgto-modal-cliente" class="pgto-valor"></span>
+        </div>
+        <div class="pgto-resumo-row">
+          <span class="pgto-label">Valor</span>
+          <span id="pgto-modal-valor" class="pgto-valor pgto-valor-destaque"></span>
+        </div>
+      </div>
+
+      <div class="field-group" style="margin-top:16px">
+        <label>Comprovante de pagamento <span style="color:var(--ink-muted);font-weight:400">(opcional)</span></label>
+        <div class="upload-area" id="pgto-upload-area" onclick="document.getElementById('pgto-field-comprovante').click()">
+          <div class="upload-icon">📎</div>
+          <div class="upload-text">Toque para anexar comprovante</div>
+          <div class="upload-hint">JPG, PNG ou PDF</div>
+        </div>
+        <input type="file" id="pgto-field-comprovante" accept="image/*,application/pdf"
+               style="display:none" onchange="onPgtoComprovanteSelected(event)" />
+        <div id="pgto-comprovante-preview" class="comprovante-preview hidden"></div>
+        <a id="pgto-comprovante-existing" class="comprovante-link hidden" target="_blank">
+          📄 Ver comprovante já enviado
+        </a>
+      </div>
+
+      <div class="modal-actions" style="margin-top:20px">
+        <button type="button" class="btn-secondary" onclick="closePgtoModal()">Cancelar</button>
+        <button type="button" class="btn-primary" id="btn-confirmar-pgto" onclick="confirmarPagamento()">
+          Confirmar Pagamento
+        </button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

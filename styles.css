@@ -259,7 +259,7 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
 .billing-item-value.green { color: var(--sage); }
 .billing-item-value.blue  { color: var(--blue); }
 .billing-item-value.gold  { color: var(--gold); }
-.billing-item-value.red   { color: var(--red); }
+.billing-item-value.red   { color: var(--red); font-size: 20px; }
 
 .billing-item-count {
   font-size: 10px;
@@ -767,16 +767,13 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
 
 
 /* ══════════════════════════════════════════════════════════
-   [MELHORIA FLUXO STATUS] — badges de status de produção
-   (os antigos badge-recebido/arte/producao/pronto são mantidos)
-══════════════════════════════════════════════════════════ */
-.badge-entregue {
-  background: #E0F2F1;
-  color: #00695C;
-  border: 1px solid #80CBC4;
-}
+   [MELHORIA FLUXO STATUS] — badges e botões do novo sistema
+   ══════════════════════════════════════════════════════════ */
 
-/* ── badges de pagamento separado do fluxo ── */
+/* badge de status entregue */
+.badge-entregue { background: #E0F2F1; color: #00695C; border: 1px solid #80CBC4; }
+
+/* wrapper dos dois badges no topo do card */
 .order-badges {
   display: flex;
   align-items: center;
@@ -785,70 +782,120 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
   justify-content: flex-end;
 }
 
-/* Badge "A pagar" — neutro/amarelo */
+/* badges de pagamento */
 .badge-pgto {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 2px 7px;
   border-radius: var(--radius-pill);
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: .3px;
   white-space: nowrap;
 }
-.badge-pgto-aberto {
-  background: #FFF8E1;
-  color: #F57F17;
-  border: 1px solid #FFCC02;
+.badge-pgto-aberto { background: #FFF8E1; color: #E65100; border: 1px solid #FFCC02; }
+.badge-pgto-pago   { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; }
+
+/* ── botões da barra de ações ── */
+/* [FIX BOTÕES] — barra sem wrap, scroll invisível se necessário */
+.order-card-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
-/* Badge "Pago" — verde */
-.badge-pgto-pago {
-  background: #E8F5E9;
-  color: #2E7D32;
-  border: 1px solid #A5D6A7;
+.order-card-actions::-webkit-scrollbar { display: none; }
+
+/* [FIX BOTÕES] — botão de avanço de etapa: compacto com quebra */
+.btn-status-toggle {
+  flex-shrink: 0;
+  max-width: 72px;
+  padding: 5px 7px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 36px;
+  white-space: normal;
+  word-break: break-word;
+  text-align: center;
+  line-height: 1.2;
+  transition: all .2s;
 }
 
-/* ══════════════════════════════════════════════════════════
-   [MELHORIA FLUXO STATUS] — botão de pagamento separado
-   Posicionado ao lado dos botões de fluxo de produção,
-   ANTES do botão WhatsApp
-══════════════════════════════════════════════════════════ */
+/* [CORREÇÃO COMPROVANTE] — botão pagamento separado */
 .btn-pagamento {
-  padding: 7px 12px;
+  flex-shrink: 0;
+  padding: 5px 9px;
   border-radius: var(--radius-pill);
   font-family: 'DM Sans', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
   border: 2px solid;
-  transition: all .18s;
+  min-height: 36px;
   white-space: nowrap;
-  flex-shrink: 0;
+  transition: all .18s;
 }
-/* Estado: não pago — laranja/dourado */
 .btn-pago-nao {
   background: #FFF8E1;
-  color: #F57F17;
+  color: #E65100;
   border-color: #FFCC02;
 }
-.btn-pago-nao:hover {
-  background: #F57F17;
-  color: #fff;
-  border-color: #F57F17;
-}
-/* Estado: já pago — verde */
+.btn-pago-nao:hover { background: #E65100; color: #fff; border-color: #E65100; }
 .btn-pago-sim {
   background: #E8F5E9;
   color: #2E7D32;
   border-color: #A5D6A7;
 }
-.btn-pago-sim:hover {
-  background: #C8E6C9;
-  border-color: #66BB6A;
+.btn-pago-sim:hover { background: #C8E6C9; border-color: #66BB6A; }
+
+/* ícones menores para caber na linha */
+.btn-edit, .btn-delete, .btn-receipt {
+  width: 36px !important;
+  height: 36px !important;
+  font-size: 14px !important;
 }
 
-/* ══════════════════════════════════════════════════════════
-   [MELHORIA FILTROS PEDIDOS] — cores dos 4 filtros
-══════════════════════════════════════════════════════════ */
+/* ── filtros ── */
 .filter-pendentes.active   { background: #795548; border-color: #795548; color: #fff; box-shadow: 0 2px 8px rgba(121,85,72,.3); }
 .filter-finalizados.active { background: #1B5E20; border-color: #1B5E20; color: #fff; box-shadow: 0 2px 8px rgba(27,94,32,.3); }
 .filter-late.active        { background: var(--red); border-color: var(--red); color: #fff; }
+
+/* ══════════════════════════════════════════════════════════
+   [CORREÇÃO COMPROVANTE] — Modal de pagamento
+   ══════════════════════════════════════════════════════════ */
+.pgto-resumo {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+.pgto-resumo-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.pgto-label {
+  font-size: 12px;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+.pgto-valor {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.pgto-valor-destaque {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--coral);
+}
