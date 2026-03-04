@@ -551,6 +551,7 @@ function buildPrazoLabel(order) {
 function updateSummaryCards() {
   // Mês atual
   const doMes  = allOrders.filter(inCurrentMonth);
+  // [FIX SOMA] — usa campo pago (boolean) separado do fluxo de produção
   const pagMes = doMes.filter(o => o.pago === true);
   const aguMes = doMes.filter(o => !o.pago);
   const atras  = allOrders.filter(isLate);
@@ -567,9 +568,10 @@ function updateSummaryCards() {
 
   // Período filtrado
   const doPer   = allOrders.filter(inPeriod);
+  // [FIX SOMA] — pago = campo boolean; a receber = não pagos; pendente = em produção
   const pagPer  = doPer.filter(o => o.pago === true);
-  const aguPer  = doPer.filter(o => !o.pago);
-  const pendPer = doPer.filter(o => STATUS_PENDENTES.has(o.status));
+  const aguPer  = doPer.filter(o => !o.pago && ['entregue','entregue_nao_pago','entregue_pago','pronto'].includes(o.status));
+  const pendPer = doPer.filter(o => ['recebido','criando','produzindo','pendente','em_arte','em_producao'].includes(o.status));
 
   const perFatVal  = pagPer.reduce((a,o)=>a+Number(o.valor),0);
   const perAguVal  = aguPer.reduce((a,o)=>a+Number(o.valor),0);
