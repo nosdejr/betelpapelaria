@@ -484,7 +484,7 @@ function renderOrders() {
       class="btn-pagamento ${jaPago ? 'btn-pago-sim' : 'btn-pago-nao'}"
       onclick="togglePagamento('${order.id}', ${jaPago})"
       title="${jaPago ? 'Clique para marcar como não pago' : 'Clique para marcar como pago'}"
-    >${jaPago ? '✓ Pago' : 'Pagar'}</button>`;
+    >${jaPago ? '✓ Pago' : 'Receber'}</button>`;
 
     return `
     <article class="order-card status-${order.status.replace(/_/g,'-')} ${late ? 'status-late' : ''}">
