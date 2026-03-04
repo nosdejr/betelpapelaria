@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Papelaria BETEL - Dashboard</title>
+  <!-- [MELHORIA FONTE VALORES] — Inter via Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=Inter:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body class="dashboard-body">
@@ -25,115 +26,202 @@
     </div>
   </header>
 
-  <!-- ══ RESUMO FINANCEIRO ════════════════════════════════════
-       Dois painéis lado a lado: Mês atual | Período filtrado
+  <!-- ══ NAVEGAÇÃO POR ABAS ════════════════════════════════════
+       [MELHORIA DESPESAS] — Pedidos | Despesas | Financeiro
   ══════════════════════════════════════════════════════════ -->
-  <section class="billing-section">
-
-    <!-- Painel esquerdo: mês atual (fixo) -->
-    <div class="billing-panel billing-panel-fixed">
-      <div class="billing-panel-header">
-        <span class="billing-panel-icon">📅</span>
-        <span class="billing-panel-title">Mês atual</span>
-        <span class="billing-panel-sub" id="mes-label"></span>
-      </div>
-      <div class="billing-row">
-        <div class="billing-item">
-          <span class="billing-item-label">💰 Recebido</span>
-          <span class="billing-item-value green" id="mes-faturado">R$ 0,00</span>
-        </div>
-        <div class="billing-item">
-          <span class="billing-item-label">🕐 A receber</span>
-          <span class="billing-item-value blue" id="mes-aguardando">R$ 0,00</span>
-        </div>
-        <div class="billing-item">
-          <span class="billing-item-label">🚨 Atrasados</span>
-          <span class="billing-item-value red" id="count-late">0</span>
-        </div>
-      </div>
-      <!-- ✅ MELHORIA 4: total mês atual -->
-      <div class="billing-total-row">
-        <span>TOTAL MÊS:</span>
-        <span class="billing-total-value" id="mes-total">R$ 0,00</span>
-      </div>
+  <nav class="main-nav">
+    <div class="main-nav-inner">
+      <button class="nav-tab active" data-page="pedidos"    onclick="showPage('pedidos')">📋 Pedidos</button>
+      <button class="nav-tab"        data-page="despesas"   onclick="showPage('despesas')">💸 Despesas</button>
+      <button class="nav-tab"        data-page="financeiro" onclick="showPage('financeiro')">📊 Financeiro</button>
     </div>
+  </nav>
 
-    <!-- Painel direito: período personalizado -->
-    <div class="billing-panel billing-panel-custom">
-      <div class="billing-panel-header">
-        <span class="billing-panel-icon">🔎</span>
-        <span class="billing-panel-title">Período</span>
-      </div>
-      <!-- ✅ MELHORIA 3: atalhos atualizados — Hoje, Mês Anterior, Ano, Todos -->
-      <div class="period-shortcuts">
-        <button class="period-shortcut" onclick="setPeriodShortcut('hoje',this)">Hoje</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('mes-anterior',this)">Mês Anterior</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('ano',this)">Ano</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('todos',this)">Todos</button>
-      </div>
-      <!-- Seletor de datas inline -->
-      <div class="period-row">
-        <input type="date" id="periodo-inicio" class="period-input" onchange="applyPeriod()" />
-        <span class="period-sep">→</span>
-        <input type="date" id="periodo-fim" class="period-input" onchange="applyPeriod()" />
-      </div>
-      <div class="billing-row">
-        <div class="billing-item">
-          <span class="billing-item-label">💰 Recebido</span>
-          <span class="billing-item-value green" id="per-faturado">R$ 0,00</span>
-          <span class="billing-item-count" id="per-count-pago"></span>
-        </div>
-        <div class="billing-item">
-          <span class="billing-item-label">🕐 A receber</span>
-          <span class="billing-item-value blue" id="per-aguardando">R$ 0,00</span>
-          <span class="billing-item-count" id="per-count-aguar"></span>
-        </div>
-        <div class="billing-item">
-          <span class="billing-item-label">⏳ Pendente</span>
-          <span class="billing-item-value gold" id="per-pendente">R$ 0,00</span>
-          <span class="billing-item-count" id="per-count-pend"></span>
-        </div>
-      </div>
-      <!-- ✅ MELHORIA 4: total período -->
-      <div class="billing-total-row">
-        <span>TOTAL PERÍODO:</span>
-        <span class="billing-total-value" id="per-total">R$ 0,00</span>
-      </div>
-    </div>
-
-  </section>
-
-  <!-- ══ TOOLBAR ══════════════════════════════════════════════
-       Filtros em 2 linhas no mobile para não empilhar
+  <!-- ══════════════════════════════════════════════════════════
+       SEÇÃO: PEDIDOS (visível por padrão)
   ══════════════════════════════════════════════════════════ -->
-  <section class="toolbar-section">
-    <!-- Linha 1: filtros de status (2 linhas no mobile) -->
-    <div class="filter-grid">
-      <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
-      <button class="filter-btn" onclick="setFilter('pendente',this)">Pendentes</button>
-      <button class="filter-btn" onclick="setFilter('entregue_nao_pago',this)">Entregues</button>
-      <button class="filter-btn" onclick="setFilter('entregue_pago',this)">Pagos</button>
-      <button class="filter-btn filter-btn-late" onclick="setFilter('atrasado',this)">Atrasados</button>
-    </div>
-    <!-- Linha 2: busca + botão novo -->
-    <div class="search-new-row">
-      <input type="search" id="search-input" class="search-input" placeholder="🔍 Buscar cliente…" oninput="renderOrders()" />
-      <!-- botão flutuante no rodapé -->
-    </div>
-  </section>
+  <div id="section-pedidos">
 
-  <!-- ══ LISTA DE PEDIDOS ══════════════════════════════════════ -->
-  <main class="orders-section">
-    <div id="loading-state" class="empty-state">
-      <div class="spinner">⟳</div><p>Carregando pedidos…</p>
+    <!-- ── Resumo financeiro ──────────────────────────────── -->
+    <section class="billing-section">
+
+      <!-- Painel esquerdo: mês atual (fixo) -->
+      <div class="billing-panel billing-panel-fixed">
+        <div class="billing-panel-header">
+          <span class="billing-panel-icon">📅</span>
+          <span class="billing-panel-title">Mês atual</span>
+          <span class="billing-panel-sub" id="mes-label"></span>
+        </div>
+        <div class="billing-row">
+          <div class="billing-item">
+            <span class="billing-item-label">💰 Recebido</span>
+            <span class="billing-item-value green valor-monetario" id="mes-faturado">R$ 0,00</span>
+          </div>
+          <div class="billing-item">
+            <span class="billing-item-label">🕐 A receber</span>
+            <span class="billing-item-value blue valor-monetario" id="mes-aguardando">R$ 0,00</span>
+          </div>
+          <div class="billing-item">
+            <span class="billing-item-label">🚨 Atrasados</span>
+            <span class="billing-item-value red valor-monetario" id="count-late">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Painel direito: período personalizado -->
+      <div class="billing-panel billing-panel-custom">
+        <div class="billing-panel-header">
+          <span class="billing-panel-icon">🔎</span>
+          <span class="billing-panel-title">Período</span>
+        </div>
+        <!-- Atalhos rápidos de período -->
+        <div class="period-shortcuts">
+          <button class="period-shortcut" onclick="setPeriodShortcut('hoje',this)">Hoje</button>
+          <button class="period-shortcut" onclick="setPeriodShortcut('mes-anterior',this)">Mês anterior</button>
+          <button class="period-shortcut" onclick="setPeriodShortcut('ano',this)">Ano</button>
+          <button class="period-shortcut" onclick="setPeriodShortcut('todos',this)">Todos</button>
+        </div>
+        <!-- Seletor de datas inline -->
+        <div class="period-row">
+          <input type="date" id="periodo-inicio" class="period-input" onchange="applyPeriod()" />
+          <span class="period-sep">→</span>
+          <input type="date" id="periodo-fim" class="period-input" onchange="applyPeriod()" />
+        </div>
+        <div class="billing-row">
+          <div class="billing-item">
+            <span class="billing-item-label">💰 Recebido</span>
+            <span class="billing-item-value green valor-monetario" id="per-faturado">R$ 0,00</span>
+            <span class="billing-item-count" id="per-count-pago"></span>
+          </div>
+          <div class="billing-item">
+            <span class="billing-item-label">🕐 A receber</span>
+            <span class="billing-item-value blue valor-monetario" id="per-aguardando">R$ 0,00</span>
+            <span class="billing-item-count" id="per-count-aguar"></span>
+          </div>
+          <div class="billing-item">
+            <span class="billing-item-label">⏳ Pendente</span>
+            <span class="billing-item-value gold valor-monetario" id="per-pendente">R$ 0,00</span>
+            <span class="billing-item-count" id="per-count-pend"></span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── Toolbar: filtros + busca ──────────────────────── -->
+    <!-- [MELHORIA STATUS PEDIDO] — filtros atualizados -->
+    <section class="toolbar-section">
+      <div class="filter-grid">
+        <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
+        <button class="filter-btn" onclick="setFilter('pendente',this)">⏳ Em andamento</button>
+        <button class="filter-btn" onclick="setFilter('entregue_nao_pago',this)">🚚 Entregues</button>
+        <button class="filter-btn" onclick="setFilter('entregue_pago',this)">✅ Pagos</button>
+        <button class="filter-btn filter-btn-late" onclick="setFilter('atrasado',this)">🚨 Atrasados</button>
+      </div>
+      <div class="search-new-row">
+        <input type="search" id="search-input" class="search-input" placeholder="🔍 Buscar cliente…" oninput="renderOrders()" />
+      </div>
+    </section>
+
+    <!-- ── Lista de pedidos ──────────────────────────────── -->
+    <main class="orders-section">
+      <div id="loading-state" class="empty-state">
+        <div class="spinner">⟳</div><p>Carregando pedidos…</p>
+      </div>
+      <div id="empty-state" class="empty-state hidden">
+        <div class="empty-icon">📋</div>
+        <p class="empty-title">Nenhum pedido encontrado</p>
+        <p class="empty-sub">Toque em <strong>＋</strong> para adicionar ou ajuste os filtros.</p>
+      </div>
+      <div id="orders-list" class="orders-list hidden"></div>
+    </main>
+
+  </div><!-- /section-pedidos -->
+
+  <!-- ══════════════════════════════════════════════════════════
+       SEÇÃO: DESPESAS [MELHORIA DESPESAS]
+  ══════════════════════════════════════════════════════════ -->
+  <div id="section-despesas" class="hidden">
+    <div class="page-section">
+
+      <!-- Atalhos de período -->
+      <div class="page-section-header">
+        <div class="period-shortcuts">
+          <button class="desp-shortcut period-shortcut" onclick="setDespesaShortcut('hoje',this)">Hoje</button>
+          <button class="desp-shortcut period-shortcut" onclick="setDespesaShortcut('mes-atual',this)">Mês atual</button>
+          <button class="desp-shortcut period-shortcut" onclick="setDespesaShortcut('mes-anterior',this)">Mês anterior</button>
+          <button class="desp-shortcut period-shortcut" onclick="setDespesaShortcut('todos',this)">Todos</button>
+        </div>
+        <div class="period-row" style="margin-top:8px">
+          <input type="date" id="desp-ini" class="period-input" onchange="applyDespesaPeriod()" />
+          <span class="period-sep">→</span>
+          <input type="date" id="desp-fim" class="period-input" onchange="applyDespesaPeriod()" />
+        </div>
+      </div>
+
+      <!-- Card total -->
+      <div class="desp-total-card">
+        <span class="desp-total-label">💸 Total de despesas no período</span>
+        <span class="desp-total-value valor-monetario" id="desp-total-val">R$ 0,00</span>
+      </div>
+
+      <!-- Lista -->
+      <div id="expenses-list" class="expenses-list"></div>
+
     </div>
-    <div id="empty-state" class="empty-state hidden">
-      <div class="empty-icon">📋</div>
-      <p class="empty-title">Nenhum pedido encontrado</p>
-      <p class="empty-sub">Toque em <strong>+ Novo</strong> para adicionar ou ajuste os filtros.</p>
+  </div><!-- /section-despesas -->
+
+  <!-- ══════════════════════════════════════════════════════════
+       SEÇÃO: FINANCEIRO [MELHORIA DASH ENTRADAS x SAÍDAS]
+  ══════════════════════════════════════════════════════════ -->
+  <div id="section-financeiro" class="hidden">
+    <div class="page-section">
+
+      <!-- Atalhos de período -->
+      <div class="page-section-header">
+        <div class="period-shortcuts">
+          <button class="fin-shortcut period-shortcut" onclick="setFinShortcut('mes-atual',this)">Mês atual</button>
+          <button class="fin-shortcut period-shortcut" onclick="setFinShortcut('mes-anterior',this)">Mês anterior</button>
+          <button class="fin-shortcut period-shortcut" onclick="setFinShortcut('ano',this)">Ano</button>
+          <button class="fin-shortcut period-shortcut" onclick="setFinShortcut('todos',this)">Todos</button>
+        </div>
+        <div class="period-row" style="margin-top:8px">
+          <input type="date" id="fin-ini" class="period-input" onchange="applyFinPeriod()" />
+          <span class="period-sep">→</span>
+          <input type="date" id="fin-fim" class="period-input" onchange="applyFinPeriod()" />
+        </div>
+      </div>
+
+      <!-- 3 cards financeiros -->
+      <div class="fin-cards">
+        <div class="fin-card fin-entradas">
+          <span class="fin-card-label">📈 Entradas (recebido)</span>
+          <span class="fin-card-value valor-monetario" id="fin-entradas">R$ 0,00</span>
+        </div>
+        <div class="fin-card fin-saidas">
+          <span class="fin-card-label">📉 Saídas (despesas)</span>
+          <span class="fin-card-value valor-monetario" id="fin-saidas">R$ 0,00</span>
+        </div>
+        <div class="fin-card fin-lucro" id="fin-resultado-card">
+          <span class="fin-card-label" id="fin-resultado-label">📊 Resultado</span>
+          <span class="fin-card-value valor-monetario" id="fin-resultado">R$ 0,00</span>
+        </div>
+      </div>
+
+      <!-- Barra visual Entradas x Saídas -->
+      <div class="fin-bar-wrap">
+        <div class="fin-bar-label">
+          <span class="fin-bar-tag entradas-tag">Entradas</span>
+          <span class="fin-bar-tag saidas-tag">Saídas</span>
+        </div>
+        <div class="fin-bar">
+          <div class="fin-bar-e" id="fin-bar-e" style="width:50%"></div>
+          <div class="fin-bar-s" id="fin-bar-s" style="width:50%"></div>
+        </div>
+      </div>
+
     </div>
-    <div id="orders-list" class="orders-list hidden"></div>
-  </main>
+  </div><!-- /section-financeiro -->
 
   <!-- ══ MODAL: PEDIDO ════════════════════════════════════════ -->
   <div id="order-modal" class="modal-overlay hidden" onclick="closeModalOnOverlay(event)">
@@ -162,9 +250,9 @@
           <button type="button" class="btn-add-item" onclick="addItemFromSelect()">＋</button>
         </div>
         <div class="item-add-row">
-          <input type="text" id="item-custom-name" class="item-custom-name" placeholder="Item avulso…" />
+          <input type="text"   id="item-custom-name"  class="item-custom-name"  placeholder="Item avulso…" />
           <input type="number" id="item-custom-price" class="item-custom-price" placeholder="R$" min="0" step="0.01" />
-          <input type="number" id="item-custom-qty" class="item-qty" placeholder="Qtd" min="1" value="1" />
+          <input type="number" id="item-custom-qty"   class="item-qty"          placeholder="Qtd" min="1" value="1" />
           <button type="button" class="btn-add-item" onclick="addCustomItem()">＋</button>
         </div>
 
@@ -172,7 +260,7 @@
 
         <div class="order-total-row">
           <span>Total do pedido:</span>
-          <span class="order-total-value" id="order-total-display">R$ 0,00</span>
+          <span class="order-total-value valor-monetario" id="order-total-display">R$ 0,00</span>
         </div>
 
         <div class="field-group">
@@ -180,7 +268,6 @@
           <textarea id="field-descricao" placeholder="Observações adicionais…" rows="2"></textarea>
         </div>
 
-        <!-- Datas com calendário padrão -->
         <div class="fields-row">
           <div class="field-group">
             <label for="field-data-pedido">Data do pedido</label>
@@ -192,12 +279,16 @@
           </div>
         </div>
 
+        <!-- [MELHORIA STATUS PEDIDO] — select com as 6 etapas -->
         <div class="field-group">
           <label for="field-status">Status</label>
           <select id="field-status" onchange="onStatusChange()">
-            <option value="pendente">Pendente</option>
-            <option value="entregue_nao_pago">Entregue - Aguard. Pgto</option>
-            <option value="entregue_pago">Entregue e Pago</option>
+            <option value="recebido">📥 Recebido — aguardando arte</option>
+            <option value="em_arte">🎨 Em criação de arte</option>
+            <option value="em_producao">🏭 Em produção</option>
+            <option value="pronto">📦 Pronto para entrega</option>
+            <option value="entregue_nao_pago">🚚 Entregue — aguardando pgto</option>
+            <option value="entregue_pago">✅ Pago e finalizado</option>
           </select>
         </div>
 
@@ -208,7 +299,6 @@
             <label for="field-data-entrega-real">Data de entrega real *</label>
             <input type="date" id="field-data-entrega-real" />
           </div>
-          <!-- Comprovante: só quando "entregue e pago" -->
           <div id="comprovante-field" class="field-group hidden">
             <label id="comprovante-label">Comprovante de pagamento *</label>
             <div class="upload-area" id="upload-area" onclick="document.getElementById('field-comprovante').click()">
@@ -224,8 +314,40 @@
 
         <div class="modal-actions">
           <button type="button" class="btn-secondary" onclick="closeOrderModal()">Cancelar</button>
-          <button type="button" class="btn-outline" onclick="gerarOrcamentoPDF()">📄 Orçamento</button>
-          <button type="submit" class="btn-primary" id="btn-save">
+          <button type="button" class="btn-outline"   onclick="gerarOrcamentoPDF()">📄 Orçamento</button>
+          <button type="submit" class="btn-primary"   id="btn-save">
+            <span class="btn-text">Salvar</span>
+            <span class="btn-loader hidden">⟳</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ MODAL: DESPESA [MELHORIA DESPESAS] ═════════════════════ -->
+  <div id="expense-modal" class="modal-overlay hidden" onclick="closeExpenseModalOverlay(event)">
+    <div class="modal-card modal-card-small">
+      <div class="modal-header">
+        <h2 id="desp-modal-title">Nova Despesa</h2>
+        <button class="modal-close" onclick="closeExpenseModal()">✕</button>
+      </div>
+      <form id="expense-form" onsubmit="handleSaveExpense(event)">
+        <input type="hidden" id="desp-form-id" />
+        <div class="field-group">
+          <label>Data *</label>
+          <input type="date" id="desp-form-data" required />
+        </div>
+        <div class="field-group">
+          <label>Descrição *</label>
+          <input type="text" id="desp-form-desc" placeholder="Ex: compra de papel, motoboy…" required />
+        </div>
+        <div class="field-group">
+          <label>Valor (R$) *</label>
+          <input type="number" id="desp-form-valor" placeholder="0,00" min="0" step="0.01" required />
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeExpenseModal()">Cancelar</button>
+          <button type="submit" class="btn-primary" id="btn-save-expense">
             <span class="btn-text">Salvar</span>
             <span class="btn-loader hidden">⟳</span>
           </button>
@@ -245,7 +367,7 @@
     </div>
   </div>
 
-  <!-- ══ MODAL: PRODUTOS (admin) ══════════════════════════════ -->
+  <!-- ══ MODAL: PRODUTOS ══════════════════════════════════════ -->
   <div id="products-modal" class="modal-overlay hidden" onclick="closeProductsModalOverlay(event)">
     <div class="modal-card">
       <div class="modal-header">
@@ -285,19 +407,21 @@
   <div id="delete-modal" class="modal-overlay hidden" onclick="closeDeleteModalOnOverlay(event)">
     <div class="modal-card modal-card-small">
       <div class="modal-header">
-        <h2>Excluir pedido?</h2>
+        <h2>Confirmar exclusão</h2>
         <button class="modal-close" onclick="closeDeleteModal()">✕</button>
       </div>
       <p class="delete-confirm-text">Esta ação não pode ser desfeita.</p>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
-        <button class="btn-danger" onclick="confirmDelete()">Excluir</button>
+        <button class="btn-danger"    onclick="confirmDelete()">Excluir</button>
       </div>
     </div>
   </div>
 
-  <!-- ── BOTÃO FLUTUANTE + NOVO ───────────────────────── -->
+  <!-- ── BOTÃO FLUTUANTE — só na aba Pedidos ─────────────── -->
   <button class="fab-new" onclick="openOrderModal()" title="Novo pedido">＋</button>
+  <!-- [MELHORIA DESPESAS] — botão flutuante para nova despesa (só na aba Despesas) -->
+  <button class="fab-new fab-despesa" onclick="openNewExpense()" title="Nova despesa" style="display:none">＋</button>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>

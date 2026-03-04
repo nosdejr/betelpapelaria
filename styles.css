@@ -131,10 +131,8 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
   box-shadow: var(--shadow-sm);
 }
 
-/* ✅ MELHORIA 2: sem borda colorida nos painéis — apenas sombra sutil */
-.billing-panel-fixed  { border-top: none; }
-.billing-panel-custom { border-top: none; }
-.billing-panel { border: none; }
+.billing-panel-fixed  { border-top: 3px solid var(--coral); }
+.billing-panel-custom { border-top: 3px solid var(--blue); }
 
 .billing-panel-header {
   display: flex;
@@ -248,13 +246,14 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
   text-overflow: ellipsis;
 }
 
+/* [MELHORIA FONTE VALORES] */
 .billing-item-value {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 15px;
   font-weight: 700;
   line-height: 1.2;
-  font-variant-numeric: tabular-nums; /* ✅ MELHORIA 1: números alinhados */
-  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .billing-item-value.green { color: var(--sage); }
@@ -396,7 +395,7 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
 .order-desc { font-size: 13px; color: var(--ink-soft); margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
 .order-card-meta { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-.order-value { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--coral); }
+/* [MELHORIA FONTE VALORES] */ .order-value { font-family: 'Inter','Roboto',system-ui,sans-serif; font-size: 20px; font-weight: 700; color: var(--coral); font-variant-numeric: tabular-nums; }
 .order-dates-block { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
 .date-tag { font-size: 11px; color: var(--ink-muted); background: var(--paper); padding: 2px 7px; border-radius: var(--radius-pill); }
 .date-tag.date-late { color: var(--red); background: #FDECEA; }
@@ -461,7 +460,7 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
 .btn-remove-item { background: none; border: none; color: var(--ink-muted); font-size: 16px; cursor: pointer; padding: 2px 4px; flex-shrink: 0; }
 .btn-remove-item:hover { color: var(--red); }
 .order-total-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--cream); border-radius: var(--radius-sm); border: 2px solid var(--border); margin: 10px 0; font-weight: 600; }
-.order-total-value { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--coral); }
+/* [MELHORIA FONTE VALORES] */ .order-total-value { font-family: 'Inter','Roboto',system-ui,sans-serif; font-size: 20px; font-weight: 700; color: var(--coral); font-variant-numeric: tabular-nums; }
 
 /* ── SEÇÃO CONCLUSÃO ────────────────────────────────────────── */
 .conclusao-section { background: var(--sage-light); border: 1px solid #A5D6A7; border-radius: var(--radius-sm); padding: 14px; margin-top: 10px; display: flex; flex-direction: column; gap: 12px; }
@@ -483,7 +482,7 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
 .product-info { flex: 1; min-width: 0; }
 .product-name { display: block; font-size: 14px; font-weight: 600; color: var(--ink); }
 .product-desc { display: block; font-size: 12px; color: var(--ink-muted); }
-.product-price { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--coral); white-space: nowrap; }
+/* [MELHORIA FONTE VALORES] */ .product-price { font-family: 'Inter','Roboto',system-ui,sans-serif; font-size: 15px; font-weight: 700; color: var(--coral); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .product-actions { display: flex; gap: 6px; }
 .btn-icon-sm { width: 32px; height: 32px; background: var(--warm-white); border: 1px solid var(--border); border-radius: 8px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
 .btn-icon-sm:hover { background: var(--ink); color: #fff; }
@@ -509,46 +508,210 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
 ::-webkit-scrollbar-thumb:hover { background: var(--ink-muted); }
 ::selection { background: rgba(232,99,74,.2); }
 
-/* ✅ MELHORIA 4: card de total */
-.billing-total-row {
-  margin-top: 10px;
-  padding: 8px 10px;
-  background: #D1FAE5;
-  border-radius: var(--radius-sm);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  font-weight: 700;
-  color: #065F46;
-}
-.billing-total-value {
-  font-family: 'Playfair Display', serif;
-  font-size: 15px;
-  font-weight: 700;
+
+/* ══════════════════════════════════════════════════════════
+   [MELHORIA FONTE VALORES] — classe centralizadora para R$
+   Aplica em todos os valores monetários do sistema
+══════════════════════════════════════════════════════════ */
+.valor-monetario {
+  font-family: 'Inter', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-variant-numeric: tabular-nums;
-  color: #065F46;
+  letter-spacing: -0.01em;
+  font-feature-settings: "tnum";
 }
 
-/* ✅ MELHORIA 5: botão WhatsApp por pedido */
-.btn-whatsapp {
+/* ══════════════════════════════════════════════════════════
+   [MELHORIA DESPESAS] — NAVEGAÇÃO POR ABAS
+══════════════════════════════════════════════════════════ */
+.main-nav {
+  background: var(--ink);
+  position: sticky;
+  top: 60px; /* abaixo do header */
+  z-index: 90;
+  box-shadow: 0 2px 8px rgba(44,35,24,.15);
+}
+.main-nav-inner {
   display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 12px;
-  background: #25D366;
-  color: #fff;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 16px;
+  gap: 2px;
+}
+.nav-tab {
+  flex: 1;
+  padding: 11px 8px;
+  background: transparent;
+  color: rgba(255,255,255,.55);
   border: none;
-  border-radius: var(--radius-sm);
+  border-bottom: 3px solid transparent;
   font-family: 'DM Sans', sans-serif;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  min-height: 40px;
+  transition: color .18s, border-color .18s;
   white-space: nowrap;
-  transition: background .2s, transform .1s;
-  text-decoration: none;
-  flex-shrink: 0;
+  text-align: center;
 }
-.btn-whatsapp:hover  { background: #1ebe5a; }
-.btn-whatsapp:active { transform: scale(.97); }
+.nav-tab:hover  { color: rgba(255,255,255,.85); }
+.nav-tab.active { color: #fff; border-bottom-color: var(--coral); }
+
+/* ══════════════════════════════════════════════════════════
+   [MELHORIA DESPESAS] — SEÇÃO INTERNA (wraps pages)
+══════════════════════════════════════════════════════════ */
+.page-section {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 14px 16px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.page-section-header { display: flex; flex-direction: column; gap: 0; }
+
+/* ══════════════════════════════════════════════════════════
+   [MELHORIA DESPESAS] — CARD TOTAL DE DESPESAS
+══════════════════════════════════════════════════════════ */
+.desp-total-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--warm-white);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--red);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+}
+.desp-total-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.desp-total-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--red);
+}
+
+/* ══════════════════════════════════════════════════════════
+   [MELHORIA DESPESAS] — LISTA DE DESPESAS
+══════════════════════════════════════════════════════════ */
+.expenses-list { display: flex; flex-direction: column; gap: 10px; }
+
+.expense-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--warm-white);
+  border-radius: var(--radius);
+  padding: 14px 14px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  animation: slideIn .22s ease-out;
+}
+.expense-body  { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.expense-desc  { font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.expense-date  { font-size: 11px; color: var(--ink-muted); }
+.expense-value { font-size: 16px; font-weight: 700; color: var(--red); white-space: nowrap; flex-shrink: 0; }
+.expense-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+/* ══════════════════════════════════════════════════════════
+   [MELHORIA DASH ENTRADAS x SAÍDAS] — CARDS FINANCEIRO
+══════════════════════════════════════════════════════════ */
+.fin-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (min-width: 480px) {
+  .fin-cards { grid-template-columns: repeat(3, 1fr); }
+}
+
+.fin-card {
+  background: var(--warm-white);
+  border-radius: var(--radius);
+  padding: 14px 12px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fin-card-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--ink-muted);
+}
+.fin-card-value {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.fin-card.fin-entradas  { border-left: 4px solid var(--sage); }
+.fin-card.fin-entradas .fin-card-value { color: var(--sage); }
+.fin-card.fin-saidas    { border-left: 4px solid var(--red); }
+.fin-card.fin-saidas .fin-card-value   { color: var(--red); }
+.fin-card.fin-lucro     { border-left: 4px solid var(--sage); grid-column: 1 / -1; }
+.fin-card.fin-lucro .fin-card-value    { color: var(--sage); }
+.fin-card.fin-prejuizo  { border-left: 4px solid var(--red); grid-column: 1 / -1; }
+.fin-card.fin-prejuizo .fin-card-value { color: var(--red); }
+@media (min-width: 480px) {
+  .fin-card.fin-lucro, .fin-card.fin-prejuizo { grid-column: auto; }
+}
+
+/* Barra visual */
+.fin-bar-wrap { display: flex; flex-direction: column; gap: 6px; }
+.fin-bar-label { display: flex; justify-content: space-between; }
+.fin-bar-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+.entradas-tag { background: var(--sage-light); color: #2E7D32; }
+.saidas-tag   { background: #FDECEA; color: var(--red); }
+.fin-bar {
+  display: flex;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--border);
+}
+.fin-bar-e { background: var(--sage);  transition: width .5s ease; }
+.fin-bar-s { background: var(--red);   transition: width .5s ease; }
+
+/* ══════════════════════════════════════════════════════════
+   [MELHORIA STATUS PEDIDO] — novos badges de status
+══════════════════════════════════════════════════════════ */
+.badge-recebido  { background: #FFF8E1; color: #795548; border: 1px solid #FFCC80; }
+.badge-arte      { background: #F3E5F5; color: #6A1B9A; border: 1px solid #CE93D8; }
+.badge-producao  { background: #E3F2FD; color: #0D47A1; border: 1px solid #90CAF9; }
+.badge-pronto    { background: #E8F5E9; color: #1B5E20; border: 1px solid #A5D6A7; }
+
+/* [MELHORIA STATUS PEDIDO] — cor da borda esquerda dos cards por status */
+.order-card.status-recebido     { border-left-color: #FFCC80; }
+.order-card.status-em-arte      { border-left-color: #CE93D8; }
+.order-card.status-em-producao  { border-left-color: #90CAF9; }
+.order-card.status-pronto       { border-left-color: var(--sage); }
+
+/* [MELHORIA STATUS PEDIDO] — botão de avanço de etapa */
+.btn-avancar {
+  background: var(--paper);
+  color: var(--ink-soft);
+  border: 1px solid var(--border);
+}
+.btn-avancar:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+/* FAB despesas — verde */
+.fab-despesa {
+  background: #2E7D32;
+  box-shadow: 0 4px 20px rgba(46,125,50,.45);
+}
+.fab-despesa:hover  { background: #1B5E20; box-shadow: 0 6px 24px rgba(46,125,50,.55); }
