@@ -30,13 +30,13 @@ const STATUS = {
 };
 
 const STATUS_LABEL = {
-  recebido:          '📥 Recebido',
-  em_arte:           '🎨 Em Arte',
-  em_producao:       '🏭 Em Produção',
-  pronto:            '📦 Pronto p/ Entrega',
-  entregue_nao_pago: '🚚 Aguard. Pgto',
-  entregue_pago:     '✅ Pago',
-  pendente:          '📥 Recebido',   // compatibilidade legado
+  recebido:          'Recebido',
+  em_arte:           'Em Arte',
+  em_producao:       'Em Produção',
+  pronto:            'Pronto p/ Entrega',
+  entregue_nao_pago: 'Aguard. Pgto',
+  entregue_pago:     'Pago',
+  pendente:          'Recebido',   // compatibilidade legado
 };
 
 const STATUS_BADGE_CLASS = {
@@ -63,11 +63,11 @@ function proximoStatus(atual) {
 function labelBtnAvancar(statusAtual) {
   const prox = proximoStatus(statusAtual);
   const map = {
-    em_arte:           '🎨 Ir p/ Arte',
-    em_producao:       '🏭 Ir p/ Produção',
-    pronto:            '📦 Marcar Pronto',
-    entregue_nao_pago: '🚚 Registrar Entrega',
-    entregue_pago:     '💰 Receber Pgto',
+    em_arte:           'Ir p/ Arte',
+    em_producao:       'Ir p/ Produção',
+    pronto:            'Marcar Pronto',
+    entregue_nao_pago: 'Registrar Entrega',
+    entregue_pago:     'Receber Pgto',
   };
   return prox ? (map[prox] || null) : null;
 }
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Badge de perfil
   const badge = document.getElementById('user-badge');
-  badge.textContent = isAdmin ? `👑 ${currentUser.email.split('@')[0]}` : `✏️ ${currentUser.email.split('@')[0]}`;
+  badge.textContent = isAdmin ? `${currentUser.email.split('@')[0]}` : `${currentUser.email.split('@')[0]}`;
   badge.className   = 'user-badge ' + (isAdmin ? 'badge-admin' : 'badge-op');
 
   // [MELHORIA PERMISSÕES NAYARA] — botão de produtos para ambos os usuários
@@ -451,10 +451,10 @@ function renderOrders() {
       }
     } else if (order.status === 'pronto') {
       // pronto → entregue: abre modal para registrar data real
-      statusBtns = `<button class="btn-status-toggle btn-entregue" onclick="openEntregueModal('${order.id}')">🚚 Registrar Entrega</button>`;
+      statusBtns = `<button class="btn-status-toggle btn-entregue" onclick="openEntregueModal('${order.id}')">Registrar Entrega</button>`;
     } else if (isNPago) {
       statusBtns = `
-        <button class="btn-status-toggle btn-pago" onclick="openEditOrderModal('${order.id}', true)">💰 Receber pgto</button>
+        <button class="btn-status-toggle btn-pago" onclick="openEditOrderModal('${order.id}', true)">Receber Pgto</button>
         <button class="btn-status-sm" title="Reabrir pedido" onclick="setStatusRecebido('${order.id}')">↩</button>`;
     } else if (isPago) {
       statusBtns = `<button class="btn-status-toggle btn-reverter" onclick="setStatusRecebido('${order.id}')">↩ Reabrir</button>`;
