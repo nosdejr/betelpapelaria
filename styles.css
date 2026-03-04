@@ -742,3 +742,25 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
   font-variant-numeric: tabular-nums;
   color: #065F46;
 }
+
+.btn-whatsapp {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: #25D366;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 40px;
+  white-space: nowrap;
+  transition: background .2s, transform .1s;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.btn-whatsapp:hover  { background: #1ebe5a; }
+.btn-whatsapp:active { transform: scale(.97); }
