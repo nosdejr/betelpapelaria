@@ -475,7 +475,7 @@ function renderOrders() {
       btnFluxo = `<button class="btn-status-toggle btn-entregue" onclick="openEntregueModal('${order.id}')">→ Entregar</button>`;
     } else if (jaEntregue) {
       // entregue: só botão ↩ Reabrir
-      btnFluxo = `<button class="btn-status-toggle btn-reverter" onclick="setStatusRecebido('${order.id}')">↩ Reabrir</button>`;
+      btnFluxo = `<button class="btn-status-toggle btn-reverter" onclick="setStatusRecebido('${order.id}')">Reabrir</button>`;
     }
 
     // [MELHORIA FLUXO STATUS] — botão de pagamento separado do fluxo de produção
