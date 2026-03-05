@@ -454,7 +454,7 @@ function renderOrders() {
     } else if (ePronte) {
       btnFluxo = `<button class="btn-status-toggle btn-entregue" onclick="openEntregueModal('${order.id}')">→ Entregar</button>`;
     } else if (jaEntregue) {
-      btnFluxo = `<button class="btn-status-toggle btn-reverter" onclick="setStatusRecebido('${order.id}')">↩ Reabrir</button>`;
+      btnFluxo = `<button class="btn-status-toggle btn-reverter" onclick="setStatusRecebido('${order.id}')">Reabrir</button>`;
     }
 
     // [CORREÇÃO COMPROVANTE] — botão pagamento: abre modal de comprovante ao marcar como pago
