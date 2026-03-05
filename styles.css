@@ -259,7 +259,7 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
 .billing-item-value.green { color: var(--sage); }
 .billing-item-value.blue  { color: var(--blue); }
 .billing-item-value.gold  { color: var(--gold); }
-.billing-item-value.red   { color: var(--red); font-size: 20px; }
+.billing-item-value.red   { color: var(--red); }
 
 .billing-item-count {
   font-size: 10px;
