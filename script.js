@@ -463,7 +463,7 @@ function renderOrders() {
       class="btn-pagamento ${jaPago ? 'btn-pago-sim' : 'btn-pago-nao'}"
       onclick="abrirModalPagamento('${order.id}', ${jaPago})"
       title="${jaPago ? 'Clique para desmarcar pagamento' : 'Clique para registrar pagamento'}"
-    >${jaPago ? '✓ Pago' : 'Pagar'}</button>`;
+    >${jaPago ? '✓ Pago' : 'Conf. Pgto.'}</button>`;
 
     return `
     <article class="order-card status-${order.status.replace(/_/g,'-')} ${late ? 'status-late' : ''}">
