@@ -473,7 +473,7 @@ function renderOrders() {
           <span class="status-badge ${STATUS_BADGE_CLASS[order.status] || 'badge-pending'}">${STATUS_LABEL[order.status] || order.status}</span>
           ${order.pago
             ? '<span class="badge-pgto badge-pgto-pago">Pago ✓</span>'
-            : '<span class="badge-pgto badge-pgto-aberto">A pagar</span>'}
+            : '<span class="badge-pgto badge-pgto-aberto">A Receber</span>'}
         </div>
       </div>
       ${itensHtml}
