@@ -404,7 +404,7 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
 }
 .badge-comp-btn:hover { background: var(--violet); color: #fff; }
 
-/* Prazo — inline com os badges */
+/* [CORREÇÃO STATUS ATRASO] — prazo: apenas atraso é visível (sem "No prazo") */
 .prazo-tag {
   display: inline-flex;
   align-items: center;
@@ -413,8 +413,40 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
   padding: 4px 10px;
   border-radius: var(--radius-pill);
 }
-.prazo-ok     { background: var(--sage-light); color: #065F46; }
-.prazo-atraso { background: var(--red-light);  color: #991B1B; }
+/* prazo-ok removido — nunca exibido */
+.prazo-atraso { background: var(--red-light); color: #991B1B; border: 1px solid #FECACA; }
+
+/* [CORREÇÃO TIPO PAGAMENTO] — botões PIX / Dinheiro no modal */
+.pgto-tipo-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+.pgto-tipo-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 8px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--cream);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all .18s;
+}
+.pgto-tipo-btn:hover { border-color: var(--violet); color: var(--violet); }
+.pgto-tipo-btn.active {
+  background: var(--violet-light);
+  border-color: var(--violet);
+  color: var(--violet-deep);
+  box-shadow: 0 0 0 3px var(--violet-glow);
+}
+.pgto-tipo-icon { font-size: 18px; line-height: 1; }
 
 /* ── BLOCO 3: Botões de ação ─────────────────────────────── */
 .card-bloco3 {

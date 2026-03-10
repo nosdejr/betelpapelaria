@@ -468,12 +468,13 @@ function renderOrders() {
       btnFluxo = `<button class="btn-action btn-reabrir" onclick="setStatusRecebido('${order.id}')" title="Reabrir pedido">↩ Reabrir</button>`;
     }
 
-    // [MELHORIA PAGAMENTOS ATRASADOS] — botão pagamento com destaque se atrasado
+    // [CORREÇÃO TIPO PAGAMENTO] — botão "Receber" (semântica correta: nós recebemos)
+    const tipoPgtoLabel = order.tipo_pagamento === 'dinheiro' ? 'Dinheiro' : (order.tipo_pagamento === 'pix' ? 'PIX' : '');
     const btnPgto = `<button
       class="btn-action ${jaPago ? 'btn-pago-sim' : (pgtoAtraso ? 'btn-pago-atrasado' : 'btn-pago-nao')}"
       onclick="abrirModalPagamento('${order.id}', ${jaPago})"
-      title="${jaPago ? 'Pago — clique para desfazer' : 'Marcar como pago'}"
-    >${jaPago ? '✓ Pago' : (pgtoAtraso ? '⚠ Pagar' : 'Pagar')}</button>`;
+      title="${jaPago ? `Recebido via ${tipoPgtoLabel || 'PIX'} — clique para desfazer` : 'Registrar recebimento'}"
+    >${jaPago ? `✓ Recebido${tipoPgtoLabel ? ' · '+tipoPgtoLabel : ''}` : (pgtoAtraso ? '⚠ Receber' : 'Receber')}</button>`;
 
     // [MELHORIA CARDS DASHBOARD] — novo visual com hierarquia clara
     const statusLabel = STATUS_LABEL[order.status] || order.status;
@@ -548,17 +549,19 @@ function gerarLinkWhatsApp(order) {
   return `https://wa.me/?text=${encodeURIComponent(msg)}`;
 }
 
-// [MELHORIA FLUXO PRODUÇÃO] — prazo com novos status
+// [CORREÇÃO STATUS ATRASO] — mostra APENAS quando atrasado (sem "No prazo")
 function buildPrazoLabel(order) {
   if (!order.data_entrega) return '';
   const entregue = STATUS_FINALIZADOS.has(order.status);
-  if (entregue && order.data_entrega_real) {
-    const ok = order.data_entrega_real <= order.data_entrega;
-    return `<div class="prazo-tag ${ok?'prazo-ok':'prazo-atraso'}">${ok ? 'No prazo' : 'Com atraso'}</div>`;
+  // Se entregue com atraso: mostra badge vermelho
+  if (entregue && order.data_entrega_real && order.data_entrega_real > order.data_entrega) {
+    return `<span class="prazo-tag prazo-atraso">Entregue com atraso</span>`;
   }
+  // Se ainda não entregue e prazo venceu: mostra badge vermelho
   if (!entregue && todayDate() > order.data_entrega) {
-    return `<div class="prazo-tag prazo-atraso">Prazo vencido</div>`;
+    return `<span class="prazo-tag prazo-atraso">Prazo vencido</span>`;
   }
+  // Sem atraso → nada
   return '';
 }
 
@@ -630,9 +633,10 @@ async function setStatusPendente(id) { return setStatusRecebido(id); }
 let pagamentoTargetId = null;
 let pagamentoFile     = null;
 
+// [CORREÇÃO TIPO PAGAMENTO] — modal com select PIX/Dinheiro
 function abrirModalPagamento(id, jaEstaPago) {
   if (jaEstaPago) {
-    if (confirm('Desmarcar pagamento deste pedido?')) salvarPagamento(id, false, null, true);
+    if (confirm('Desmarcar recebimento deste pedido?')) salvarPagamento(id, false, null, null, true);
     return;
   }
   pagamentoTargetId = id;
@@ -640,14 +644,46 @@ function abrirModalPagamento(id, jaEstaPago) {
   const order = allOrders.find(o => o.id === id);
   document.getElementById('pgto-modal-cliente').textContent = order?.cliente || '';
   document.getElementById('pgto-modal-valor').textContent   = `R$ ${formatCurrency(order?.valor || 0)}`;
-  document.getElementById('pgto-upload-area').style.display = 'flex';
+
+  // Reset select tipo
+  const sel = document.getElementById('pgto-tipo-select');
+  sel.value = order?.tipo_pagamento || 'pix';
+  togglePgtoComprovante(); // mostra/oculta upload conforme tipo inicial
+
+  // Reset preview
   document.getElementById('pgto-comp-preview').classList.add('hidden');
-  document.getElementById('pgto-comp-preview').innerHTML    = '';
-  document.getElementById('pgto-field-comp').value          = '';
+  document.getElementById('pgto-comp-preview').innerHTML = '';
+  document.getElementById('pgto-field-comp').value       = '';
   const linkEx = document.getElementById('pgto-comp-existing');
   if (order?.comprovante_url) { linkEx.href = order.comprovante_url; linkEx.classList.remove('hidden'); }
   else linkEx.classList.add('hidden');
   document.getElementById('pgto-modal').classList.remove('hidden');
+}
+
+// [CORREÇÃO TIPO PAGAMENTO] — mostra upload só quando PIX
+function togglePgtoComprovante() {
+  const tipo = document.getElementById('pgto-tipo-select').value;
+  const wrap = document.getElementById('pgto-comp-wrap');
+  if (wrap) wrap.style.display = tipo === 'pix' ? 'block' : 'none';
+}
+
+// [CORREÇÃO TIPO PAGAMENTO] — botões PIX / Dinheiro no modal
+function setPgtoTipo(tipo, btn) {
+  document.getElementById('pgto-tipo-select').value = tipo;
+  // Toggle visual active nos botões
+  document.querySelectorAll('.pgto-tipo-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  togglePgtoComprovante();
+  // Limpa preview se mudar para Dinheiro
+  if (tipo === 'dinheiro') {
+    pagamentoFile = null;
+    const prev = document.getElementById('pgto-comp-preview');
+    if (prev) { prev.classList.add('hidden'); prev.innerHTML = ''; }
+    const area = document.getElementById('pgto-upload-area');
+    if (area) area.style.display = 'flex';
+    const inp = document.getElementById('pgto-field-comp');
+    if (inp) inp.value = '';
+  }
 }
 
 function closePgtoModal() {
@@ -671,89 +707,186 @@ function onPgtoCompSelected(event) {
   }
 }
 
+// [CORREÇÃO TIPO PAGAMENTO] — lê tipo do select; PIX exige comprovante
 async function confirmarPagamento() {
   if (!pagamentoTargetId) return;
-  const btn = document.getElementById('btn-confirmar-pgto');
-  btn.disabled = true; btn.textContent = 'Salvando...';
-  let compUrl = allOrders.find(o => o.id === pagamentoTargetId)?.comprovante_url || null;
-  if (pagamentoFile) {
-    compUrl = await uploadComprovante(pagamentoFile, pagamentoTargetId);
-    if (!compUrl) { alert('Erro ao enviar comprovante.'); btn.disabled = false; btn.textContent = 'Confirmar Pagamento'; return; }
+  const tipo = document.getElementById('pgto-tipo-select').value; // 'pix' | 'dinheiro'
+  const btn  = document.getElementById('btn-confirmar-pgto');
+
+  // PIX: precisa de comprovante (novo ou já salvo)
+  const jaTemComp = allOrders.find(o => o.id === pagamentoTargetId)?.comprovante_url;
+  if (tipo === 'pix' && !pagamentoFile && !jaTemComp) {
+    alert('Para pagamento PIX, anexe o comprovante.');
+    return;
   }
-  await salvarPagamento(pagamentoTargetId, true, compUrl, false);
-  btn.disabled = false; btn.textContent = 'Confirmar Pagamento';
+
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  let compUrl = jaTemComp || null;
+  if (pagamentoFile && tipo === 'pix') {
+    compUrl = await uploadComprovante(pagamentoFile, pagamentoTargetId);
+    if (!compUrl) { alert('Erro ao enviar comprovante.'); btn.disabled = false; btn.textContent = 'Confirmar Recebimento'; return; }
+  }
+  // Dinheiro: não salva comprovante
+  if (tipo === 'dinheiro') compUrl = null;
+
+  await salvarPagamento(pagamentoTargetId, true, compUrl, tipo, false);
+  btn.disabled = false; btn.textContent = 'Confirmar Recebimento';
   closePgtoModal();
 }
 
-async function salvarPagamento(id, pago, comprovanteUrl, semComp) {
+// [CORREÇÃO TIPO PAGAMENTO] — salva tipo_pagamento ('pix'|'dinheiro') + comprovante
+async function salvarPagamento(id, pago, comprovanteUrl, tipoPagamento, semComp) {
   const upd = { pago };
-  if (!semComp) upd.comprovante_url = comprovanteUrl;
+  if (!semComp) {
+    upd.comprovante_url  = comprovanteUrl;
+    upd.tipo_pagamento   = tipoPagamento || null;
+  }
   const { error } = await db.from('pedidos').update(upd).eq('id', id);
   if (error) { alert('Erro ao salvar pagamento: ' + error.message); return; }
   await loadOrders();
 }
 
-// [MELHORIA CUPOM PAGAMENTO] — gera comprovante de pagamento em nova janela
+// [CORREÇÃO RECIBO IMAGEM] — gera recibo como imagem PNG (canvas) compartilhável por WhatsApp
 function emitirCupomPagamento(id) {
   const order = allOrders.find(o => o.id === id);
   if (!order) return;
-  const idCurto = order.id.slice(-6).toUpperCase();
-  const dataPgto = order.data_entrega_real || order.updated_at?.split('T')[0] || todayDate();
-  const html = `<!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="UTF-8"/>
-<title>Comprovante #${idCurto}</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap');
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'DM Sans',sans-serif;background:#f5f5f5;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
-  .cupom{background:#fff;border-radius:12px;max-width:360px;width:100%;box-shadow:0 4px 24px rgba(0,0,0,.12);overflow:hidden}
-  .cupom-header{background:#7C3AED;color:#fff;padding:20px 24px;text-align:center}
-  .cupom-logo{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;opacity:.8;margin-bottom:4px}
-  .cupom-titulo{font-size:20px;font-weight:700}
-  .cupom-sub{font-size:11px;opacity:.75;margin-top:2px}
-  .cupom-body{padding:24px}
-  .cupom-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
-  .cupom-row:last-child{border:none}
-  .cupom-label{color:#888;font-weight:500}
-  .cupom-value{font-weight:600;color:#1a1a1a;text-align:right;max-width:60%}
-  .cupom-total-row{background:#f5f0ff;border-radius:8px;padding:14px 16px;margin:16px 0;display:flex;justify-content:space-between;align-items:center}
-  .cupom-total-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#7C3AED}
-  .cupom-total-value{font-size:22px;font-weight:700;color:#7C3AED}
-  .cupom-forma{text-align:center;padding:12px;background:#f9fafb;border-radius:8px;font-size:12px;color:#666;margin-top:8px}
-  .cupom-footer{text-align:center;padding:16px 24px;border-top:1px dashed #e0e0e0;font-size:11px;color:#999;line-height:1.6}
-  .cupom-id{font-family:monospace;background:#f5f0ff;color:#7C3AED;padding:3px 8px;border-radius:4px;font-size:11px}
-  .btn-print{display:block;width:100%;margin-top:16px;padding:12px;background:#7C3AED;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
-  @media print{.btn-print{display:none}body{background:#fff}cupom{box-shadow:none}}
-</style></head><body>
-<div class="cupom">
-  <div class="cupom-header">
-    <div class="cupom-logo">Papelaria Betel</div>
-    <div class="cupom-titulo">Comprovante de Pagamento</div>
-    <div class="cupom-sub">Documento não fiscal</div>
-  </div>
-  <div class="cupom-body">
-    <div class="cupom-row"><span class="cupom-label">N° do pedido</span><span class="cupom-value"><span class="cupom-id">#${idCurto}</span></span></div>
-    <div class="cupom-row"><span class="cupom-label">Cliente</span><span class="cupom-value">${escapeHtml(order.cliente)}</span></div>
-    <div class="cupom-row"><span class="cupom-label">Data de pagamento</span><span class="cupom-value">${formatDate(dataPgto)}</span></div>
-    ${order.data_entrega_real ? `<div class="cupom-row"><span class="cupom-label">Data de entrega</span><span class="cupom-value">${formatDate(order.data_entrega_real)}</span></div>` : ''}
-    ${order.descricao ? `<div class="cupom-row"><span class="cupom-label">Descrição</span><span class="cupom-value">${escapeHtml(order.descricao.substring(0,60))}</span></div>` : ''}
-    <div class="cupom-total-row">
-      <span class="cupom-total-label">Valor pago</span>
-      <span class="cupom-total-value">R$ ${formatCurrency(order.valor)}</span>
-    </div>
-    <div class="cupom-forma">Forma de pagamento: <strong>PIX</strong><br>Chave: 367.427.448-55 — Nayara Pereira Mendes Garcia</div>
-  </div>
-  <div class="cupom-footer">
-    Papelaria BETEL<br>
-    Emitido em ${formatDate(todayDate())}<br>
-    Este documento não tem validade fiscal
-    <br><button class="btn-print" onclick="window.print()">Imprimir / Salvar PDF</button>
-  </div>
-</div>
-</body></html>`;
-  const w = window.open('', '_blank', 'width=440,height=700');
-  w.document.write(html);
-  w.document.close();
+
+  const idCurto    = order.id.slice(-6).toUpperCase();
+  const dataPgto   = order.data_entrega_real || order.updated_at?.split('T')[0] || todayDate();
+  // [CORREÇÃO TIPO PAGAMENTO] — usa tipo_pagamento real do pedido
+  const tipoPgto   = order.tipo_pagamento === 'dinheiro' ? 'Dinheiro' : 'PIX';
+
+  // ── Canvas: 480×600 @2x para alta resolução ──────────────
+  const W = 480, H = 600, SCALE = 2;
+  const canvas = document.createElement('canvas');
+  canvas.width  = W * SCALE;
+  canvas.height = H * SCALE;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(SCALE, SCALE);
+
+  // Fundo branco
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, W, H);
+
+  // Header roxo
+  ctx.fillStyle = '#7C3AED';
+  ctx.fillRect(0, 0, W, 100);
+
+  // Texto header
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 11px Arial';
+  ctx.letterSpacing = '3px';
+  ctx.textAlign = 'center';
+  ctx.fillText('PAPELARIA BETEL', W/2, 32);
+  ctx.letterSpacing = '0px';
+  ctx.font = 'bold 22px Arial';
+  ctx.fillText('Comprovante de Recebimento', W/2, 62);
+  ctx.font = '11px Arial';
+  ctx.fillStyle = 'rgba(255,255,255,0.75)';
+  ctx.fillText('Documento não fiscal', W/2, 84);
+
+  // Linha separadora roxa suave
+  ctx.fillStyle = '#EDE9FE';
+  ctx.fillRect(24, 112, W - 48, 1);
+
+  // Função auxiliar: linha de dado
+  function drawRow(label, value, y, highlight) {
+    ctx.textAlign = 'left';
+    ctx.font = '500 12px Arial';
+    ctx.fillStyle = '#9590A8';
+    ctx.fillText(label, 36, y);
+    ctx.textAlign = 'right';
+    ctx.font = highlight ? 'bold 15px Arial' : '600 13px Arial';
+    ctx.fillStyle = highlight ? '#7C3AED' : '#1E1B2E';
+    ctx.fillText(value, W - 36, y);
+    // divisor
+    ctx.strokeStyle = '#F0EDF8';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(36, y + 10);
+    ctx.lineTo(W - 36, y + 10);
+    ctx.stroke();
+  }
+
+  let y = 148;
+  const gap = 40;
+  drawRow('N° do pedido',      '#' + idCurto,                        y); y += gap;
+  drawRow('Cliente',           order.cliente,                         y); y += gap;
+  drawRow('Data de recebimento', formatDate(dataPgto),               y); y += gap;
+  if (order.data_entrega_real) {
+    drawRow('Data de entrega', formatDate(order.data_entrega_real),   y); y += gap;
+  }
+
+  // Bloco de valor destacado
+  ctx.fillStyle = '#F5F0FF';
+  ctx.beginPath();
+  ctx.roundRect(24, y, W - 48, 58, 10);
+  ctx.fill();
+  ctx.textAlign = 'left';
+  ctx.font = 'bold 11px Arial';
+  ctx.fillStyle = '#7C3AED';
+  ctx.fillText('VALOR RECEBIDO', 40, y + 22);
+  ctx.textAlign = 'right';
+  ctx.font = 'bold 28px Arial';
+  ctx.fillStyle = '#7C3AED';
+  ctx.fillText('R$ ' + formatCurrency(order.valor), W - 36, y + 46);
+  y += 72;
+
+  // Bloco forma de pagamento
+  ctx.fillStyle = '#F9FAFB';
+  ctx.beginPath();
+  ctx.roundRect(24, y, W - 48, 70, 10);
+  ctx.fill();
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 13px Arial';
+  ctx.fillStyle = '#1E1B2E';
+  ctx.fillText('Forma de pagamento: ' + tipoPgto, W/2, y + 22);
+  ctx.font = '12px Arial';
+  ctx.fillStyle = '#4B4563';
+  ctx.fillText('CPF: 367.427.448-55', W/2, y + 42);
+  ctx.fillText('Nayara Pereira Mendes Garcia', W/2, y + 60);
+  y += 86;
+
+  // Rodapé
+  ctx.strokeStyle = '#E4DFEF';
+  ctx.setLineDash([4, 4]);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(24, y);
+  ctx.lineTo(W - 24, y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  y += 18;
+  ctx.textAlign = 'center';
+  ctx.font = '11px Arial';
+  ctx.fillStyle = '#9590A8';
+  ctx.fillText('Papelaria BETEL', W/2, y);
+  ctx.fillText('Emitido em ' + formatDate(todayDate()), W/2, y + 16);
+  ctx.fillText('Este documento não tem validade fiscal', W/2, y + 32);
+
+  // ── Exporta PNG e oferece download + WhatsApp ─────────────
+  canvas.toBlob(blob => {
+    // 1) Download automático
+    const url  = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href     = url;
+    link.download = `recibo_${order.cliente.replace(/\s+/g,'_')}_${idCurto}.png`;
+    link.click();
+
+    // 2) Modal de compartilhamento WhatsApp
+    const msg = encodeURIComponent(
+      `Olá ${order.cliente}! Segue o recibo do seu pedido #${idCurto}.\n` +
+      `Valor: R$ ${formatCurrency(order.valor)}\n` +
+      `Forma: ${tipoPgto}\n` +
+      `Papelaria BETEL`
+    );
+    setTimeout(() => {
+      if (confirm('Recibo baixado! Abrir WhatsApp para compartilhar?')) {
+        window.open(`https://wa.me/?text=${msg}`, '_blank');
+      }
+      URL.revokeObjectURL(url);
+    }, 400);
+  }, 'image/png');
 }
 
 // ────────────────────────────────────────────────────────────

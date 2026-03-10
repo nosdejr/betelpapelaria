@@ -279,12 +279,15 @@
   <!-- ══ MODAL: PAGAMENTO + COMPROVANTE ══════════════════════
        [MELHORIA PAGAMENTOS ATRASADOS] + [MELHORIA CUPOM PAGAMENTO]
   ══════════════════════════════════════════════════════════ -->
+  <!-- [CORREÇÃO TIPO PAGAMENTO] — modal com select PIX / Dinheiro -->
   <div id="pgto-modal" class="modal-overlay hidden" onclick="closePgtoModalOverlay(event)">
     <div class="modal-card modal-card-small">
       <div class="modal-header">
-        <h2>Registrar Pagamento</h2>
+        <h2>Registrar Recebimento</h2>
         <button class="modal-close" onclick="closePgtoModal()">✕</button>
       </div>
+
+      <!-- Resumo cliente + valor -->
       <div class="pgto-resumo">
         <div class="pgto-resumo-row">
           <span class="pgto-label">Cliente</span>
@@ -295,21 +298,41 @@
           <span id="pgto-modal-valor" class="pgto-valor-total"></span>
         </div>
       </div>
+
+      <!-- [CORREÇÃO TIPO PAGAMENTO] — select forma de pagamento -->
       <div class="field-group" style="margin-top:14px">
-        <label>Comprovante <span style="font-weight:400;color:var(--ink-muted)">(opcional)</span></label>
+        <label>Forma de recebimento</label>
+        <div class="pgto-tipo-row">
+          <button type="button" class="pgto-tipo-btn pgto-tipo-pix active"
+                  onclick="setPgtoTipo('pix', this)">
+            <span class="pgto-tipo-icon">💸</span> PIX
+          </button>
+          <button type="button" class="pgto-tipo-btn pgto-tipo-dinheiro"
+                  onclick="setPgtoTipo('dinheiro', this)">
+            <span class="pgto-tipo-icon">💵</span> Dinheiro
+          </button>
+        </div>
+        <!-- campo hidden que guarda o valor atual -->
+        <input type="hidden" id="pgto-tipo-select" value="pix" />
+      </div>
+
+      <!-- Comprovante — só aparece quando PIX -->
+      <div id="pgto-comp-wrap" class="field-group" style="margin-top:10px">
+        <label>Comprovante PIX <span style="font-weight:400;color:var(--ink-muted)">(obrigatório)</span></label>
         <div class="upload-area" id="pgto-upload-area" onclick="document.getElementById('pgto-field-comp').click()">
           <div class="upload-icon">📎</div>
-          <div class="upload-text">Anexar comprovante de pagamento</div>
+          <div class="upload-text">Toque para anexar o comprovante</div>
           <div class="upload-hint">JPG, PNG ou PDF</div>
         </div>
         <input type="file" id="pgto-field-comp" accept="image/*,application/pdf" style="display:none" onchange="onPgtoCompSelected(event)" />
         <div id="pgto-comp-preview" class="comprovante-preview hidden"></div>
         <a id="pgto-comp-existing" class="comprovante-link hidden" target="_blank">Ver comprovante já enviado</a>
       </div>
+
       <div class="modal-actions">
         <button type="button" class="btn-secondary" onclick="closePgtoModal()">Cancelar</button>
         <button type="button" class="btn-primary" id="btn-confirmar-pgto" onclick="confirmarPagamento()">
-          Confirmar Pagamento
+          Confirmar Recebimento
         </button>
       </div>
     </div>
