@@ -17,55 +17,50 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ────────────────────────────────────────────────────────────
 // ② STATUS
 // ────────────────────────────────────────────────────────────
-// [MELHORIA FLUXO STATUS] — 5 etapas de produção/entrega
+// [MELHORIA FLUXO PRODUÇÃO] — fluxo simplificado: 4 etapas de produção
 // Pagamento é campo booleano SEPARADO (pago: true/false)
 const STATUS = {
-  RECEBIDO:   'recebido',
-  CRIANDO:    'criando',
-  PRODUZINDO: 'produzindo',
-  PRONTO:     'pronto',
-  ENTREGUE:   'entregue',
-  // aliases legados para compatibilidade
+  RECEBIDO:   'recebido',    // 1. Pedido recebido, aguardando início
+  PRODUCAO:   'em_producao', // 2. Em produção
+  PRONTO:     'pronto',      // 3. Pronto para entrega
+  ENTREGUE:   'entregue',    // 4. Entregue ao cliente
+  // aliases legados para compatibilidade com dados no banco
   PENDENTE:       'pendente',
   EM_ARTE:        'em_arte',
-  EM_PRODUCAO:    'em_producao',
   ENTREGUE_NPAGO: 'entregue_nao_pago',
   ENTREGUE_PAGO:  'entregue_pago',
 };
 
 const STATUS_LABEL = {
-  recebido:          'Ped. Recebido',
-  criando:           'Criando',
-  produzindo:        'Produzindo',
-  pronto:            'Pronto P/ Entrega',
+  recebido:          'Recebido',
+  em_producao:       'Em Produção',
+  pronto:            'Pronto',
   entregue:          'Entregue',
-  pendente:          'Ped. Recebido',
-  em_arte:           'Criando',
-  em_producao:       'Produzindo',
+  // legados — mapeados para exibição coerente
+  pendente:          'Recebido',
+  em_arte:           'Em Produção',
   entregue_nao_pago: 'Entregue',
   entregue_pago:     'Entregue',
 };
 
 const STATUS_BADGE_CLASS = {
   recebido:          'badge-recebido',
-  criando:           'badge-arte',
-  produzindo:        'badge-producao',
+  em_producao:       'badge-producao',
   pronto:            'badge-pronto',
   entregue:          'badge-entregue',
   pendente:          'badge-recebido',
-  em_arte:           'badge-arte',
-  em_producao:       'badge-producao',
+  em_arte:           'badge-producao',
   entregue_nao_pago: 'badge-entregue',
   entregue_pago:     'badge-entregue',
 };
 
-// [MELHORIA FLUXO STATUS] — fluxo de produção com 5 etapas
-const STATUS_FLUXO = ['recebido','criando','produzindo','pronto','entregue'];
-const STATUS_PENDENTES   = new Set(['recebido','criando','produzindo','pendente','em_arte','em_producao']);
-const STATUS_FINALIZADOS = new Set(['pronto','entregue','entregue_nao_pago','entregue_pago']);
+// [MELHORIA FLUXO PRODUÇÃO] — fluxo de 4 etapas
+const STATUS_FLUXO      = ['recebido','em_producao','pronto','entregue'];
+const STATUS_ATIVOS      = new Set(['recebido','em_producao','pronto','pendente','em_arte']);
+const STATUS_FINALIZADOS = new Set(['entregue','entregue_nao_pago','entregue_pago']);
 
 function proximoStatus(atual) {
-  const legado = { pendente:'recebido', em_arte:'criando', em_producao:'produzindo',
+  const legado = { pendente:'recebido', em_arte:'em_producao',
                    entregue_nao_pago:'entregue', entregue_pago:'entregue' };
   const norm = legado[atual] ?? atual;
   const idx = STATUS_FLUXO.indexOf(norm);
@@ -73,10 +68,9 @@ function proximoStatus(atual) {
   return STATUS_FLUXO[idx + 1];
 }
 
-// [MELHORIA BOTÕES FLUXO] — rótulos compactos
 function labelBtnAvancar(statusAtual) {
   const prox = proximoStatus(statusAtual);
-  const map = { criando:'→ Criação', produzindo:'→ Produção', pronto:'→ Pronto', entregue:'→ Entregar' };
+  const map = { em_producao:'Produção', pronto:'Pronto', entregue:'Entregar' };
   return prox ? (map[prox] ?? null) : null;
 }
 
@@ -181,6 +175,7 @@ function applyPeriod() {
   updateSummaryCards();
 }
 // ── Atalhos rápidos de período (NOVO) ────────────────────────
+// [MELHORIA CARDS DASHBOARD] — atalho "mes-atual" adicionado (substitui card fixo)
 function setPeriodShortcut(tipo, btn) {
   const hoje = new Date();
   const y = hoje.getFullYear();
@@ -189,6 +184,8 @@ function setPeriodShortcut(tipo, btn) {
 
   if (tipo === 'hoje') {
     ini = fim;
+  } else if (tipo === 'mes-atual') {
+    ini = `${y}-${String(m+1).padStart(2,'0')}-01`;
   } else if (tipo === 'mes-anterior') {
     ini = new Date(y, m - 1, 1).toISOString().split('T')[0];
     fim = new Date(y, m, 0).toISOString().split('T')[0];
@@ -394,12 +391,22 @@ async function loadOrders() {
   updateSummaryCards();
 }
 
-// [MELHORIA FLUXO STATUS] — isLate com novos status
+// [MELHORIA FLUXO PRODUÇÃO] — isLate com novos status
 function isLate(order) {
   if (!order.data_entrega) return false;
-  const jaEntregue = order.status === 'entregue' || order.status === 'entregue_nao_pago' || order.status === 'entregue_pago';
-  if (jaEntregue) return order.data_entrega_real ? order.data_entrega_real > order.data_entrega : false;
+  const entregue = STATUS_FINALIZADOS.has(order.status) && order.status !== 'pronto';
+  if (entregue) return order.data_entrega_real ? order.data_entrega_real > order.data_entrega : false;
   return todayDate() > order.data_entrega;
+}
+
+// [MELHORIA PAGAMENTOS ATRASADOS] — pedido entregue, não pago, e vencido
+function isPagamentoAtrasado(order) {
+  const entregue = STATUS_FINALIZADOS.has(order.status) && order.status !== 'pronto';
+  if (!entregue) return false;
+  if (order.pago === true) return false;
+  // considera a data de entrega como vencimento do pagamento
+  const venc = order.data_entrega_real || order.data_entrega || '';
+  return venc ? todayDate() > venc : false;
 }
 
 function renderOrders() {
@@ -409,15 +416,17 @@ function renderOrders() {
 
   let filtered = [...allOrders];
 
-  // [MELHORIA FILTROS PEDIDOS] — 4 filtros: todos / pendentes / finalizados / atrasados
+  // [MELHORIA FLUXO PRODUÇÃO] + [MELHORIA PAGAMENTOS ATRASADOS] — filtros
   if (currentFilter === 'atrasado') {
     filtered = filtered.filter(isLate);
-  } else if (currentFilter === 'pendentes') {
-    filtered = filtered.filter(p => STATUS_PENDENTES.has(p.status));
+  } else if (currentFilter === 'pgto-atrasado') {
+    filtered = filtered.filter(isPagamentoAtrasado);
+  } else if (currentFilter === 'ativos') {
+    filtered = filtered.filter(p => STATUS_ATIVOS.has(p.status));
   } else if (currentFilter === 'finalizados') {
     filtered = filtered.filter(p => STATUS_FINALIZADOS.has(p.status));
   }
-  // 'todos' — sem filtro
+  // 'todos' — sem filtro de status
 
   // Filtro de período
   filtered = filtered.filter(inPeriod);
@@ -442,60 +451,85 @@ function renderOrders() {
           `<span class="item-chip">${i.quantidade}x ${escapeHtml(i.nome || i.produtos?.nome || '?')}</span>`
         ).join('')}</div>` : '';
 
-    // [MELHORIA FLUXO STATUS] — botão de avanço de produção
-    let btnFluxo = '';
+    // [MELHORIA FLUXO PRODUÇÃO] — botões de avanço de produção
     const labelAvancar = labelBtnAvancar(order.status);
-    const ePendente  = STATUS_PENDENTES.has(order.status);
+    const eAtivo     = STATUS_ATIVOS.has(order.status);
     const ePronte    = order.status === 'pronto';
-    const jaEntregue = order.status === 'entregue' || order.status === 'entregue_nao_pago' || order.status === 'entregue_pago';
+    const jaEntregue = STATUS_FINALIZADOS.has(order.status);
+    const jaPago     = order.pago === true;
+    const pgtoAtraso = isPagamentoAtrasado(order);
 
-    if (ePendente && labelAvancar) {
-      btnFluxo = `<button class="btn-status-toggle btn-avancar" onclick="avancarStatus('${order.id}','${order.status}')">${labelAvancar}</button>`;
+    let btnFluxo = '';
+    if (eAtivo && order.status !== 'pronto' && labelAvancar) {
+      btnFluxo = `<button class="btn-action btn-avancar" onclick="avancarStatus('${order.id}','${order.status}')" title="Avançar etapa">${labelAvancar}</button>`;
     } else if (ePronte) {
-      btnFluxo = `<button class="btn-status-toggle btn-entregue" onclick="openEntregueModal('${order.id}')">→ Entregar</button>`;
+      btnFluxo = `<button class="btn-action btn-entregar" onclick="openEntregueModal('${order.id}')" title="Registrar entrega">Entregar</button>`;
     } else if (jaEntregue) {
-      btnFluxo = `<button class="btn-status-toggle btn-reverter" onclick="setStatusRecebido('${order.id}')">Reabrir</button>`;
+      btnFluxo = `<button class="btn-action btn-reabrir" onclick="setStatusRecebido('${order.id}')" title="Reabrir pedido">↩ Reabrir</button>`;
     }
 
-    // [CORREÇÃO COMPROVANTE] — botão pagamento: abre modal de comprovante ao marcar como pago
-    const jaPago = order.pago === true;
-    const btnPagamento = `<button
-      class="btn-pagamento ${jaPago ? 'btn-pago-sim' : 'btn-pago-nao'}"
+    // [MELHORIA PAGAMENTOS ATRASADOS] — botão pagamento com destaque se atrasado
+    const btnPgto = `<button
+      class="btn-action ${jaPago ? 'btn-pago-sim' : (pgtoAtraso ? 'btn-pago-atrasado' : 'btn-pago-nao')}"
       onclick="abrirModalPagamento('${order.id}', ${jaPago})"
-      title="${jaPago ? 'Clique para desmarcar pagamento' : 'Clique para registrar pagamento'}"
-    >${jaPago ? '✓ Pago' : 'Conf. Pgto.'}</button>`;
+      title="${jaPago ? 'Pago — clique para desfazer' : 'Marcar como pago'}"
+    >${jaPago ? '✓ Pago' : (pgtoAtraso ? '⚠ Pagar' : 'Pagar')}</button>`;
+
+    // [MELHORIA CARDS DASHBOARD] — novo visual com hierarquia clara
+    const statusLabel = STATUS_LABEL[order.status] || order.status;
+    const badgeClass  = STATUS_BADGE_CLASS[order.status] || 'badge-recebido';
+    const idCurto     = order.id.slice(-6).toUpperCase();
 
     return `
-    <article class="order-card status-${order.status.replace(/_/g,'-')} ${late ? 'status-late' : ''}">
-      <div class="order-card-top">
-        <div class="order-client">${escapeHtml(order.cliente)}</div>
-        <div class="order-badges">
-          <span class="status-badge ${STATUS_BADGE_CLASS[order.status] || 'badge-pending'}">${STATUS_LABEL[order.status] || order.status}</span>
-          ${order.pago
-            ? '<span class="badge-pgto badge-pgto-pago">Pago ✓</span>'
-            : '<span class="badge-pgto badge-pgto-aberto">A Receber</span>'}
+    <article class="order-card ${pgtoAtraso ? 'card-pgto-atrasado' : ''} ${late ? 'card-entrega-atrasada' : ''}">
+
+      <!-- Cabeçalho: cliente + badges -->
+      <div class="card-header">
+        <div class="card-header-left">
+          <span class="card-id">#${idCurto}</span>
+          <h3 class="card-client">${escapeHtml(order.cliente)}</h3>
+        </div>
+        <div class="card-badges">
+          <span class="badge-status ${badgeClass}">${statusLabel}</span>
+          ${jaPago
+            ? '<span class="badge-pgto badge-pago"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Pago</span>'
+            : `<span class="badge-pgto ${pgtoAtraso ? 'badge-pgto-atrasado' : 'badge-nao-pago'}">${pgtoAtraso ? '⚠ Vencido' : 'A pagar'}</span>`}
         </div>
       </div>
+
+      <!-- Itens -->
       ${itensHtml}
-      ${order.descricao ? `<div class="order-desc">${escapeHtml(order.descricao)}</div>` : ''}
-      <div class="order-card-meta">
-        <span class="order-value valor-monetario">R$ ${formatCurrency(order.valor)}</span>
-        <div class="order-dates-block">
-          ${order.data_pedido       ? `<span class="date-tag">📅 ${formatDate(order.data_pedido)}</span>` : ''}
-          ${order.data_entrega      ? `<span class="date-tag ${late?'date-late':''}">🚚 ${formatDate(order.data_entrega)}</span>` : ''}
-          ${order.data_entrega_real ? `<span class="date-tag date-real">🏁 ${formatDate(order.data_entrega_real)}</span>` : ''}
+
+      <!-- Observações -->
+      ${order.descricao ? `<p class="card-obs">${escapeHtml(order.descricao)}</p>` : ''}
+
+      <!-- Linha de valor + datas -->
+      <div class="card-meta">
+        <span class="card-valor">R$ ${formatCurrency(order.valor)}</span>
+        <div class="card-datas">
+          ${order.data_pedido       ? `<span class="data-chip">Pedido ${formatDate(order.data_pedido)}</span>` : ''}
+          ${order.data_entrega      ? `<span class="data-chip ${late ? 'data-chip-late' : ''}">Entrega ${formatDate(order.data_entrega)}</span>` : ''}
+          ${order.data_entrega_real ? `<span class="data-chip data-chip-real">Entregue ${formatDate(order.data_entrega_real)}</span>` : ''}
         </div>
       </div>
+
+      <!-- Prazo -->
       ${buildPrazoLabel(order)}
-      <div class="order-card-actions">
+
+      <!-- Indicadores visuais: comprovante anexado -->
+      ${order.comprovante_url ? '<div class="card-comprovante-indicator"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Comprovante anexado</div>' : ''}
+
+      <!-- Ações -->
+      <div class="card-actions">
         ${btnFluxo}
-        ${btnPagamento}
+        ${btnPgto}
         ${order.comprovante_url
-          ? `<button class="btn-receipt" onclick="viewReceipt('${escapeHtml(order.comprovante_url)}')" title="Ver comprovante de pagamento">📄</button>`
+          ? `<button class="btn-icon-action btn-receipt" onclick="viewReceipt('${escapeHtml(order.comprovante_url)}')" title="Ver comprovante"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button>`
           : ''}
-        <a class="btn-whatsapp" href="${gerarLinkWhatsApp(order)}" target="_blank" rel="noopener">PIX</a>
-        <button class="btn-edit" onclick="openEditOrderModal('${order.id}')">✏️</button>
-        <button class="btn-delete" onclick="openDeleteModal('${order.id}')">🗑️</button>
+        ${jaPago ? `<button class="btn-icon-action btn-cupom" onclick="emitirCupomPagamento('${order.id}')" title="Emitir comprovante de pagamento"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></button>` : ''}
+        <a class="btn-icon-action btn-whatsapp" href="${gerarLinkWhatsApp(order)}" target="_blank" rel="noopener" title="Enviar PIX via WhatsApp"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></button>
+        <button class="btn-icon-action btn-edit" onclick="openEditOrderModal('${order.id}')" title="Editar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="btn-icon-action btn-delete" onclick="openDeleteModal('${order.id}')" title="Excluir"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
       </div>
     </article>`;
   }).join('');
@@ -512,56 +546,52 @@ function gerarLinkWhatsApp(order) {
   return `https://wa.me/?text=${encodeURIComponent(msg)}`;
 }
 
-// [MELHORIA FLUXO STATUS] — prazo com novos status
+// [MELHORIA FLUXO PRODUÇÃO] — prazo com novos status
 function buildPrazoLabel(order) {
   if (!order.data_entrega) return '';
-  const jaEntregue = order.status === 'entregue' || order.status === 'entregue_nao_pago' || order.status === 'entregue_pago';
-  if (jaEntregue && order.data_entrega_real) {
+  const entregue = STATUS_FINALIZADOS.has(order.status);
+  if (entregue && order.data_entrega_real) {
     const ok = order.data_entrega_real <= order.data_entrega;
-    return `<div class="prazo-tag ${ok?'prazo-ok':'prazo-atraso'}">${ok ? 'Entregue no prazo' : 'Entregue com atraso'}</div>`;
+    return `<div class="prazo-tag ${ok?'prazo-ok':'prazo-atraso'}">${ok ? 'No prazo' : 'Com atraso'}</div>`;
   }
-  if (!jaEntregue && todayDate() > order.data_entrega) {
+  if (!entregue && todayDate() > order.data_entrega) {
     return `<div class="prazo-tag prazo-atraso">Prazo vencido</div>`;
   }
   return '';
 }
 
+// [MELHORIA CARDS DASHBOARD] + [MELHORIA PAGAMENTOS ATRASADOS]
 function updateSummaryCards() {
-  // [FIX SOMA] — usa campo pago (boolean) separado do fluxo de produção
-  const doMes  = allOrders.filter(inCurrentMonth);
-  const pagMes = doMes.filter(o => o.pago === true);
-  const aguMes = doMes.filter(o => !o.pago);
-  const atras  = allOrders.filter(isLate);
-
-  const mesFatVal = pagMes.reduce((a,o)=>a+Number(o.valor),0);
-  const mesAguVal = aguMes.reduce((a,o)=>a+Number(o.valor),0);
-
-  document.getElementById('mes-faturado').textContent   = `R$ ${formatCurrency(mesFatVal)}`;
-  document.getElementById('mes-aguardando').textContent = `R$ ${formatCurrency(mesAguVal)}`;
-  document.getElementById('count-late').textContent     = atras.length;
-  document.getElementById('mes-label').textContent      = labelMesAtual();
-  const elMesTot = document.getElementById('mes-total');
-  if (elMesTot) elMesTot.textContent = `R$ ${formatCurrency(mesFatVal + mesAguVal)}`;
-
-  // Período filtrado
-  const doPer   = allOrders.filter(inPeriod);
-  // [FIX SOMA] — pago=true / a receber=entregue sem pago / pendente=em produção
-  const pagPer  = doPer.filter(o => o.pago === true);
-  const aguPer  = doPer.filter(o => !o.pago && STATUS_FINALIZADOS.has(o.status));
-  const pendPer = doPer.filter(o => STATUS_PENDENTES.has(o.status));
+  // Período filtrado (card único — "Mês Atual" virou atalho de período)
+  const doPer      = allOrders.filter(inPeriod);
+  const pagPer     = doPer.filter(o => o.pago === true);
+  const aguPer     = doPer.filter(o => !o.pago && STATUS_FINALIZADOS.has(o.status));
+  const ativosPer  = doPer.filter(o => STATUS_ATIVOS.has(o.status));
+  const atras      = allOrders.filter(isLate);
+  const pgtoAtras  = allOrders.filter(isPagamentoAtrasado);
 
   const perFatVal  = pagPer.reduce((a,o)=>a+Number(o.valor),0);
   const perAguVal  = aguPer.reduce((a,o)=>a+Number(o.valor),0);
-  const perPendVal = pendPer.reduce((a,o)=>a+Number(o.valor),0);
+  const perPendVal = ativosPer.reduce((a,o)=>a+Number(o.valor),0);
 
-  document.getElementById('per-faturado').textContent   = `R$ ${formatCurrency(perFatVal)}`;
-  document.getElementById('per-aguardando').textContent = `R$ ${formatCurrency(perAguVal)}`;
-  document.getElementById('per-pendente').textContent   = `R$ ${formatCurrency(perPendVal)}`;
-  document.getElementById('per-count-pago').textContent  = `${pagPer.length} pedido${pagPer.length!==1?'s':''}`;
-  document.getElementById('per-count-aguar').textContent = `${aguPer.length} pedido${aguPer.length!==1?'s':''}`;
-  document.getElementById('per-count-pend').textContent  = `${pendPer.length} pedido${pendPer.length!==1?'s':''}`;
-  const elPerTot = document.getElementById('per-total');
-  if (elPerTot) elPerTot.textContent = `R$ ${formatCurrency(perFatVal + perAguVal + perPendVal)}`;
+  // Atualiza card principal de período
+  const el = (id) => document.getElementById(id);
+  if (el('per-faturado'))    el('per-faturado').textContent   = `R$ ${formatCurrency(perFatVal)}`;
+  if (el('per-aguardando'))  el('per-aguardando').textContent = `R$ ${formatCurrency(perAguVal)}`;
+  if (el('per-pendente'))    el('per-pendente').textContent   = `R$ ${formatCurrency(perPendVal)}`;
+  if (el('per-count-pago'))  el('per-count-pago').textContent  = `${pagPer.length} pedido${pagPer.length!==1?'s':''}`;
+  if (el('per-count-aguar')) el('per-count-aguar').textContent = `${aguPer.length} pedido${aguPer.length!==1?'s':''}`;
+  if (el('per-count-pend'))  el('per-count-pend').textContent  = `${ativosPer.length} pedido${ativosPer.length!==1?'s':''}`;
+  const tot = perFatVal + perAguVal + perPendVal;
+  if (el('per-total')) el('per-total').textContent = `R$ ${formatCurrency(tot)}`;
+
+  // [MELHORIA PAGAMENTOS ATRASADOS] — contador visível no filtro
+  if (el('count-late'))      el('count-late').textContent      = atras.length;
+  if (el('count-pgto-atras')) el('count-pgto-atras').textContent = pgtoAtras.length;
+
+  // Badge de alerta se houver pagamentos atrasados
+  const btn = document.getElementById('btn-filter-pgto-atrasado');
+  if (btn) btn.classList.toggle('has-alert', pgtoAtras.length > 0);
 }
 
 function labelMesAtual() {
@@ -570,95 +600,70 @@ function labelMesAtual() {
   return `${meses[h.getMonth()]}/${h.getFullYear()}`;
 }
 
-// [MELHORIA FLUXO STATUS] — abre modal para registrar data de entrega real
+// [MELHORIA STATUS PEDIDO] — abre modal para registrar entrega real
 function openEntregueModal(id) {
-  openEditOrderModal(id, false, STATUS.ENTREGUE);
+  openEditOrderModal(id, false, STATUS.ENTREGUE); // [MELHORIA FLUXO PRODUÇÃO]
 }
 
-// [MELHORIA FLUXO STATUS] — avança etapa de produção sem modal
+// [MELHORIA FLUXO PRODUÇÃO] — avança etapa diretamente (sem modal)
 async function avancarStatus(id, statusAtual) {
   const prox = proximoStatus(statusAtual);
   if (!prox || prox === 'entregue') return; // 'entregue' sempre via openEntregueModal
   const { error } = await db.from('pedidos').update({ status: prox }).eq('id', id);
-  if (error) {
-    if (error.message?.includes('check constraint')) {
-      alert('Execute o SQL de migração "migracao_novos_status.sql" no Supabase para liberar os novos status.');
-    } else {
-      alert('Erro ao atualizar status: ' + error.message);
-    }
-    return;
-  }
+  if (error) { alert('Erro ao atualizar status: ' + error.message); return; }
   await loadOrders();
 }
 
-// [MELHORIA FLUXO STATUS] — reabrir pedido para início do fluxo
+// [MELHORIA FLUXO PRODUÇÃO] — reabrir pedido para início do fluxo
 async function setStatusRecebido(id) {
-  if (!confirm('Reabrir pedido para o início do fluxo?')) return;
+  if (!confirm('Reabrir pedido?')) return;
   await db.from('pedidos').update({ status: 'recebido', data_entrega_real: null }).eq('id', id);
   await loadOrders();
 }
+
+// alias de compatibilidade
 async function setStatusPendente(id) { return setStatusRecebido(id); }
 
-// [CORREÇÃO COMPROVANTE] — abre modal de pagamento com upload de comprovante
-let pagamentoTargetId  = null;
-let pagamentoFile      = null;
+// [MELHORIA PAGAMENTOS ATRASADOS] + [MELHORIA CUPOM PAGAMENTO] — modal de pagamento
+let pagamentoTargetId = null;
+let pagamentoFile     = null;
 
 function abrirModalPagamento(id, jaEstaPago) {
-  pagamentoTargetId = id;
-  pagamentoFile     = null;
-
   if (jaEstaPago) {
-    // Já está pago: confirmar desmarcação
-    if (confirm('Desmarcar pagamento deste pedido?')) {
-      salvarPagamento(id, false, null, true);
-    }
+    if (confirm('Desmarcar pagamento deste pedido?')) salvarPagamento(id, false, null, true);
     return;
   }
-
-  // Não está pago: abre modal para confirmar + upload comprovante
+  pagamentoTargetId = id;
+  pagamentoFile     = null;
   const order = allOrders.find(o => o.id === id);
   document.getElementById('pgto-modal-cliente').textContent = order?.cliente || '';
   document.getElementById('pgto-modal-valor').textContent   = `R$ ${formatCurrency(order?.valor || 0)}`;
-
-  // Reseta UI do upload
-  document.getElementById('pgto-upload-area').style.display  = 'flex';
-  document.getElementById('pgto-comprovante-preview').classList.add('hidden');
-  document.getElementById('pgto-comprovante-preview').innerHTML = '';
-  document.getElementById('pgto-field-comprovante').value    = '';
-
-  // Se já tem comprovante salvo, mostrar link
-  const linkExistente = document.getElementById('pgto-comprovante-existing');
-  if (order?.comprovante_url) {
-    linkExistente.href = order.comprovante_url;
-    linkExistente.classList.remove('hidden');
-  } else {
-    linkExistente.classList.add('hidden');
-  }
-
+  document.getElementById('pgto-upload-area').style.display = 'flex';
+  document.getElementById('pgto-comp-preview').classList.add('hidden');
+  document.getElementById('pgto-comp-preview').innerHTML    = '';
+  document.getElementById('pgto-field-comp').value          = '';
+  const linkEx = document.getElementById('pgto-comp-existing');
+  if (order?.comprovante_url) { linkEx.href = order.comprovante_url; linkEx.classList.remove('hidden'); }
+  else linkEx.classList.add('hidden');
   document.getElementById('pgto-modal').classList.remove('hidden');
 }
 
 function closePgtoModal() {
   document.getElementById('pgto-modal').classList.add('hidden');
-  pagamentoTargetId = null;
-  pagamentoFile     = null;
+  pagamentoTargetId = null; pagamentoFile = null;
 }
+function closePgtoModalOverlay(e) { if (e.target === document.getElementById('pgto-modal')) closePgtoModal(); }
 
-function closePgtoModalOnOverlay(e) {
-  if (e.target === document.getElementById('pgto-modal')) closePgtoModal();
-}
-
-function onPgtoComprovanteSelected(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+function onPgtoCompSelected(event) {
+  const file = event.target.files[0]; if (!file) return;
   pagamentoFile = file;
-  const preview = document.getElementById('pgto-comprovante-preview');
+  const preview = document.getElementById('pgto-comp-preview');
   preview.classList.remove('hidden');
   document.getElementById('pgto-upload-area').style.display = 'none';
   if (file.type.startsWith('image/')) {
-    const reader = new FileReader();
-    reader.onload = e => { preview.innerHTML = `<img src="${e.target.result}" class="comprovante-img-preview" />`; };
-    reader.readAsDataURL(file);
+    const r = new FileReader();
+    r.onload = e => { preview.innerHTML = `<img src="${e.target.result}" class="comprovante-img-preview"/>`; };
+    r.readAsDataURL(file);
   } else {
     preview.innerHTML = `<div class="file-preview-tag">📄 ${escapeHtml(file.name)}</div>`;
   }
@@ -666,38 +671,87 @@ function onPgtoComprovanteSelected(event) {
 
 async function confirmarPagamento() {
   if (!pagamentoTargetId) return;
-  const btnConfirmar = document.getElementById('btn-confirmar-pgto');
-  btnConfirmar.disabled = true;
-  btnConfirmar.textContent = '⟳ Salvando...';
-
-  let comprovanteUrl = null;
-
-  // Upload do comprovante se selecionado
+  const btn = document.getElementById('btn-confirmar-pgto');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  let compUrl = allOrders.find(o => o.id === pagamentoTargetId)?.comprovante_url || null;
   if (pagamentoFile) {
-    comprovanteUrl = await uploadComprovante(pagamentoFile, pagamentoTargetId);
-    if (!comprovanteUrl) {
-      alert('Erro ao enviar comprovante. Tente novamente.');
-      btnConfirmar.disabled = false;
-      btnConfirmar.textContent = 'Confirmar Pagamento';
-      return;
-    }
-  } else {
-    // Mantém comprovante existente
-    comprovanteUrl = allOrders.find(o => o.id === pagamentoTargetId)?.comprovante_url || null;
+    compUrl = await uploadComprovante(pagamentoFile, pagamentoTargetId);
+    if (!compUrl) { alert('Erro ao enviar comprovante.'); btn.disabled = false; btn.textContent = 'Confirmar Pagamento'; return; }
   }
-
-  await salvarPagamento(pagamentoTargetId, true, comprovanteUrl, false);
-  btnConfirmar.disabled = false;
-  btnConfirmar.textContent = 'Confirmar Pagamento';
+  await salvarPagamento(pagamentoTargetId, true, compUrl, false);
+  btn.disabled = false; btn.textContent = 'Confirmar Pagamento';
   closePgtoModal();
 }
 
-async function salvarPagamento(id, pago, comprovanteUrl, semComprovante) {
-  const update = { pago };
-  if (!semComprovante) update.comprovante_url = comprovanteUrl;
-  const { error } = await db.from('pedidos').update(update).eq('id', id);
+async function salvarPagamento(id, pago, comprovanteUrl, semComp) {
+  const upd = { pago };
+  if (!semComp) upd.comprovante_url = comprovanteUrl;
+  const { error } = await db.from('pedidos').update(upd).eq('id', id);
   if (error) { alert('Erro ao salvar pagamento: ' + error.message); return; }
   await loadOrders();
+}
+
+// [MELHORIA CUPOM PAGAMENTO] — gera comprovante de pagamento em nova janela
+function emitirCupomPagamento(id) {
+  const order = allOrders.find(o => o.id === id);
+  if (!order) return;
+  const idCurto = order.id.slice(-6).toUpperCase();
+  const dataPgto = order.data_entrega_real || order.updated_at?.split('T')[0] || todayDate();
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8"/>
+<title>Comprovante #${idCurto}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:#f5f5f5;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+  .cupom{background:#fff;border-radius:12px;max-width:360px;width:100%;box-shadow:0 4px 24px rgba(0,0,0,.12);overflow:hidden}
+  .cupom-header{background:#7C3AED;color:#fff;padding:20px 24px;text-align:center}
+  .cupom-logo{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;opacity:.8;margin-bottom:4px}
+  .cupom-titulo{font-size:20px;font-weight:700}
+  .cupom-sub{font-size:11px;opacity:.75;margin-top:2px}
+  .cupom-body{padding:24px}
+  .cupom-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+  .cupom-row:last-child{border:none}
+  .cupom-label{color:#888;font-weight:500}
+  .cupom-value{font-weight:600;color:#1a1a1a;text-align:right;max-width:60%}
+  .cupom-total-row{background:#f5f0ff;border-radius:8px;padding:14px 16px;margin:16px 0;display:flex;justify-content:space-between;align-items:center}
+  .cupom-total-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#7C3AED}
+  .cupom-total-value{font-size:22px;font-weight:700;color:#7C3AED}
+  .cupom-forma{text-align:center;padding:12px;background:#f9fafb;border-radius:8px;font-size:12px;color:#666;margin-top:8px}
+  .cupom-footer{text-align:center;padding:16px 24px;border-top:1px dashed #e0e0e0;font-size:11px;color:#999;line-height:1.6}
+  .cupom-id{font-family:monospace;background:#f5f0ff;color:#7C3AED;padding:3px 8px;border-radius:4px;font-size:11px}
+  .btn-print{display:block;width:100%;margin-top:16px;padding:12px;background:#7C3AED;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+  @media print{.btn-print{display:none}body{background:#fff}cupom{box-shadow:none}}
+</style></head><body>
+<div class="cupom">
+  <div class="cupom-header">
+    <div class="cupom-logo">Papelaria Betel</div>
+    <div class="cupom-titulo">Comprovante de Pagamento</div>
+    <div class="cupom-sub">Documento não fiscal</div>
+  </div>
+  <div class="cupom-body">
+    <div class="cupom-row"><span class="cupom-label">N° do pedido</span><span class="cupom-value"><span class="cupom-id">#${idCurto}</span></span></div>
+    <div class="cupom-row"><span class="cupom-label">Cliente</span><span class="cupom-value">${escapeHtml(order.cliente)}</span></div>
+    <div class="cupom-row"><span class="cupom-label">Data de pagamento</span><span class="cupom-value">${formatDate(dataPgto)}</span></div>
+    ${order.data_entrega_real ? `<div class="cupom-row"><span class="cupom-label">Data de entrega</span><span class="cupom-value">${formatDate(order.data_entrega_real)}</span></div>` : ''}
+    ${order.descricao ? `<div class="cupom-row"><span class="cupom-label">Descrição</span><span class="cupom-value">${escapeHtml(order.descricao.substring(0,60))}</span></div>` : ''}
+    <div class="cupom-total-row">
+      <span class="cupom-total-label">Valor pago</span>
+      <span class="cupom-total-value">R$ ${formatCurrency(order.valor)}</span>
+    </div>
+    <div class="cupom-forma">Forma de pagamento: <strong>PIX</strong><br>Chave: 367.427.448-55 — Nayara Pereira Mendes Garcia</div>
+  </div>
+  <div class="cupom-footer">
+    Papelaria BETEL<br>
+    Emitido em ${formatDate(todayDate())}<br>
+    Este documento não tem validade fiscal
+    <br><button class="btn-print" onclick="window.print()">Imprimir / Salvar PDF</button>
+  </div>
+</div>
+</body></html>`;
+  const w = window.open('', '_blank', 'width=440,height=700');
+  w.document.write(html);
+  w.document.close();
 }
 
 // ────────────────────────────────────────────────────────────
@@ -712,12 +766,13 @@ async function handleSaveOrder(event) {
   setButtonLoading('btn-save', true);
   hideModalMessage();
 
-  // [MELHORIA FLUXO STATUS] — status é produção; pago é campo separado
+  // [MELHORIA FLUXO PRODUÇÃO] — status de produção separado de pagamento
   const orderId    = document.getElementById('order-id').value;
   const status     = document.getElementById('field-status').value;
-  const isEntregue = status === STATUS.ENTREGUE || status === 'entregue_nao_pago' || status === 'entregue_pago';
+  const isEntregue = status === STATUS.ENTREGUE || STATUS_FINALIZADOS.has(status);
+  const isPago     = false; // pagamento gerenciado pelo modal de pagamento
 
-  // --- Validações ---
+  // --- Validações (sempre libera o botão ao sair com erro) ---
   if (!orderItems.length) {
     showModalMessage('Adicione ao menos um item ao pedido.', 'error');
     setButtonLoading('btn-save', false);
@@ -730,6 +785,23 @@ async function handleSaveOrder(event) {
     return;
   }
 
+  // [MELHORIA FLUXO PRODUÇÃO] — comprovante gerenciado pelo modal de pagamento
+
+  // --- Upload de comprovante ---
+  let comprovanteUrl = null;
+  if (comprovanteFile) {
+    comprovanteUrl = await uploadComprovante(comprovanteFile, orderId || 'new_' + Date.now());
+    if (!comprovanteUrl) {
+      showModalMessage('Erro ao enviar o comprovante. Tente novamente.', 'error');
+      setButtonLoading('btn-save', false);
+      return;
+    }
+  }
+  // Mantém URL existente se não enviou novo arquivo
+  if (!comprovanteUrl && orderId) {
+    comprovanteUrl = allOrders.find(o => o.id === orderId)?.comprovante_url || null;
+  }
+
   const payload = {
     cliente:           document.getElementById('field-cliente').value.trim(),
     descricao:         document.getElementById('field-descricao').value.trim(),
@@ -738,8 +810,9 @@ async function handleSaveOrder(event) {
     data_pedido:       document.getElementById('field-data-pedido').value || null,
     data_entrega:      document.getElementById('field-data-entrega').value || null,
     data_entrega_real: isEntregue ? (document.getElementById('field-data-entrega-real').value || null) : null,
-    // pago: false só em novos pedidos; gerenciado pelo modal de pagamento
-    ...(orderId ? {} : { user_id: currentUser.id, pago: false }),
+    comprovante_url:   comprovanteUrl,
+    // Mantém o user_id do criador original ao editar
+    ...(orderId ? {} : { user_id: currentUser.id, pago: false }), // [MELHORIA FLUXO PRODUÇÃO]
   };
 
   let savedOrderId = orderId;
@@ -789,7 +862,7 @@ function openOrderModal() {
   document.getElementById('order-form').reset();
   document.getElementById('order-id').value          = '';
   document.getElementById('field-data-pedido').value = todayDate();
-  document.getElementById('field-status').value      = 'recebido'; // [MELHORIA FLUXO STATUS]
+  document.getElementById('field-status').value      = 'recebido'; // [MELHORIA FLUXO PRODUÇÃO]
   orderItems      = [];
   comprovanteFile = null;
   renderItemsList();
@@ -811,8 +884,10 @@ function openEditOrderModal(id, forcePayment = false, forceStatus = null) {
   document.getElementById('field-data-entrega').value          = order.data_entrega || '';
   document.getElementById('field-data-entrega-real').value     = order.data_entrega_real || '';
 
-  // [MELHORIA FLUXO STATUS] — força status se veio de openEntregueModal
-  if (forceStatus) {
+  // Força status se veio de ação rápida
+  if (forcePayment) {
+    document.getElementById('field-status').value = STATUS.ENTREGUE_PAGO;
+  } else if (forceStatus) {
     document.getElementById('field-status').value = forceStatus;
   } else {
     document.getElementById('field-status').value = order.status;
@@ -854,15 +929,12 @@ function closeModalOnOverlay(e) {
 
 function onStatusChange() { updateConclusaoSection(); }
 
-// [MELHORIA FLUXO STATUS] — seção de entrega: só data real (comprovante via modal de pagamento)
+// [MELHORIA FLUXO PRODUÇÃO] — seção de entrega: só data real
 function updateConclusaoSection() {
   const status     = document.getElementById('field-status').value;
-  const isEntregue = status === STATUS.ENTREGUE || status === 'entregue_nao_pago' || status === 'entregue_pago';
+  const isEntregue = status === STATUS.ENTREGUE || STATUS_FINALIZADOS.has(status);
   document.getElementById('conclusao-section').classList.toggle('hidden', !isEntregue);
-  // Campo comprovante oculto no modal de edição — gerenciado pelo modal de pagamento
-  if (isEntregue) {
-    document.getElementById('comprovante-field').classList.add('hidden');
-  }
+  if (isEntregue) document.getElementById('comprovante-field').classList.add('hidden');
 }
 
 // ────────────────────────────────────────────────────────────
@@ -938,7 +1010,7 @@ function gerarOrcamentoPDF() {
 
   const { jsPDF } = window.jspdf;
   const doc   = new jsPDF({ unit: 'mm', format: 'a4' });
-  const coral = [232,99,74], tinta = [44,35,24], suave = [107,94,82];
+  const coral = [124,58,237], tinta = [44,35,24], suave = [107,94,82]; // [MELHORIA VISUAL ROXO]
 
   doc.setFillColor(...coral); doc.rect(0,0,210,35,'F');
   doc.setTextColor(255,255,255); doc.setFontSize(22); doc.setFont('helvetica','bold'); doc.text('Papelaria BETEL',15,16);
@@ -1184,7 +1256,7 @@ function updateFinanceiro() {
 
   const entradas = allOrders
     .filter(o => { const d = o.data_pedido || (o.created_at||'').split('T')[0]; return d >= ini && d <= fim; })
-    .filter(o => o.pago === true)  // [FIX SOMA] campo pago boolean
+    .filter(o => o.pago === true)  // [MELHORIA PAGAMENTOS ATRASADOS]
     .reduce((a, o) => a + Number(o.valor), 0);
 
   const saidas = allExpenses

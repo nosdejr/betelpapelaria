@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Papelaria BETEL - Dashboard</title>
-  <!-- [MELHORIA FONTE VALORES] — Inter via Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=Inter:wght@500;600;700&display=swap" rel="stylesheet" />
+  <!-- [MELHORIA VISUAL ROXO] — fontes mantidas -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&family=Inter:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -26,112 +26,87 @@
     </div>
   </header>
 
-  <!-- ══ NAVEGAÇÃO POR ABAS ════════════════════════════════════
-       [MELHORIA DESPESAS] — Pedidos | Despesas | Financeiro
-  ══════════════════════════════════════════════════════════ -->
+  <!-- ══ NAVEGAÇÃO POR ABAS ════════════════════════════════════ -->
   <nav class="main-nav">
     <div class="main-nav-inner">
-      <button class="nav-tab active" data-page="pedidos"    onclick="showPage('pedidos')">📋 Pedidos</button>
-      <button class="nav-tab"        data-page="despesas"   onclick="showPage('despesas')">💸 Despesas</button>
-      <button class="nav-tab"        data-page="financeiro" onclick="showPage('financeiro')">📊 Financeiro</button>
+      <button class="nav-tab active" data-page="pedidos"    onclick="showPage('pedidos')">Pedidos</button>
+      <button class="nav-tab"        data-page="despesas"   onclick="showPage('despesas')">Despesas</button>
+      <button class="nav-tab"        data-page="financeiro" onclick="showPage('financeiro')">Financeiro</button>
     </div>
   </nav>
 
-  <!-- ══════════════════════════════════════════════════════════
-       SEÇÃO: PEDIDOS (visível por padrão)
-  ══════════════════════════════════════════════════════════ -->
+  <!-- ══ SEÇÃO: PEDIDOS ════════════════════════════════════════ -->
   <div id="section-pedidos">
 
-    <!-- ── Resumo financeiro ──────────────────────────────── -->
+    <!-- [MELHORIA CARDS DASHBOARD] — card único de período (sem card fixo de mês) -->
     <section class="billing-section">
-
-      <!-- Painel esquerdo: mês atual (fixo) -->
-      <div class="billing-panel billing-panel-fixed">
+      <div class="billing-panel">
         <div class="billing-panel-header">
-          <span class="billing-panel-icon">📅</span>
-          <span class="billing-panel-title">Mês atual</span>
-          <span class="billing-panel-sub" id="mes-label"></span>
+          <span class="billing-panel-icon">📊</span>
+          <span class="billing-panel-title">Resumo do período</span>
         </div>
-        <div class="billing-row">
-          <div class="billing-item">
-            <span class="billing-item-label">💰 Recebido</span>
-            <span class="billing-item-value green valor-monetario" id="mes-faturado">R$ 0,00</span>
-          </div>
-          <div class="billing-item">
-            <span class="billing-item-label">🕐 A receber</span>
-            <span class="billing-item-value blue valor-monetario" id="mes-aguardando">R$ 0,00</span>
-          </div>
-          <div class="billing-item">
-            <span class="billing-item-label">🚨 Atrasados</span>
-            <span class="billing-item-value red valor-monetario" id="count-late">0</span>
-          </div>
-        </div>
-      <div class="billing-total-row">
-        <span>TOTAL MÊS:</span>
-        <span class="billing-total-value valor-monetario" id="mes-total">R$ 0,00</span>
-      </div>
-    </div>
 
-      <!-- Painel direito: período personalizado -->
-      <div class="billing-panel billing-panel-custom">
-        <div class="billing-panel-header">
-          <span class="billing-panel-icon">🔎</span>
-          <span class="billing-panel-title">Período</span>
-        </div>
-        <!-- Atalhos rápidos de período -->
+        <!-- [MELHORIA CARDS DASHBOARD] — atalhos incluindo "Mês Atual" -->
         <div class="period-shortcuts">
           <button class="period-shortcut" onclick="setPeriodShortcut('hoje',this)">Hoje</button>
-          <button class="period-shortcut" onclick="setPeriodShortcut('mes-anterior',this)">Mês anterior</button>
+          <button class="period-shortcut active" onclick="setPeriodShortcut('mes-atual',this)">Mês Atual</button>
+          <button class="period-shortcut" onclick="setPeriodShortcut('mes-anterior',this)">Mês Anterior</button>
           <button class="period-shortcut" onclick="setPeriodShortcut('ano',this)">Ano</button>
           <button class="period-shortcut" onclick="setPeriodShortcut('todos',this)">Todos</button>
         </div>
-        <!-- Seletor de datas inline -->
+
         <div class="period-row">
           <input type="date" id="periodo-inicio" class="period-input" onchange="applyPeriod()" />
           <span class="period-sep">→</span>
           <input type="date" id="periodo-fim" class="period-input" onchange="applyPeriod()" />
         </div>
+
         <div class="billing-row">
           <div class="billing-item">
-            <span class="billing-item-label">💰 Recebido</span>
+            <span class="billing-item-label">Recebido</span>
             <span class="billing-item-value green valor-monetario" id="per-faturado">R$ 0,00</span>
             <span class="billing-item-count" id="per-count-pago"></span>
           </div>
           <div class="billing-item">
-            <span class="billing-item-label">🕐 A receber</span>
+            <span class="billing-item-label">A receber</span>
             <span class="billing-item-value blue valor-monetario" id="per-aguardando">R$ 0,00</span>
             <span class="billing-item-count" id="per-count-aguar"></span>
           </div>
           <div class="billing-item">
-            <span class="billing-item-label">⏳ Pendente</span>
+            <span class="billing-item-label">Em produção</span>
             <span class="billing-item-value gold valor-monetario" id="per-pendente">R$ 0,00</span>
             <span class="billing-item-count" id="per-count-pend"></span>
           </div>
         </div>
+
         <div class="billing-total-row">
-          <span>TOTAL PERÍODO:</span>
+          <span>TOTAL:</span>
           <span class="billing-total-value valor-monetario" id="per-total">R$ 0,00</span>
         </div>
       </div>
-
     </section>
 
-    <!-- ── Toolbar: filtros + busca ──────────────────────── -->
-    <!-- [MELHORIA STATUS PEDIDO] — filtros atualizados -->
+    <!-- ── Toolbar ─────────────────────────────────────────── -->
     <section class="toolbar-section">
-      <!-- [MELHORIA FILTROS PEDIDOS] — 4 filtros simples -->
+      <!-- [MELHORIA FLUXO PRODUÇÃO] + [MELHORIA PAGAMENTOS ATRASADOS] — filtros -->
       <div class="filter-scroll">
-        <button class="filter-btn active"             onclick="setFilter('todos',this)">Todos</button>
-        <button class="filter-btn filter-pendentes"   onclick="setFilter('pendentes',this)">Pendentes</button>
-        <button class="filter-btn filter-finalizados" onclick="setFilter('finalizados',this)">Finalizados</button>
-        <button class="filter-btn filter-late"        onclick="setFilter('atrasado',this)">Atrasados</button>
+        <button class="filter-btn active"                onclick="setFilter('todos',this)">Todos</button>
+        <button class="filter-btn filter-ativos"         onclick="setFilter('ativos',this)">Em Andamento</button>
+        <button class="filter-btn filter-finalizados"    onclick="setFilter('finalizados',this)">Finalizados</button>
+        <button class="filter-btn filter-late"           onclick="setFilter('atrasado',this)">Atraso Entrega</button>
+        <!-- [MELHORIA PAGAMENTOS ATRASADOS] — filtro dedicado -->
+        <button class="filter-btn filter-pgto-atrasado" id="btn-filter-pgto-atrasado"
+                onclick="setFilter('pgto-atrasado',this)">
+          Pgto Atrasado
+          <span class="filter-count" id="count-pgto-atras">0</span>
+        </button>
       </div>
       <div class="search-new-row">
-        <input type="search" id="search-input" class="search-input" placeholder="🔍 Buscar cliente…" oninput="renderOrders()" />
+        <input type="search" id="search-input" class="search-input" placeholder="Buscar cliente…" oninput="renderOrders()" />
       </div>
     </section>
 
-    <!-- ── Lista de pedidos ──────────────────────────────── -->
+    <!-- ── Lista de pedidos ──────────────────────────────────── -->
     <main class="orders-section">
       <div id="loading-state" class="empty-state">
         <div class="spinner">⟳</div><p>Carregando pedidos…</p>
@@ -143,16 +118,11 @@
       </div>
       <div id="orders-list" class="orders-list hidden"></div>
     </main>
+  </div>
 
-  </div><!-- /section-pedidos -->
-
-  <!-- ══════════════════════════════════════════════════════════
-       SEÇÃO: DESPESAS [MELHORIA DESPESAS]
-  ══════════════════════════════════════════════════════════ -->
+  <!-- ══ SEÇÃO: DESPESAS ══════════════════════════════════════ -->
   <div id="section-despesas" class="hidden">
     <div class="page-section">
-
-      <!-- Atalhos de período -->
       <div class="page-section-header">
         <div class="period-shortcuts">
           <button class="desp-shortcut period-shortcut" onclick="setDespesaShortcut('hoje',this)">Hoje</button>
@@ -166,26 +136,17 @@
           <input type="date" id="desp-fim" class="period-input" onchange="applyDespesaPeriod()" />
         </div>
       </div>
-
-      <!-- Card total -->
       <div class="desp-total-card">
-        <span class="desp-total-label">💸 Total de despesas no período</span>
+        <span class="desp-total-label">Total de despesas no período</span>
         <span class="desp-total-value valor-monetario" id="desp-total-val">R$ 0,00</span>
       </div>
-
-      <!-- Lista -->
       <div id="expenses-list" class="expenses-list"></div>
-
     </div>
-  </div><!-- /section-despesas -->
+  </div>
 
-  <!-- ══════════════════════════════════════════════════════════
-       SEÇÃO: FINANCEIRO [MELHORIA DASH ENTRADAS x SAÍDAS]
-  ══════════════════════════════════════════════════════════ -->
+  <!-- ══ SEÇÃO: FINANCEIRO ══════════════════════════════════════ -->
   <div id="section-financeiro" class="hidden">
     <div class="page-section">
-
-      <!-- Atalhos de período -->
       <div class="page-section-header">
         <div class="period-shortcuts">
           <button class="fin-shortcut period-shortcut" onclick="setFinShortcut('mes-atual',this)">Mês atual</button>
@@ -199,24 +160,20 @@
           <input type="date" id="fin-fim" class="period-input" onchange="applyFinPeriod()" />
         </div>
       </div>
-
-      <!-- 3 cards financeiros -->
       <div class="fin-cards">
         <div class="fin-card fin-entradas">
-          <span class="fin-card-label">📈 Entradas (recebido)</span>
+          <span class="fin-card-label">Entradas (recebido)</span>
           <span class="fin-card-value valor-monetario" id="fin-entradas">R$ 0,00</span>
         </div>
         <div class="fin-card fin-saidas">
-          <span class="fin-card-label">📉 Saídas (despesas)</span>
+          <span class="fin-card-label">Saídas (despesas)</span>
           <span class="fin-card-value valor-monetario" id="fin-saidas">R$ 0,00</span>
         </div>
         <div class="fin-card fin-lucro" id="fin-resultado-card">
-          <span class="fin-card-label" id="fin-resultado-label">📊 Resultado</span>
+          <span class="fin-card-label" id="fin-resultado-label">Resultado</span>
           <span class="fin-card-value valor-monetario" id="fin-resultado">R$ 0,00</span>
         </div>
       </div>
-
-      <!-- Barra visual Entradas x Saídas -->
       <div class="fin-bar-wrap">
         <div class="fin-bar-label">
           <span class="fin-bar-tag entradas-tag">Entradas</span>
@@ -227,9 +184,8 @@
           <div class="fin-bar-s" id="fin-bar-s" style="width:50%"></div>
         </div>
       </div>
-
     </div>
-  </div><!-- /section-financeiro -->
+  </div>
 
   <!-- ══ MODAL: PEDIDO ════════════════════════════════════════ -->
   <div id="order-modal" class="modal-overlay hidden" onclick="closeModalOnOverlay(event)">
@@ -239,17 +195,13 @@
         <button class="modal-close" onclick="closeOrderModal()">✕</button>
       </div>
       <div id="modal-message" class="auth-message hidden"></div>
-
       <form id="order-form" onsubmit="handleSaveOrder(event)">
         <input type="hidden" id="order-id" />
-
         <div class="field-group">
           <label for="field-cliente">Cliente *</label>
           <input type="text" id="field-cliente" placeholder="Nome do cliente" required />
         </div>
-
-        <div class="section-title">🛒 Itens do pedido</div>
-
+        <div class="section-title">Itens do pedido</div>
         <div class="item-add-row">
           <select id="item-product-select" class="item-select">
             <option value="">Selecione um produto…</option>
@@ -263,19 +215,15 @@
           <input type="number" id="item-custom-qty"   class="item-qty"          placeholder="Qtd" min="1" value="1" />
           <button type="button" class="btn-add-item" onclick="addCustomItem()">＋</button>
         </div>
-
         <div id="items-list" class="items-list"></div>
-
         <div class="order-total-row">
           <span>Total do pedido:</span>
           <span class="order-total-value valor-monetario" id="order-total-display">R$ 0,00</span>
         </div>
-
         <div class="field-group">
           <label for="field-descricao">Observações</label>
           <textarea id="field-descricao" placeholder="Observações adicionais…" rows="2"></textarea>
         </div>
-
         <div class="fields-row">
           <div class="field-group">
             <label for="field-data-pedido">Data do pedido</label>
@@ -286,28 +234,24 @@
             <input type="date" id="field-data-entrega" />
           </div>
         </div>
-
-        <!-- [MELHORIA FLUXO STATUS] — 5 etapas de produção -->
+        <!-- [MELHORIA FLUXO PRODUÇÃO] — 4 etapas de produção -->
         <div class="field-group">
           <label for="field-status">Status de produção</label>
           <select id="field-status" onchange="onStatusChange()">
-            <option value="recebido">Ped. Recebido</option>
-            <option value="criando">Criando</option>
-            <option value="produzindo">Produzindo</option>
-            <option value="pronto">Pronto P/ Entrega</option>
+            <option value="recebido">Recebido</option>
+            <option value="em_producao">Em Produção</option>
+            <option value="pronto">Pronto</option>
             <option value="entregue">Entregue</option>
           </select>
         </div>
-
-        <!-- [MELHORIA FLUXO STATUS] — seção de entrega: só data real -->
-        <!-- O comprovante de pagamento é gerenciado pelo modal de pagamento separado -->
+        <!-- Seção de entrega: aparece apenas quando status = entregue -->
         <div id="conclusao-section" class="conclusao-section hidden">
           <div class="section-title">Dados de entrega</div>
           <div class="field-group">
             <label for="field-data-entrega-real">Data de entrega real *</label>
             <input type="date" id="field-data-entrega-real" />
           </div>
-          <!-- campo comprovante mantido no DOM para compatibilidade, mas ocultado -->
+          <!-- campo comprovante mantido no DOM para compatibilidade -->
           <div id="comprovante-field" class="field-group hidden">
             <label id="comprovante-label">Comprovante (opcional)</label>
             <div class="upload-area" id="upload-area" onclick="document.getElementById('field-comprovante').click()">
@@ -320,10 +264,9 @@
             <a id="comprovante-existing" class="comprovante-link hidden" target="_blank">Ver comprovante atual</a>
           </div>
         </div>
-
         <div class="modal-actions">
           <button type="button" class="btn-secondary" onclick="closeOrderModal()">Cancelar</button>
-          <button type="button" class="btn-outline"   onclick="gerarOrcamentoPDF()">📄 Orçamento</button>
+          <button type="button" class="btn-outline"   onclick="gerarOrcamentoPDF()">Orçamento</button>
           <button type="submit" class="btn-primary"   id="btn-save">
             <span class="btn-text">Salvar</span>
             <span class="btn-loader hidden">⟳</span>
@@ -333,7 +276,46 @@
     </div>
   </div>
 
-  <!-- ══ MODAL: DESPESA [MELHORIA DESPESAS] ═════════════════════ -->
+  <!-- ══ MODAL: PAGAMENTO + COMPROVANTE ══════════════════════
+       [MELHORIA PAGAMENTOS ATRASADOS] + [MELHORIA CUPOM PAGAMENTO]
+  ══════════════════════════════════════════════════════════ -->
+  <div id="pgto-modal" class="modal-overlay hidden" onclick="closePgtoModalOverlay(event)">
+    <div class="modal-card modal-card-small">
+      <div class="modal-header">
+        <h2>Registrar Pagamento</h2>
+        <button class="modal-close" onclick="closePgtoModal()">✕</button>
+      </div>
+      <div class="pgto-resumo">
+        <div class="pgto-resumo-row">
+          <span class="pgto-label">Cliente</span>
+          <span id="pgto-modal-cliente" class="pgto-valor-nome"></span>
+        </div>
+        <div class="pgto-resumo-row">
+          <span class="pgto-label">Valor</span>
+          <span id="pgto-modal-valor" class="pgto-valor-total"></span>
+        </div>
+      </div>
+      <div class="field-group" style="margin-top:14px">
+        <label>Comprovante <span style="font-weight:400;color:var(--ink-muted)">(opcional)</span></label>
+        <div class="upload-area" id="pgto-upload-area" onclick="document.getElementById('pgto-field-comp').click()">
+          <div class="upload-icon">📎</div>
+          <div class="upload-text">Anexar comprovante de pagamento</div>
+          <div class="upload-hint">JPG, PNG ou PDF</div>
+        </div>
+        <input type="file" id="pgto-field-comp" accept="image/*,application/pdf" style="display:none" onchange="onPgtoCompSelected(event)" />
+        <div id="pgto-comp-preview" class="comprovante-preview hidden"></div>
+        <a id="pgto-comp-existing" class="comprovante-link hidden" target="_blank">Ver comprovante já enviado</a>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" onclick="closePgtoModal()">Cancelar</button>
+        <button type="button" class="btn-primary" id="btn-confirmar-pgto" onclick="confirmarPagamento()">
+          Confirmar Pagamento
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL: DESPESA ════════════════════════════════════════ -->
   <div id="expense-modal" class="modal-overlay hidden" onclick="closeExpenseModalOverlay(event)">
     <div class="modal-card modal-card-small">
       <div class="modal-header">
@@ -380,7 +362,7 @@
   <div id="products-modal" class="modal-overlay hidden" onclick="closeProductsModalOverlay(event)">
     <div class="modal-card">
       <div class="modal-header">
-        <h2>📦 Produtos</h2>
+        <h2>Produtos</h2>
         <button class="modal-close" onclick="closeProductsModal()">✕</button>
       </div>
       <form id="product-form" onsubmit="handleSaveProduct(event)">
@@ -427,56 +409,11 @@
     </div>
   </div>
 
-  <!-- ── BOTÃO FLUTUANTE — só na aba Pedidos ─────────────── -->
+  <!-- ── FABs ────────────────────────────────────────────────── -->
   <button class="fab-new" onclick="openOrderModal()" title="Novo pedido">＋</button>
-  <!-- [MELHORIA DESPESAS] — botão flutuante para nova despesa (só na aba Despesas) -->
   <button class="fab-new fab-despesa" onclick="openNewExpense()" title="Nova despesa" style="display:none">＋</button>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
-
-  <!-- [CORREÇÃO COMPROVANTE] — Modal de pagamento com upload de comprovante -->
-  <div id="pgto-modal" class="modal-overlay hidden" onclick="closePgtoModalOnOverlay(event)">
-    <div class="modal-box" style="max-width:400px">
-      <div class="modal-header">
-        <h2 class="modal-title">Registrar Pagamento</h2>
-        <button class="modal-close" onclick="closePgtoModal()">✕</button>
-      </div>
-
-      <div class="pgto-resumo">
-        <div class="pgto-resumo-row">
-          <span class="pgto-label">Cliente</span>
-          <span id="pgto-modal-cliente" class="pgto-valor"></span>
-        </div>
-        <div class="pgto-resumo-row">
-          <span class="pgto-label">Valor</span>
-          <span id="pgto-modal-valor" class="pgto-valor pgto-valor-destaque"></span>
-        </div>
-      </div>
-
-      <div class="field-group" style="margin-top:16px">
-        <label>Comprovante de pagamento <span style="color:var(--ink-muted);font-weight:400">(opcional)</span></label>
-        <div class="upload-area" id="pgto-upload-area" onclick="document.getElementById('pgto-field-comprovante').click()">
-          <div class="upload-icon">📎</div>
-          <div class="upload-text">Toque para anexar comprovante</div>
-          <div class="upload-hint">JPG, PNG ou PDF</div>
-        </div>
-        <input type="file" id="pgto-field-comprovante" accept="image/*,application/pdf"
-               style="display:none" onchange="onPgtoComprovanteSelected(event)" />
-        <div id="pgto-comprovante-preview" class="comprovante-preview hidden"></div>
-        <a id="pgto-comprovante-existing" class="comprovante-link hidden" target="_blank">
-          📄 Ver comprovante já enviado
-        </a>
-      </div>
-
-      <div class="modal-actions" style="margin-top:20px">
-        <button type="button" class="btn-secondary" onclick="closePgtoModal()">Cancelar</button>
-        <button type="button" class="btn-primary" id="btn-confirmar-pgto" onclick="confirmarPagamento()">
-          Confirmar Pagamento
-        </button>
-      </div>
-    </div>
-  </div>
-
 </body>
 </html>
