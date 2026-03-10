@@ -231,221 +231,296 @@ body { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; co
 .empty-inline { color:var(--ink-muted);font-size:13px;padding:8px 0; }
 
 /* Novo design de card */
+/* ═══════════════════════════════════════════════════════════
+   [CORREÇÃO LAYOUT CARDS] — Cards de pedidos: layout limpo e legível
+   3 blocos verticais bem definidos para mobile-first
+═══════════════════════════════════════════════════════════ */
+
+/* Card: container */
 .order-card {
   background: var(--warm-white);
   border-radius: var(--radius);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
-  animation: slideIn .25s ease-out;
-  transition: transform .15s, box-shadow .15s;
+  animation: slideIn .22s ease-out;
+  transition: box-shadow .15s;
 }
-.order-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.order-card:hover { box-shadow: var(--shadow-md); }
 
-/* [MELHORIA PAGAMENTOS ATRASADOS] — destaques visuais */
-.card-pgto-atrasado {
-  border-left: 4px solid var(--red);
-  border-left-width: 4px;
-}
-.card-entrega-atrasada {
-  border-left: 4px solid var(--orange);
-}
+/* Borda lateral colorida para estados de alerta */
+.card-pgto-atrasado  { border-left: 4px solid var(--red); }
+.card-entrega-atrasada { border-left: 4px solid var(--orange); }
 
-/* Cabeçalho do card */
-.card-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
+/* ── BLOCO 1: Nome + valor + datas ───────────────────────── */
+.card-bloco1 {
   padding: 14px 14px 10px;
-  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
-.card-header-left { flex: 1; min-width: 0; }
+
+/* Topo: nome à esquerda, valor à direita */
+.card-topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.card-client {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  /* Permite quebra de linha em nomes longos: não corta mais */
+  word-break: break-word;
+  line-height: 1.3;
+  flex: 1;
+  min-width: 0;
+}
+
+.card-valor {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--violet);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Linha de datas: ID + chips */
+.card-datas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
 .card-id {
-  display: inline-block;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 1px;
   color: var(--ink-muted);
   text-transform: uppercase;
-  margin-bottom: 2px;
-}
-.card-client {
-  font-family: 'Playfair Display', serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin-right: 2px;
 }
 
-/* Badges no topo */
-.card-badges {
+.data-chip {
+  font-size: 11px;
+  color: var(--ink-muted);
+  background: var(--paper);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+.data-chip-late { color: var(--red);   background: var(--red-light);  border-color: #FECACA; }
+.data-chip-real { color: var(--sage);  background: var(--sage-light); border-color: #6EE7B7; }
+
+/* Itens do pedido */
+.order-items-preview {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  flex-wrap: wrap;
   gap: 4px;
-  flex-shrink: 0;
+}
+.item-chip {
+  font-size: 11px;
+  background: var(--paper);
+  color: var(--ink-soft);
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+/* Observações */
+.card-obs {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── BLOCO 2: Badges de status + comprovante + prazo ─────── */
+.card-bloco2 {
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;    /* badges quebram linha se não couber */
+  align-items: center;
+  gap: 6px;
 }
 
 /* Badge de status de produção */
 .badge-status {
-  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
   font-weight: 700;
-  padding: 3px 9px;
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
   white-space: nowrap;
 }
-/* [MELHORIA VISUAL ROXO] — cores dos badges de status */
-.badge-recebido  { background:#F5F3FF;color:#5B21B6;border:1px solid var(--violet-border); }
-.badge-producao  { background:#DBEAFE;color:#1D4ED8;border:1px solid #93C5FD; }
-.badge-pronto    { background:var(--sage-light);color:#065F46;border:1px solid #6EE7B7; }
-.badge-entregue  { background:#F0FDF4;color:#166534;border:1px solid #86EFAC; }
+.badge-recebido { background: #F5F3FF; color: #5B21B6; border: 1px solid var(--violet-border); }
+.badge-producao { background: #DBEAFE; color: #1D4ED8; border: 1px solid #93C5FD; }
+.badge-pronto   { background: var(--sage-light); color: #065F46; border: 1px solid #6EE7B7; }
+.badge-entregue { background: #F0FDF4; color: #166534; border: 1px solid #86EFAC; }
 
 /* Badge de pagamento */
 .badge-pgto {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: var(--radius-pill);
-  white-space: nowrap;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 3px;
-}
-.badge-pago         { background:var(--sage-light);color:#065F46;border:1px solid #6EE7B7; }
-.badge-nao-pago     { background:var(--gold-light);color:#92400E;border:1px solid var(--gold-border); }
-/* [MELHORIA PAGAMENTOS ATRASADOS] */
-.badge-pgto-atrasado { background:var(--red-light);color:#991B1B;border:1px solid #FECACA; }
-
-/* Corpo do card */
-.order-items-preview { display:flex;flex-wrap:wrap;gap:4px;padding:8px 14px; }
-.item-chip { font-size:11px;background:var(--paper);color:var(--ink-soft);padding:3px 8px;border-radius:var(--radius-pill);border:1px solid var(--border); }
-.card-obs { font-size:12px;color:var(--ink-soft);padding:0 14px 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
-
-/* Linha de valor + datas */
-.card-meta {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 0 14px 10px;
-}
-/* [MELHORIA VISUAL ROXO] — valor em roxo */
-.card-valor {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--violet);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -.02em;
-}
-.card-datas { display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end; }
-.data-chip { font-size:10px;color:var(--ink-muted);background:var(--paper);padding:2px 7px;border-radius:var(--radius-pill);border:1px solid var(--border); }
-.data-chip-late { color:var(--red);background:var(--red-light);border-color:#FECACA; }
-.data-chip-real { color:var(--sage);background:var(--sage-light); }
-
-/* Indicador de comprovante */
-.card-comprovante-indicator {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin: 0 14px 8px;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--violet);
-  background: var(--violet-light);
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
-  width: fit-content;
-}
-
-/* Prazo */
-.prazo-tag { font-size:10px;font-weight:600;padding:3px 9px;border-radius:var(--radius-pill);display:inline-block;margin:0 14px 8px; }
-.prazo-ok     { background:var(--sage-light);color:#065F46; }
-.prazo-atraso { background:var(--red-light);color:#991B1B; }
-
-/* ── AÇÕES DO CARD ────────────────────────────────────────── */
-.card-actions {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  padding: 10px 14px;
-  background: var(--paper);
-  border-top: 1px solid var(--border);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  flex-wrap: nowrap;
-}
-.card-actions::-webkit-scrollbar { display: none; }
-
-/* Botões de fluxo (avanço de produção) */
-.btn-action {
-  flex-shrink: 0;
-  padding: 6px 10px;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-family: 'DM Sans', sans-serif;
   font-size: 11px;
   font-weight: 700;
-  cursor: pointer;
-  min-height: 34px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
   white-space: nowrap;
-  transition: all .18s;
 }
-/* [MELHORIA VISUAL ROXO] — botão avanço roxo */
-.btn-avancar  { background:var(--violet-light);color:var(--violet-deep);border:1.5px solid var(--violet-border); }
-.btn-avancar:hover { background:var(--violet);color:#fff; }
-.btn-entregar { background:#DBEAFE;color:#1D4ED8;border:1.5px solid #93C5FD; }
-.btn-entregar:hover { background:#2563EB;color:#fff; }
-.btn-reabrir  { background:var(--paper);color:var(--ink-soft);border:1.5px solid var(--border); }
-.btn-reabrir:hover { background:var(--ink);color:#fff; }
+.badge-pago          { background: var(--sage-light); color: #065F46; border: 1px solid #6EE7B7; }
+.badge-nao-pago      { background: var(--gold-light); color: #92400E; border: 1px solid var(--gold-border); }
+.badge-pgto-atrasado { background: var(--red-light);  color: #991B1B; border: 1px solid #FECACA; }
 
-/* Botão pagamento */
-.btn-pago-nao { background:var(--gold-light);color:#92400E;border:1.5px solid var(--gold-border); }
-.btn-pago-nao:hover { background:var(--gold);color:#fff;border-color:var(--gold); }
-/* [MELHORIA PAGAMENTOS ATRASADOS] */
-.btn-pago-atrasado { background:var(--red-light);color:#991B1B;border:1.5px solid #FECACA;animation:pulse-red 1.5s infinite; }
-.btn-pago-atrasado:hover { background:var(--red);color:#fff; }
-@keyframes pulse-red { 0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.3)} 50%{box-shadow:0 0 0 4px rgba(220,38,38,.1)} }
-.btn-pago-sim { background:var(--sage-light);color:#065F46;border:1.5px solid #6EE7B7; }
-.btn-pago-sim:hover { background:#D1FAE5; }
-
-/* Botões ícone (receipt, whatsapp, edit, delete, cupom) */
-.btn-icon-action {
-  flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
+/* Botão-badge "Comprovante" — parece badge mas é clicável */
+.badge-comp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--violet-light);
+  color: var(--violet-deep);
+  border: 1px solid var(--violet-border);
   cursor: pointer;
+  white-space: nowrap;
+  transition: background .18s;
+}
+.badge-comp-btn:hover { background: var(--violet); color: #fff; }
+
+/* Prazo — inline com os badges */
+.prazo-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+.prazo-ok     { background: var(--sage-light); color: #065F46; }
+.prazo-atraso { background: var(--red-light);  color: #991B1B; }
+
+/* ── BLOCO 3: Botões de ação ─────────────────────────────── */
+.card-bloco3 {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--paper);
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: all .18s;
-  border: 1.5px solid var(--border);
-  text-decoration: none;
-  color: var(--ink-soft);
-  background: var(--warm-white);
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;   /* quebra linha em telas muito estreitas */
 }
-.btn-icon-action:hover { background:var(--ink);color:#fff;border-color:var(--ink); }
 
-.btn-receipt { background:var(--gold-light);color:#92400E;border-color:var(--gold-border); }
-.btn-receipt:hover { background:var(--gold);color:#fff; }
+/* Esquerda: botões de fluxo + pagamento */
+.card-bloco3-esq {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
 
-/* [MELHORIA CUPOM PAGAMENTO] — botão cupom violeta */
-.btn-cupom { background:var(--violet-light);color:var(--violet-deep);border-color:var(--violet-border); }
-.btn-cupom:hover { background:var(--violet);color:#fff; }
+/* Direita: ícones (editar, excluir, pix, cupom) */
+.card-bloco3-dir {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-shrink: 0;
+}
 
-/* [MELHORIA VISUAL ROXO] — WhatsApp verde mantido */
-.btn-whatsapp { background:#DCF5E7;color:#065F46;border-color:#6EE7B7; }
-.btn-whatsapp:hover { background:#25D366;color:#fff;border-color:#25D366; }
+/* Botões de fluxo/pagamento (textuais) */
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  height: 36px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .18s;
+  flex-shrink: 0;
+}
+.btn-avancar        { background: var(--violet-light); color: var(--violet-deep); border-color: var(--violet-border); }
+.btn-avancar:hover  { background: var(--violet); color: #fff; border-color: var(--violet); }
+.btn-entregar       { background: #DBEAFE; color: #1D4ED8; border-color: #93C5FD; }
+.btn-entregar:hover { background: #2563EB; color: #fff; border-color: #2563EB; }
+.btn-reabrir        { background: var(--paper); color: var(--ink-soft); border-color: var(--border); }
+.btn-reabrir:hover  { background: var(--ink); color: #fff; border-color: var(--ink); }
 
-.btn-edit { background:var(--paper);color:var(--ink-soft); }
-.btn-delete:hover { background:var(--red-light);color:var(--red);border-color:#FECACA; }
+.btn-pago-nao           { background: var(--gold-light); color: #92400E; border-color: var(--gold-border); }
+.btn-pago-nao:hover     { background: var(--gold); color: #fff; border-color: var(--gold); }
+.btn-pago-atrasado      { background: var(--red-light); color: #991B1B; border-color: #FECACA; animation: pulse-red 1.5s infinite; }
+.btn-pago-atrasado:hover{ background: var(--red); color: #fff; }
+.btn-pago-sim           { background: var(--sage-light); color: #065F46; border-color: #6EE7B7; }
+.btn-pago-sim:hover     { background: var(--sage); color: #fff; border-color: var(--sage); }
+
+@keyframes pulse-red {
+  0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,.3); }
+  50%      { box-shadow: 0 0 0 4px rgba(220,38,38,.08); }
+}
+
+/* Botões ícone (dir: cupom, pix, editar, excluir) */
+.btn-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--warm-white);
+  color: var(--ink-soft);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all .18s;
+  flex-shrink: 0;
+}
+.btn-icone:hover      { background: var(--ink); color: #fff; border-color: var(--ink); }
+.btn-cupom            { background: var(--violet-light); color: var(--violet-deep); border-color: var(--violet-border); }
+.btn-cupom:hover      { background: var(--violet); color: #fff; border-color: var(--violet); }
+.btn-whatsapp         { background: #DCF5E7; color: #065F46; border-color: #6EE7B7; }
+.btn-whatsapp:hover   { background: #25D366; color: #fff; border-color: #25D366; }
+.btn-edit             { background: var(--paper); color: var(--ink-soft); }
+.btn-delete:hover     { background: var(--red-light); color: var(--red); border-color: #FECACA; }
+
+/* Mantém compatibilidade com classes antigas (btn-icon-action) */
+.btn-icon-action {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border); background: var(--warm-white);
+  color: var(--ink-soft); cursor: pointer; text-decoration: none;
+  transition: all .18s; flex-shrink: 0;
+}
+.btn-icon-action:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+.btn-receipt      { background: var(--gold-light); color: #92400E; border-color: var(--gold-border); }
+.btn-receipt:hover{ background: var(--gold); color: #fff; }
 
 /* ── MODAL ───────────────────────────────────────────────────── */
 .modal-overlay { position:fixed;inset:0;background:rgba(30,27,46,.65);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:fadeOverlay .2s ease; }
