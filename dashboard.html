@@ -118,11 +118,12 @@
       <input type="search" id="search-input" placeholder="Buscar pedido, cliente…" oninput="renderOrders()"/>
     </div>
 
-    <!-- [AJUSTE 1] Só avatar/perfil no canto — sem chips de período aqui -->
+    <!-- [AJUSTE 1] Header direito: só avatar — sem nome -->
     <div class="header-right">
       <div class="header-avatar-wrap" id="header-avatar-wrap">
         <div class="header-avatar" id="header-avatar">E</div>
-        <span class="header-username" id="user-badge"></span>
+        <!-- [AJUSTE 1] username removido — user-badge hidden, só para compatibilidade JS -->
+        <span id="user-badge" style="display:none"></span>
       </div>
     </div>
   </header>
