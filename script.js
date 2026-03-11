@@ -9,6 +9,22 @@
 // ────────────────────────────────────────────────────────────
 const SUPABASE_URL      = 'https://ltnokzhupzqpuvirgzut.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0bm9remh1cHpxcHV2aXJnenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNTU5MTQsImV4cCI6MjA4NzkzMTkxNH0.kEkdULzmxIfNX5hKlUoHpPs9Gnfgfxfj8qjfzGvvAoE';
+
+// [LAYOUT SIDEBAR IMAGEM1] — abrir/fechar sidebar mobile
+function openSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  if (sb) sb.classList.add('open');
+  if (ov) ov.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  if (sb) sb.classList.remove('open');
+  if (ov) ov.classList.remove('active');
+  document.body.style.overflow = '';
+}
 const ADMIN_EMAIL       = 'jrs.edson@gmail.com';
 const NAYARA_EMAIL      = 'nayaraa_garciaa@hotmail.com'; // [MELHORIA PERMISSÕES NAYARA]
 
@@ -111,10 +127,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   isAdmin           = currentUser.email === ADMIN_EMAIL || currentUser.email === NAYARA_EMAIL;
   canManageProducts = isAdmin;
 
-  // Badge de perfil
+  // [LAYOUT SIDEBAR IMAGEM1] — Badge + sidebar user info
   const badge = document.getElementById('user-badge');
-  badge.textContent = isAdmin ? `${currentUser.email.split('@')[0]}` : `${currentUser.email.split('@')[0]}`;
+  const uname = currentUser.email.split('@')[0];
+  badge.textContent = uname;
   badge.className   = 'user-badge ' + (isAdmin ? 'badge-admin' : 'badge-op');
+  badge.style.display = '';
+  // Sidebar user
+  const sbName = document.getElementById('sidebar-user-name');
+  const sbRole = document.getElementById('sidebar-user-role');
+  const sbAvatar = document.getElementById('sidebar-avatar');
+  if (sbName)   sbName.textContent   = uname;
+  if (sbRole)   sbRole.textContent   = isAdmin ? 'Administrador' : 'Operador';
+  if (sbAvatar) sbAvatar.textContent = uname[0].toUpperCase();
 
   // [MELHORIA PERMISSÕES NAYARA] — botão de produtos para ambos os usuários
   if (canManageProducts) document.getElementById('btn-products-nav').style.display = 'flex';
@@ -503,7 +528,7 @@ ${order.data_pedido       ? `<span class="data-chip">📅 ${formatDate(order.dat
         <span class="badge-status ${badgeClass}">${statusLabel}</span>
         ${jaPago
           ? '<span class="badge-pgto badge-pago">✓ Pago</span>'
-          : `<span class="badge-pgto ${pgtoAtraso ? 'badge-pgto-atrasado' : 'badge-nao-pago'}">${pgtoAtraso ? '⚠ Vencido' : 'A receber'}</span>`}
+          : `<span class="badge-pgto ${pgtoAtraso ? 'badge-pgto-atrasado' : 'badge-nao-pago'}">${pgtoAtraso ? '⚠ Vencido' : 'A pagar'}</span>`}
         ${order.comprovante_url
           ? `<button class="badge-comp-btn" onclick="viewReceipt('${escapeHtml(order.comprovante_url)}')" title="Ver comprovante">
                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -1199,6 +1224,7 @@ function setupNavTabs() {
 }
 
 function showPage(page) {
+  closeSidebar(); // [LAYOUT SIDEBAR IMAGEM1] fecha sidebar mobile ao navegar
   currentPage = page;
   const pages = ['pedidos','despesas','financeiro'];
   pages.forEach(p => {
