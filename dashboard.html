@@ -119,9 +119,13 @@
     </div>
 
     <!-- [AJUSTE 1] Header direito: só avatar — sem nome -->
-    <!-- user-badge hidden p/ compatibilidade JS — sem avatar visível -->
-    <span id="user-badge" style="display:none"></span>
-    <span id="header-avatar" style="display:none"></span>
+    <div class="header-right">
+      <div class="header-avatar-wrap" id="header-avatar-wrap">
+        <div class="header-avatar" id="header-avatar">E</div>
+        <!-- [AJUSTE 1] username removido — user-badge hidden, só para compatibilidade JS -->
+        <span id="user-badge" style="display:none"></span>
+      </div>
+    </div>
   </header>
 
   <!-- ══ SEÇÃO DASHBOARD (cards resumo clicáveis) ══════ -->
@@ -233,14 +237,7 @@
         <h2 class="dash-recent-title" id="dash-list-titulo">Todos os pedidos</h2>
         <button class="dash-ver-todos" onclick="showPage('pedidos')">Lista completa →</button>
       </div>
-      <!-- Filtros de status no dashboard -->
-      <div class="dash-filter-chips">
-        <button class="dash-chip dash-chip-active" data-f="todos"         onclick="dashFiltrar('todos',this)">Todos</button>
-        <button class="dash-chip"                  data-f="ativos"        onclick="dashFiltrar('ativos',this)">Em Produção</button>
-        <button class="dash-chip"                  data-f="finalizados"   onclick="dashFiltrar('finalizados',this)">Finalizados</button>
-        <button class="dash-chip"                  data-f="atrasado"      onclick="dashFiltrar('atrasado',this)">Atrasados</button>
-        <button class="dash-chip"                  data-f="pgto-atrasado" onclick="dashFiltrar('pgto-atrasado',this)">Pgto Atrasado</button>
-      </div>
+      <!-- Filtros via cards acima -->
     </div>
     <!-- [AJUSTE 4] Lista filtrada dos pedidos do dashboard -->
     <div id="dash-filtered-list" class="dash-filtered-list"></div>
