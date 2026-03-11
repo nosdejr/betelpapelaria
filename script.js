@@ -1445,38 +1445,49 @@ function renderDashFilteredList() {
   const container = document.getElementById('dash-filtered-list');
   if (!container) return;
   let lista = [...allOrders].filter(inPeriod);
-  if      (dashFiltroAtivo === 'atrasado')     lista = lista.filter(isLate);
+  if      (dashFiltroAtivo === 'atrasado')      lista = lista.filter(isLate);
   else if (dashFiltroAtivo === 'pgto-atrasado') lista = lista.filter(isPagamentoAtrasado);
   else if (dashFiltroAtivo === 'ativos')        lista = lista.filter(p => STATUS_ATIVOS.has(p.status));
   else if (dashFiltroAtivo === 'finalizados')   lista = lista.filter(p => STATUS_FINALIZADOS.has(p.status));
-  // Ordena por data desc
   lista.sort((a,b) => ((b.data_pedido||b.created_at||'') > (a.data_pedido||a.created_at||'')) ? 1 : -1);
+
   if (!lista.length) {
     container.innerHTML = `<div class="empty-state" style="padding:24px">
       <p class="empty-title" style="font-size:14px">Nenhum pedido neste filtro</p>
     </div>`;
     return;
   }
+
   container.innerHTML = lista.map(order => {
-    const late = isLate(order);
+    const late       = isLate(order);
     const pgtoAtraso = isPagamentoAtrasado(order);
+    const jaPago     = order.pago === true;
     const statusLabel = STATUS_LABEL[order.status] || order.status;
     const badgeClass  = STATUS_BADGE_CLASS[order.status] || 'badge-recebido';
     const letra = (order.cliente || '?')[0].toUpperCase();
+
+    // Todos os itens reais do Supabase, separados por " + "
     const itensResumo = order.itens_pedido?.length
-      ? order.itens_pedido.slice(0,2).map(i => `${i.quantidade}x ${i.nome || i.produtos?.nome || '?'}`).join(', ')
-        + (order.itens_pedido.length > 2 ? ` +${order.itens_pedido.length - 2}` : '')
-      : '';
+      ? order.itens_pedido.map(i => `${i.quantidade}x ${i.nome || i.produtos?.nome || '?'}`).join(' + ')
+      : '—';
+
+    // Status pagamento sem PIX
+    const pgtoLabel = jaPago ? 'Pago ✓' : (pgtoAtraso ? '⚠ Vencido' : 'A receber');
+    const pgtoClass = jaPago ? 'dash-tag-pago' : (pgtoAtraso ? 'dash-tag-atrasado' : 'dash-tag-pendente');
+
     return `<div class="dash-order-row ${pgtoAtraso ? 'dash-row-late' : ''} ${late ? 'dash-row-atrasado' : ''}"
-         onclick="abrirDetalhe('${order.id}')" title="Ver detalhe do pedido">
+         onclick="abrirDetalhe('${order.id}')" title="Ver detalhe">
       <div class="dash-order-avatar">${letra}</div>
       <div class="dash-order-info">
         <div class="dash-order-name">${escapeHtml(order.cliente)}</div>
-        <div class="dash-order-meta">${itensResumo || ''}${order.data_entrega ? ' · 🚚 ' + formatDate(order.data_entrega) : ''}</div>
+        <div class="dash-order-itens">${escapeHtml(itensResumo)}</div>
       </div>
       <div class="dash-order-right">
         <span class="dash-order-valor">R$ ${formatCurrency(order.valor)}</span>
-        <span class="dash-order-badge badge-status ${badgeClass}">${statusLabel}</span>
+        <div class="dash-order-tags">
+          <span class="dash-tag badge-status ${badgeClass}">${statusLabel}</span>
+          <span class="dash-tag ${pgtoClass}">${pgtoLabel}</span>
+        </div>
       </div>
     </div>`;
   }).join('');
