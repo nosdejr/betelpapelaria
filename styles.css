@@ -172,11 +172,11 @@ html { overflow-x:hidden; }
 @media (max-width:767px) { .hamburger-btn { display:flex; align-items:center; } }
 .header-logo-mobile { display:none; align-items:center; gap:6px; font-size:15px; font-weight:800; color:var(--violet); }
 @media (max-width:767px) { .header-logo-mobile { display:flex; } }
-.header-search { flex:1; display:flex; align-items:center; gap:8px; background:var(--paper); border:1.5px solid var(--border); border-radius:var(--pill); padding:8px 14px; max-width:100%; color:var(--ink-muted); transition:border-color .2s; } /* [FIX 1] sem max-width */
+.header-search { flex:1; display:flex; align-items:center; gap:8px; background:var(--paper); border:1.5px solid var(--border); border-radius:var(--pill); padding:8px 14px; max-width:480px; color:var(--ink-muted); transition:border-color .2s; }
 .header-search:focus-within { border-color:var(--violet); }
 .header-search input { flex:1; background:none; border:none; outline:none; font-family:inherit; font-size:13px; color:var(--ink); }
 .header-search input::placeholder { color:var(--ink-muted); }
-.header-right { display:none; } /* [FIX 1] avatar removido */
+.header-right { display:flex; align-items:center; gap:8px; margin-left:auto; flex-shrink:0; min-width:0; }
 .header-period-chips { display:flex; gap:4px; }
 @media (max-width:640px) { .header-period-chips { display:none; } }
 .period-chip { padding:5px 11px; border:1.5px solid var(--border); border-radius:var(--pill); background:var(--surface); font-size:12px; font-weight:500; color:var(--ink-soft); cursor:pointer; white-space:nowrap; transition:all .15s; font-family:inherit; }
@@ -330,7 +330,7 @@ html { overflow-x:hidden; }
 .btn-reabrir:hover  { background:var(--ink); color:#fff; }
 .btn-pago-nao    { background:var(--gold-light); color:#92400E; border:1.5px solid var(--gold-border); }
 .btn-pago-nao:hover { background:var(--gold); color:#fff; }
-.btn-pago-atrasado { background:var(--red-light); color:#991B1B; border:1.5px solid #FECACA; } /* [FIX 2] sem pulse */
+.btn-pago-atrasado { background:var(--red-light); color:#991B1B; border:1.5px solid #FECACA; animation:pulseRed 1.6s infinite; }
 .btn-pago-atrasado:hover { background:var(--red); color:#fff; }
 .btn-pago-sim    { background:var(--sage-light); color:#065F46; border:1.5px solid #6EE7B7; }
 .btn-pago-sim:hover { background:var(--sage); color:#fff; }
@@ -555,11 +555,7 @@ html { overflow-x:hidden; }
   box-shadow: var(--shadow-md);
 }
 .sum-card--clickable:active { transform: scale(.97); }
-.sum-card--clickable.card-active-filter {
-  outline: 2.5px solid var(--violet);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 4px var(--violet-glow), var(--shadow-md);
-}
+
 .sum-card--red.card-active-filter { outline-color: #fff; }
 
 /* Dashboard pedidos recentes */
@@ -789,14 +785,30 @@ html { overflow-x:hidden; }
 
 /* Dash card active state enhanced */
 .sum-card--clickable.card-active-filter {
-  outline: 2.5px solid var(--violet);
+  outline: 3px solid var(--violet);
   outline-offset: 2px;
   background: #FAFAFF;
-  box-shadow: 0 0 0 4px var(--violet-glow), var(--shadow-md);
+  box-shadow: 0 0 0 5px var(--violet-glow), var(--shadow-md);
+  transform: translateY(-2px);
+  z-index: 2;
+  position: relative;
 }
-.sum-card--red.card-active-filter {
-  outline-color: rgba(255,255,255,.7);
-  background: var(--red);
+.sum-card--red.card-active-filter { outline-color: rgba(255,255,255,.8); background: var(--red); }
+
+/* [FIX 1] Dimming: quando has-active-filter, os cards não-ativos ficam apagados */
+.summary-grid--dash.has-active-filter .sum-card--clickable:not(.card-active-filter) {
+  opacity: 0.5;
+  transform: scale(0.97);
+  filter: saturate(50%) brightness(95%);
+  transition: opacity .2s ease, transform .2s ease, filter .2s ease;
+}
+.summary-grid--dash.has-active-filter .sum-card--clickable.card-active-filter {
+  opacity: 1;
+  transition: opacity .2s ease, transform .2s ease;
+}
+/* sem dimming: transição suave de volta */
+.summary-grid--dash .sum-card--clickable {
+  transition: opacity .2s ease, transform .2s ease, filter .2s ease;
 }
 
 /* ═══════════════════════════════════════════════
@@ -907,45 +919,3 @@ html { overflow-x:hidden; }
   border-color: var(--blue-border) !important;
 }
 .btn-comp-view:hover { background: var(--blue) !important; color: #fff !important; }
-
-/* ═══════════════════════════════════════════
-   [FIX 6] Dashboard filtered list — info essencial
-═══════════════════════════════════════════ */
-.dash-order-itens {
-  font-size: 11.5px;
-  color: var(--ink-soft);
-  margin-top: 2px;
-  line-height: 1.4;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 220px;
-}
-.dash-order-tags {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  margin-top: 3px;
-}
-.dash-tag {
-  font-size: 10px;
-  font-weight: 600;
-  padding: 2px 7px;
-  border-radius: var(--pill);
-  border: 1px solid transparent;
-  white-space: nowrap;
-}
-.dash-tag-pago     { background: var(--sage-light); color: #065F46; border-color: #6EE7B7; }
-.dash-tag-atrasado { background: var(--red-light);  color: #991B1B; border-color: #FECACA; }
-.dash-tag-pendente { background: var(--gold-light); color: #92400E; border-color: var(--gold-border); }
-
-/* Dash order right — empilha valor + tags */
-.dash-order-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 3px;
-  flex-shrink: 0;
-  min-width: 90px;
-}

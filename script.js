@@ -463,7 +463,7 @@ function buildOrderCard(order) {
   // [AJUSTE 3] Layout 2 colunas: esquerda=cliente/itens | direita=datas/status
   const tipoPgtoText = order.tipo_pagamento === 'dinheiro' ? 'Dinheiro' : (order.tipo_pagamento === 'pix' ? 'PIX' : '');
   const pgtoHistLabel = jaPago
-    ? 'Pago ✓'
+    ? `✓ Pago${tipoPgtoText ? ' · '+tipoPgtoText : ''}`
     : (pgtoAtraso ? '⚠ Pgto vencido' : 'Aguardando pagamento');
   const pgtoHistClass = jaPago ? 'hist-tag hist-tag--pago' : (pgtoAtraso ? 'hist-tag hist-tag--atrasado' : 'hist-tag hist-tag--pendente');
 
@@ -488,7 +488,7 @@ function buildOrderCard(order) {
         ${order.itens_pedido?.length
           ? order.itens_pedido.map(i => `<div class="card-item-row">
               <span class="card-item-name">${escapeHtml(i.nome || i.produtos?.nome || '?')}</span>
-              <span class="card-item-meta">${i.quantidade}x · R$ ${formatCurrency(i.preco_unit||0)}</span>
+              <span class="card-item-meta">${i.quantidade}x · R$ ${formatCurrency(i.preco||0)}</span>
             </div>`).join('')
           : '<span class="card-item-empty">—</span>'}
         ${order.descricao ? `<p class="card-obs-inline">${escapeHtml(order.descricao)}</p>` : ''}
@@ -1260,11 +1260,11 @@ function abrirDetalhe(id) {
   if (order.itens_pedido?.length) {
     itensEl.innerHTML = order.itens_pedido.map(i => {
       const nome = i.nome || i.produtos?.nome || '?';
-      const sub = Number(i.preco_unit||0) * Number(i.quantidade||1);
+      const sub = Number(i.preco||0) * Number(i.quantidade||1);
       return `<div class="detail-item-row">
         <div class="detail-item-info">
           ${escapeHtml(nome)}
-          <span class="detail-item-qty">${i.quantidade}x · R$ ${formatCurrency(i.preco_unit||0)} cada</span>
+          <span class="detail-item-qty">${i.quantidade}x · R$ ${formatCurrency(i.preco||0)} cada</span>
         </div>
         <span class="detail-item-price">R$ ${formatCurrency(sub)}</span>
       </div>`;
@@ -1329,7 +1329,7 @@ function abrirDetalhe(id) {
   }
   acoes += `<button class="btn-action ${jaPago ? 'btn-pago-sim' : (pgtoAtraso ? 'btn-pago-atrasado' : 'btn-pago-nao')}"
     onclick="closeDetailModal();abrirModalPagamento('${order.id}',${jaPago})">
-    ${jaPago ? 'Pago ✓' : (pgtoAtraso ? '⚠ Receber' : 'Receber')}
+    ${jaPago ? `✓ Recebido · ${tipoPgtoLabel}` : (pgtoAtraso ? '⚠ Receber' : 'Receber')}
   </button>`;
   if (jaPago) {
     acoes += `<button class="btn-icone btn-cupom" onclick="closeDetailModal();emitirCupomPagamento('${order.id}')" title="Emitir recibo">
@@ -1398,26 +1398,45 @@ let dashFiltroAtivo = 'todos';
 // [AJUSTE 4] dashFiltrar — filtra lista inline no dashboard sem mudar de página
 function dashFiltrar(filtro, clickedEl) {
   dashFiltroAtivo = filtro;
-  // Atualiza chips de filtro
-  document.querySelectorAll('.dash-chip').forEach(c => c.classList.remove('dash-chip-active'));
-  if (clickedEl && clickedEl.classList) {
-    clickedEl.classList.add('dash-chip-active');
-  } else {
-    const chip = document.querySelector(`.dash-chip[data-f="${filtro}"]`);
-    if (chip) chip.classList.add('dash-chip-active');
-  }
-  // Atualiza destaque dos cards
+  // [FIX 1] Passo 1: remove ativo de TODOS os cards e chips
   document.querySelectorAll('.sum-card--clickable').forEach(c => c.classList.remove('card-active-filter'));
+  document.querySelectorAll('.dash-chip').forEach(c => c.classList.remove('dash-chip-active'));
+
+  // Passo 2: ativa SÓ o card e chip do filtro clicado
   const cardMap = { 'finalizados':'dash-card-recebidos', 'ativos':'dash-card-producao',
                     'atrasado':'dash-card-atrasados', 'pgto-atrasado':'dash-card-areceber',
                     'todos':'dash-card-todos' };
   const cardEl = document.getElementById(cardMap[filtro]);
   if (cardEl) cardEl.classList.add('card-active-filter');
+
+  // Ativa chip — aceita clique direto no chip ou em filho do chip
+  const chipEl = (clickedEl && clickedEl.closest)
+    ? clickedEl.closest('.dash-chip')
+    : null;
+  if (chipEl) {
+    chipEl.classList.add('dash-chip-active');
+  } else {
+    const chip = document.querySelector(`.dash-chip[data-f="${filtro}"]`);
+    if (chip) chip.classList.add('dash-chip-active');
+  }
+
+  // [FIX 1] has-active-filter: dim todos os outros cards quando um específico está ativo
+  // 'todos' = estado neutro (sem dimming); qualquer outro filtro = dimming nos demais
+  const grid = document.querySelector('.summary-grid--dash');
+  if (grid) {
+    if (filtro === 'todos') {
+      grid.classList.remove('has-active-filter');
+    } else {
+      grid.classList.add('has-active-filter');
+    }
+  }
+
   // Título dinâmico
   const tituloMap = { 'todos':'Todos os pedidos', 'finalizados':'Pedidos finalizados',
     'ativos':'Em produção', 'atrasado':'Pedidos atrasados', 'pgto-atrasado':'Pagamento pendente' };
   const titulo = document.getElementById('dash-list-titulo');
   if (titulo) titulo.textContent = tituloMap[filtro] || 'Pedidos';
+
   renderDashFilteredList();
 }
 
@@ -1438,39 +1457,26 @@ function renderDashFilteredList() {
     </div>`;
     return;
   }
-  // [FIX 4+6] Cards resumidos com info essencial: nome | itens reais | valor | status + pago
   container.innerHTML = lista.map(order => {
-    const late       = isLate(order);
+    const late = isLate(order);
     const pgtoAtraso = isPagamentoAtrasado(order);
-    const jaPago     = order.pago === true;
     const statusLabel = STATUS_LABEL[order.status] || order.status;
     const badgeClass  = STATUS_BADGE_CLASS[order.status] || 'badge-recebido';
     const letra = (order.cliente || '?')[0].toUpperCase();
-
-    // [FIX 4] Itens reais do Supabase — TODOS (não truncado) separados por +
     const itensResumo = order.itens_pedido?.length
-      ? order.itens_pedido
-          .map(i => `${i.quantidade}x ${i.nome || i.produtos?.nome || '?'}`)
-          .join(' + ')
-      : '—';
-
-    // [FIX 5] Status pagamento sem PIX
-    const pgtoLabel = jaPago ? 'Pago ✓' : (pgtoAtraso ? '⚠ Vencido' : 'A receber');
-    const pgtoClass = jaPago ? 'dash-tag-pago' : (pgtoAtraso ? 'dash-tag-atrasado' : 'dash-tag-pendente');
-
+      ? order.itens_pedido.slice(0,2).map(i => `${i.quantidade}x ${i.nome || i.produtos?.nome || '?'}`).join(', ')
+        + (order.itens_pedido.length > 2 ? ` +${order.itens_pedido.length - 2}` : '')
+      : '';
     return `<div class="dash-order-row ${pgtoAtraso ? 'dash-row-late' : ''} ${late ? 'dash-row-atrasado' : ''}"
-         onclick="abrirDetalhe('${order.id}')" title="Ver detalhe">
+         onclick="abrirDetalhe('${order.id}')" title="Ver detalhe do pedido">
       <div class="dash-order-avatar">${letra}</div>
       <div class="dash-order-info">
         <div class="dash-order-name">${escapeHtml(order.cliente)}</div>
-        <div class="dash-order-itens">${escapeHtml(itensResumo)}</div>
+        <div class="dash-order-meta">${itensResumo || ''}${order.data_entrega ? ' · 🚚 ' + formatDate(order.data_entrega) : ''}</div>
       </div>
       <div class="dash-order-right">
         <span class="dash-order-valor">R$ ${formatCurrency(order.valor)}</span>
-        <div class="dash-order-tags">
-          <span class="dash-tag badge-status ${badgeClass}">${statusLabel}</span>
-          <span class="dash-tag ${pgtoClass}">${pgtoLabel}</span>
-        </div>
+        <span class="dash-order-badge badge-status ${badgeClass}">${statusLabel}</span>
       </div>
     </div>`;
   }).join('');
@@ -1491,19 +1497,12 @@ function goToPedidosComFiltro(filtro) {
 
 // [AJUSTE 4] Renderiza dashboard completo
 function renderDashboard() {
-  // Sincroniza campos de data no dashboard
+  // Sincroniza campos de data
   ['periodo-inicio','periodo-inicio-pedidos'].forEach(id => { const el = document.getElementById(id); if (el) el.value = periodoInicio; });
   ['periodo-fim','periodo-fim-pedidos'].forEach(id => { const el = document.getElementById(id); if (el) el.value = periodoFim; });
-  // [FIX 3] Reset de highlight: só o card "todos" começa ativo
-  document.querySelectorAll('.sum-card--clickable').forEach(c => c.classList.remove('card-active-filter'));
-  const cardTodos = document.getElementById('dash-card-todos');
-  if (cardTodos) cardTodos.classList.add('card-active-filter');
-  document.querySelectorAll('.dash-chip').forEach(c => c.classList.remove('dash-chip-active'));
-  const chipTodos = document.querySelector('.dash-chip[data-f="todos"]');
-  if (chipTodos) chipTodos.classList.add('dash-chip-active');
-  dashFiltroAtivo = 'todos';
-  updateSummaryCards(); // atualiza todos os cards (incl. per-total-dash)
-  renderDashFilteredList(); // renderiza lista filtrada
+  updateSummaryCards();
+  // [FIX 1] Reset visual: sempre começa em "todos" ao entrar no dashboard
+  dashFiltrar('todos', null);
 }
 
 // ════════════════════════════════════════════════════════════
