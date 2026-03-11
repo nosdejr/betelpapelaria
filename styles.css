@@ -55,7 +55,9 @@
 }
 
 html { -webkit-text-size-adjust:100%; scroll-behavior:smooth; }
-body { font-family:'Inter',system-ui,-apple-system,sans-serif; font-size:14px; line-height:1.6; color:var(--ink); background:var(--bg); min-height:100vh; }
+body { font-family:'Inter',system-ui,-apple-system,sans-serif; font-size:14px; line-height:1.6; color:var(--ink); background:var(--bg); min-height:100vh; overflow-x:hidden; }
+/* [AJUSTE 1+2] Garantir que body não crie scroll horizontal */
+html { overflow-x:hidden; }
 .hidden { display:none !important; }
 
 @keyframes slideIn   { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
@@ -137,8 +139,22 @@ body { font-family:'Inter',system-ui,-apple-system,sans-serif; font-size:14px; l
 /* ═══════════════════════════════════════════════
    MAIN WRAPPER
 ═══════════════════════════════════════════════ */
-.main-wrapper { margin-left:var(--sb-w); min-height:100vh; display:flex; flex-direction:column; }
-@media (max-width:767px) { .main-wrapper { margin-left:0; } }
+/* [AJUSTE 1+2] Desktop: conteúdo ocupa exato espaço restante à direita da sidebar */
+.main-wrapper {
+  margin-left: var(--sb-w);
+  width: calc(100% - var(--sb-w));
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+/* [AJUSTE 2] Mobile: 100% largura, sem margem */
+@media (max-width:767px) {
+  .main-wrapper {
+    margin-left: 0;
+    width: 100%;
+  }
+}
 
 /* ═══════════════════════════════════════════════
    [LAYOUT HEADER IMAGEM3] HEADER
@@ -174,7 +190,7 @@ body { font-family:'Inter',system-ui,-apple-system,sans-serif; font-size:14px; l
 /* ═══════════════════════════════════════════════
    PAGE SECTION
 ═══════════════════════════════════════════════ */
-.page-section { padding:18px 20px 80px; max-width:1100px; }
+.page-section { padding:18px 20px 80px; width:100%; max-width:1100px; box-sizing:border-box; }
 @media (max-width:767px) { .page-section { padding:12px 12px 80px; } }
 
 /* ═══════════════════════════════════════════════
@@ -517,3 +533,44 @@ body { font-family:'Inter',system-ui,-apple-system,sans-serif; font-size:14px; l
 @media (min-width:768px) and (max-width:899px) {
   .summary-grid { grid-template-columns:repeat(3,1fr); }
 }
+
+/* ═══════════════════════════════════════════
+   [AJUSTE 4+5] DASHBOARD — seção resumo
+═══════════════════════════════════════════ */
+.summary-grid--4 {
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 640px) {
+  .summary-grid--4 { grid-template-columns: repeat(4, 1fr); }
+}
+/* [AJUSTE 7] Cards clicáveis com efeito hover pronunciado */
+.sum-card--clickable {
+  cursor: pointer;
+  user-select: none;
+  transition: transform .18s, box-shadow .18s, outline .15s;
+}
+.sum-card--clickable:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+.sum-card--clickable:active { transform: scale(.97); }
+.sum-card--clickable.card-active-filter {
+  outline: 2.5px solid var(--violet);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--violet-glow), var(--shadow-md);
+}
+.sum-card--red.card-active-filter { outline-color: #fff; }
+
+/* Dashboard pedidos recentes */
+.dash-recent-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 20px 0 12px;
+}
+.dash-recent-title { font-size: 16px; font-weight: 700; color: var(--ink); }
+.dash-ver-todos {
+  font-size: 13px; font-weight: 600; color: var(--violet);
+  background: none; border: none; cursor: pointer; padding: 4px 8px;
+  border-radius: var(--r-sm); transition: background .15s;
+  font-family: inherit;
+}
+.dash-ver-todos:hover { background: var(--violet-light); }

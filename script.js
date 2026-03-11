@@ -434,6 +434,87 @@ function isPagamentoAtrasado(order) {
   return venc ? todayDate() > venc : false;
 }
 
+
+// [AJUSTE 7] buildOrderCard — extrai HTML do card para reutilizar no dashboard
+function buildOrderCard(order) {
+  const late = isLate(order);
+  const itensHtml = order.itens_pedido?.length
+    ? `<div class="order-items-preview">${order.itens_pedido.map(i =>
+        `<span class="item-chip">${i.quantidade}x ${escapeHtml(i.nome || i.produtos?.nome || '?')}</span>`
+      ).join('')}</div>` : '';
+  const labelAvancar = labelBtnAvancar(order.status);
+  const eAtivo     = STATUS_ATIVOS.has(order.status);
+  const ePronte    = order.status === 'pronto';
+  const jaEntregue = STATUS_FINALIZADOS.has(order.status);
+  const jaPago     = order.pago === true;
+  const pgtoAtraso = isPagamentoAtrasado(order);
+  let btnFluxo = '';
+  if (eAtivo && order.status !== 'pronto' && labelAvancar) {
+    btnFluxo = `<button class="btn-action btn-avancar" onclick="avancarStatus('${order.id}','${order.status}')" title="Avançar etapa">${labelAvancar}</button>`;
+  } else if (ePronte) {
+    btnFluxo = `<button class="btn-action btn-entregar" onclick="openEntregueModal('${order.id}')" title="Registrar entrega">Entregar</button>`;
+  } else if (jaEntregue) {
+    btnFluxo = `<button class="btn-action btn-reabrir" onclick="setStatusRecebido('${order.id}')" title="Reabrir pedido">↩ Reabrir</button>`;
+  }
+  const tipoPgtoLabel = order.tipo_pagamento === 'dinheiro' ? 'Dinheiro' : (order.tipo_pagamento === 'pix' ? 'PIX' : '');
+  const btnPgto = `<button
+    class="btn-action ${jaPago ? 'btn-pago-sim' : (pgtoAtraso ? 'btn-pago-atrasado' : 'btn-pago-nao')}"
+    onclick="abrirModalPagamento('${order.id}', ${jaPago})"
+    title="${jaPago ? `Recebido via ${tipoPgtoLabel || 'PIX'}` : 'Registrar recebimento'}"
+  >${jaPago ? `✓ Recebido${tipoPgtoLabel ? ' · '+tipoPgtoLabel : ''}` : (pgtoAtraso ? '⚠ Receber' : 'Receber')}</button>`;
+  const statusLabel = STATUS_LABEL[order.status] || order.status;
+  const badgeClass  = STATUS_BADGE_CLASS[order.status] || 'badge-recebido';
+  return `
+  <article class="order-card ${pgtoAtraso ? 'card-pgto-atrasado' : ''} ${late ? 'card-entrega-atrasada' : ''}">
+    <div class="card-bloco1">
+      <div class="card-topo">
+        <h3 class="card-client">${escapeHtml(order.cliente)}</h3>
+        <span class="card-valor">R$ ${formatCurrency(order.valor)}</span>
+      </div>
+      <div class="card-datas">
+        ${order.data_pedido       ? `<span class="data-chip">📅 ${formatDate(order.data_pedido)}</span>` : ''}
+        ${order.data_entrega      ? `<span class="data-chip ${late ? 'data-chip-late' : ''}">🚚 ${formatDate(order.data_entrega)}</span>` : ''}
+        ${order.data_entrega_real ? `<span class="data-chip data-chip-real">🏁 ${formatDate(order.data_entrega_real)}</span>` : ''}
+      </div>
+      ${itensHtml}
+      ${order.descricao ? `<p class="card-obs">${escapeHtml(order.descricao)}</p>` : ''}
+    </div>
+    <div class="card-bloco2">
+      <span class="badge-status ${badgeClass}">${statusLabel}</span>
+      ${jaPago
+        ? '<span class="badge-pgto badge-pago">✓ Pago</span>'
+        : `<span class="badge-pgto ${pgtoAtraso ? 'badge-pgto-atrasado' : 'badge-nao-pago'}">${pgtoAtraso ? '⚠ Vencido' : 'A pagar'}</span>`}
+      ${order.comprovante_url
+        ? `<button class="badge-comp-btn" onclick="viewReceipt('${escapeHtml(order.comprovante_url)}')" title="Ver comprovante">
+             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+             Comprovante
+           </button>`
+        : ''}
+      ${buildPrazoLabel(order)}
+    </div>
+    <div class="card-bloco3">
+      <div class="card-bloco3-esq">
+        ${btnFluxo}
+        ${btnPgto}
+      </div>
+      <div class="card-bloco3-dir">
+        ${jaPago ? `<button class="btn-icone btn-cupom" onclick="emitirCupomPagamento('${order.id}')" title="Emitir comprovante">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        </button>` : ''}
+        <a class="btn-icone btn-whatsapp" href="${gerarLinkWhatsApp(order)}" target="_blank" rel="noopener" title="Enviar PIX via WhatsApp">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        </a>
+        <button class="btn-icone btn-edit" onclick="openEditOrderModal('${order.id}')" title="Editar">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn-icone btn-delete" onclick="openDeleteModal('${order.id}')" title="Excluir">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>
+    </div>
+  </article>`;
+}
+
 function renderOrders() {
   const list       = document.getElementById('orders-list');
   const emptyState = document.getElementById('empty-state');
@@ -468,99 +549,7 @@ function renderOrders() {
   emptyState.classList.add('hidden');
   list.classList.remove('hidden');
 
-  list.innerHTML = filtered.map(order => {
-    const late = isLate(order);
-
-    const itensHtml = order.itens_pedido?.length
-      ? `<div class="order-items-preview">${order.itens_pedido.map(i =>
-          `<span class="item-chip">${i.quantidade}x ${escapeHtml(i.nome || i.produtos?.nome || '?')}</span>`
-        ).join('')}</div>` : '';
-
-    // [MELHORIA FLUXO PRODUÇÃO] — botões de avanço de produção
-    const labelAvancar = labelBtnAvancar(order.status);
-    const eAtivo     = STATUS_ATIVOS.has(order.status);
-    const ePronte    = order.status === 'pronto';
-    const jaEntregue = STATUS_FINALIZADOS.has(order.status);
-    const jaPago     = order.pago === true;
-    const pgtoAtraso = isPagamentoAtrasado(order);
-
-    let btnFluxo = '';
-    if (eAtivo && order.status !== 'pronto' && labelAvancar) {
-      btnFluxo = `<button class="btn-action btn-avancar" onclick="avancarStatus('${order.id}','${order.status}')" title="Avançar etapa">${labelAvancar}</button>`;
-    } else if (ePronte) {
-      btnFluxo = `<button class="btn-action btn-entregar" onclick="openEntregueModal('${order.id}')" title="Registrar entrega">Entregar</button>`;
-    } else if (jaEntregue) {
-      btnFluxo = `<button class="btn-action btn-reabrir" onclick="setStatusRecebido('${order.id}')" title="Reabrir pedido">↩ Reabrir</button>`;
-    }
-
-    // [CORREÇÃO TIPO PAGAMENTO] — botão "Receber" (semântica correta: nós recebemos)
-    const tipoPgtoLabel = order.tipo_pagamento === 'dinheiro' ? 'Dinheiro' : (order.tipo_pagamento === 'pix' ? 'PIX' : '');
-    const btnPgto = `<button
-      class="btn-action ${jaPago ? 'btn-pago-sim' : (pgtoAtraso ? 'btn-pago-atrasado' : 'btn-pago-nao')}"
-      onclick="abrirModalPagamento('${order.id}', ${jaPago})"
-      title="${jaPago ? `Recebido via ${tipoPgtoLabel || 'PIX'} — clique para desfazer` : 'Registrar recebimento'}"
-    >${jaPago ? `✓ Recebido${tipoPgtoLabel ? ' · '+tipoPgtoLabel : ''}` : (pgtoAtraso ? '⚠ Receber' : 'Receber')}</button>`;
-
-    // [MELHORIA CARDS DASHBOARD] — novo visual com hierarquia clara
-    const statusLabel = STATUS_LABEL[order.status] || order.status;
-    const badgeClass  = STATUS_BADGE_CLASS[order.status] || 'badge-recebido';
-    // [CORREÇÃO LAYOUT CARDS] — 3 blocos verticais: info / badges / ações
-    return `
-    <article class="order-card ${pgtoAtraso ? 'card-pgto-atrasado' : ''} ${late ? 'card-entrega-atrasada' : ''}">
-
-      <!-- BLOCO 1: Nome + valor + datas + itens -->
-      <div class="card-bloco1">
-        <div class="card-topo">
-          <h3 class="card-client">${escapeHtml(order.cliente)}</h3>
-          <span class="card-valor">R$ ${formatCurrency(order.valor)}</span>
-        </div>
-        <div class="card-datas">
-${order.data_pedido       ? `<span class="data-chip">📅 ${formatDate(order.data_pedido)}</span>` : ''}
-          ${order.data_entrega      ? `<span class="data-chip ${late ? 'data-chip-late' : ''}">🚚 ${formatDate(order.data_entrega)}</span>` : ''}
-          ${order.data_entrega_real ? `<span class="data-chip data-chip-real">🏁 ${formatDate(order.data_entrega_real)}</span>` : ''}
-        </div>
-        ${itensHtml}
-        ${order.descricao ? `<p class="card-obs">${escapeHtml(order.descricao)}</p>` : ''}
-      </div>
-
-      <!-- BLOCO 2: Badges de status produção + pagamento + comprovante + prazo -->
-      <div class="card-bloco2">
-        <span class="badge-status ${badgeClass}">${statusLabel}</span>
-        ${jaPago
-          ? '<span class="badge-pgto badge-pago">✓ Pago</span>'
-          : `<span class="badge-pgto ${pgtoAtraso ? 'badge-pgto-atrasado' : 'badge-nao-pago'}">${pgtoAtraso ? '⚠ Vencido' : 'A pagar'}</span>`}
-        ${order.comprovante_url
-          ? `<button class="badge-comp-btn" onclick="viewReceipt('${escapeHtml(order.comprovante_url)}')" title="Ver comprovante">
-               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-               Comprovante
-             </button>`
-          : ''}
-        ${buildPrazoLabel(order)}
-      </div>
-
-      <!-- BLOCO 3: Botões de ação em linha única -->
-      <div class="card-bloco3">
-        <div class="card-bloco3-esq">
-          ${btnFluxo}
-          ${btnPgto}
-        </div>
-        <div class="card-bloco3-dir">
-          ${jaPago ? `<button class="btn-icone btn-cupom" onclick="emitirCupomPagamento('${order.id}')" title="Emitir comprovante">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-          </button>` : ''}
-          <a class="btn-icone btn-whatsapp" href="${gerarLinkWhatsApp(order)}" target="_blank" rel="noopener" title="Enviar PIX via WhatsApp">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-          </a>
-          <button class="btn-icone btn-edit" onclick="openEditOrderModal('${order.id}')" title="Editar">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button class="btn-icone btn-delete" onclick="openDeleteModal('${order.id}')" title="Excluir">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-          </button>
-        </div>
-      </div>
-    </article>`;
-  }).join('');
+  list.innerHTML = filtered.map(order => buildOrderCard(order)).join('');
 }
 
 function gerarLinkWhatsApp(order) {
@@ -1220,25 +1209,90 @@ function setFilter(filter, btn) {
 // [MELHORIA DESPESAS] — NAVEGAÇÃO POR ABAS
 // ════════════════════════════════════════════════════════════
 function setupNavTabs() {
-  showPage('pedidos');
+  showPage('dashboard'); // [AJUSTE 5] inicia no dashboard
 }
 
+// [AJUSTE 4+5+7] showPage conhece dashboard, pedidos, despesas, financeiro
 function showPage(page) {
-  closeSidebar(); // [LAYOUT SIDEBAR IMAGEM1] fecha sidebar mobile ao navegar
+  closeSidebar(); // fecha sidebar mobile ao navegar
   currentPage = page;
-  const pages = ['pedidos','despesas','financeiro'];
+  const pages = ['dashboard','pedidos','despesas','financeiro'];
   pages.forEach(p => {
     const el = document.getElementById('section-' + p);
     if (el) el.classList.toggle('hidden', p !== page);
   });
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.page === page));
-  // FAB: pedidos = + pedido, despesas = + despesa
+  // FAB: só em pedidos = + pedido, despesas = + despesa
   const fabPedido  = document.querySelector('.fab-new:not(.fab-despesa)');
   const fabDespesa = document.querySelector('.fab-despesa');
-  if (fabPedido)  fabPedido.style.display  = page === 'pedidos'   ? 'flex' : 'none';
-  if (fabDespesa) fabDespesa.style.display = page === 'despesas'  ? 'flex' : 'none';
+  if (fabPedido)  fabPedido.style.display  = page === 'pedidos'  ? 'flex' : 'none';
+  if (fabDespesa) fabDespesa.style.display = page === 'despesas' ? 'flex' : 'none';
   if (page === 'financeiro') updateFinanceiro();
   if (page === 'despesas')   renderExpenses();
+  if (page === 'dashboard')  renderDashboard();
+}
+
+// [AJUSTE 7] Navega para lista Pedidos com filtro aplicado
+function goToPedidosComFiltro(filtro) {
+  // Destaca card ativo momentaneamente
+  document.querySelectorAll('.sum-card--clickable').forEach(c => c.classList.remove('card-active-filter'));
+  const cardMap = {
+    'finalizados':   'dash-card-recebidos',
+    'ativos':        'dash-card-producao',
+    'atrasado':      'dash-card-atrasados',
+    'pgto-atrasado': 'dash-card-areceber',
+  };
+  const cardEl = document.getElementById(cardMap[filtro]);
+  if (cardEl) cardEl.classList.add('card-active-filter');
+
+  showPage('pedidos');
+  // Aplica filtro após render
+  setTimeout(() => {
+    const btn = document.querySelector(`.filter-btn[data-filtro="${filtro}"]`)
+              || [...document.querySelectorAll('.filter-btn')].find(b => {
+                   const map2 = {
+                     'finalizados': 'finalizados', 'ativos': 'ativos',
+                     'atrasado': 'atrasado', 'pgto-atrasado': 'pgto-atrasado'
+                   };
+                   return b.classList.contains('filter-' + filtro) || b.classList.contains('filter-' + filtro.replace('-',''));
+                 });
+    if (btn) { setFilter(filtro, btn); }
+    else     { setFilter(filtro, document.querySelector('.filter-btn')); }
+  }, 50);
+}
+
+// [AJUSTE 4] Renderiza dashboard: periodo bar sync + 5 pedidos recentes
+function renderDashboard() {
+  // Sincroniza IDs do painel de datas (dashboard usa mesmo periodo-inicio/fim do JS)
+  const ini = document.getElementById('periodo-inicio');
+  const fim = document.getElementById('periodo-fim');
+  if (ini) ini.value = periodoInicio;
+  if (fim) fim.value = periodoFim;
+  updateSummaryCards();
+  // Pedidos recentes: últimos 5 por data de criação
+  const recentes = [...allOrders]
+    .sort((a,b) => (b.data_pedido||b.created_at||'') > (a.data_pedido||a.created_at||'') ? 1 : -1)
+    .slice(0, 5);
+  const container = document.getElementById('dash-recent-list');
+  if (!container) return;
+  if (!recentes.length) {
+    container.innerHTML = '<p style="color:var(--ink-muted);font-size:13px;text-align:center;padding:20px">Nenhum pedido ainda</p>';
+    return;
+  }
+  // Renderiza os cards recentes (reutiliza a mesma lógica do renderOrders)
+  const prevFiltered = filteredOrders;
+  filteredOrders = recentes;
+  const fakeList = document.createElement('div');
+  const fakeEmpty = document.createElement('div');
+  fakeEmpty.className = 'hidden';
+  const savedList = document.getElementById('orders-list');
+  const savedEmpty = document.getElementById('empty-state');
+  const savedLoading = document.getElementById('loading-state');
+  // swap temporariamente
+  container.innerHTML = '';
+  filteredOrders = recentes;
+  container.innerHTML = recentes.map(order => buildOrderCard(order)).join('');
+  filteredOrders = prevFiltered;
 }
 
 // ════════════════════════════════════════════════════════════

@@ -30,7 +30,14 @@
   <nav class="sidebar-nav">
     <div class="sidebar-section-label">MENU</div>
 
-    <button class="sidebar-item nav-tab active" data-page="pedidos" onclick="showPage('pedidos')">
+    <button class="sidebar-item nav-tab active" data-page="dashboard" onclick="showPage('dashboard')">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+      </svg>
+      Dashboard
+    </button>
+    <button class="sidebar-item nav-tab" data-page="pedidos" onclick="showPage('pedidos')">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
         <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
@@ -119,101 +126,15 @@
         <button class="period-chip period-shortcut" onclick="setPeriodShortcut('ano',this)">Ano</button>
       </div>
       <span class="user-badge badge-admin" id="user-badge" style="display:none"></span>
-      <button class="header-bell">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-        </svg>
-      </button>
+
     </div>
   </header>
 
-  <!-- ══ SEÇÃO PEDIDOS ════════════════════════════════ -->
-  <div id="section-pedidos" class="page-section">
+  <!-- ══ SEÇÃO DASHBOARD (cards resumo clicáveis) ══════ -->
+  <!-- [AJUSTE 4+5] Dashboard separado da lista de pedidos -->
+  <div id="section-dashboard" class="page-section">
 
-    <!-- [CARDS IMAGEM1/3] Grid 4 cards resumo -->
-    <section class="summary-grid">
-
-      <div class="sum-card sum-card--violet">
-        <div class="sum-card__body">
-          <div class="sum-card__num" id="sum-pedidos-hoje">–</div>
-          <div class="sum-card__label">Pedidos Hoje</div>
-        </div>
-        <div class="sum-card__icon sum-icon--violet">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="sum-card sum-card--orange">
-        <div class="sum-card__body">
-          <div class="sum-card__num" id="sum-em-producao">–</div>
-          <div class="sum-card__label">Em Produção</div>
-        </div>
-        <div class="sum-card__icon sum-icon--orange">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="sum-card sum-card--red">
-        <div class="sum-card__body">
-          <div class="sum-card__num sum-card__num--white" id="count-late">–</div>
-          <div class="sum-card__label sum-card__label--white">Atrasados</div>
-        </div>
-        <div class="sum-card__icon sum-icon--red-inv">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="sum-card sum-card--white">
-        <div class="sum-card__body">
-          <div class="sum-card__num sum-card__num--violet valor-monetario" id="per-faturado">R$ 0,00</div>
-          <div class="sum-card__label">Recebido no período</div>
-          <div class="sum-card__sub" id="per-count-pago"></div>
-        </div>
-        <div class="sum-card__icon sum-icon--violet">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="sum-card sum-card--white">
-        <div class="sum-card__body">
-          <div class="sum-card__num sum-card__num--blue valor-monetario" id="per-aguardando">R$ 0,00</div>
-          <div class="sum-card__label">A receber</div>
-          <div class="sum-card__sub" id="per-count-aguar"></div>
-        </div>
-        <div class="sum-card__icon sum-icon--blue">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="sum-card sum-card--white">
-        <div class="sum-card__body">
-          <div class="sum-card__num sum-card__num--gold valor-monetario" id="per-pendente">R$ 0,00</div>
-          <div class="sum-card__label">Valor em produção</div>
-          <div class="sum-card__sub" id="per-count-pend"></div>
-        </div>
-        <div class="sum-card__icon sum-icon--gold">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-          </svg>
-        </div>
-      </div>
-
-    </section><!-- /summary-grid -->
-
-    <!-- Período avançado -->
+    <!-- Período -->
     <div class="period-bar">
       <div class="period-shortcuts-row">
         <button class="period-shortcut active" onclick="setPeriodShortcut('mes-atual',this)">Mês Atual</button>
@@ -229,11 +150,106 @@
       </div>
     </div>
 
-    <!-- Filtros de status -->
+    <!-- [AJUSTE 4] 4 cards resumo clicáveis: Recebidos | Em Produção | Atrasados | A Receber -->
+    <!-- [AJUSTE 7] Cada card navega para Pedidos com filtro aplicado -->
+    <section class="summary-grid summary-grid--4">
+
+      <!-- Recebidos -->
+      <div class="sum-card sum-card--violet sum-card--clickable" id="dash-card-recebidos"
+           onclick="goToPedidosComFiltro('finalizados')" title="Ver pedidos finalizados/pagos">
+        <div class="sum-card__body">
+          <div class="sum-card__num sum-card__num--violet valor-monetario" id="per-faturado">R$ 0,00</div>
+          <div class="sum-card__label">Recebido no período</div>
+          <div class="sum-card__sub" id="per-count-pago"></div>
+        </div>
+        <div class="sum-card__icon sum-icon--violet">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Em Produção -->
+      <div class="sum-card sum-card--orange sum-card--clickable" id="dash-card-producao"
+           onclick="goToPedidosComFiltro('ativos')" title="Ver pedidos em produção">
+        <div class="sum-card__body">
+          <div class="sum-card__num sum-card__num--gold valor-monetario" id="per-pendente">R$ 0,00</div>
+          <div class="sum-card__label">Em Produção</div>
+          <div class="sum-card__sub" id="per-count-pend"></div>
+        </div>
+        <div class="sum-card__icon sum-icon--orange">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Atrasados -->
+      <div class="sum-card sum-card--red sum-card--clickable" id="dash-card-atrasados"
+           onclick="goToPedidosComFiltro('atrasado')" title="Ver pedidos atrasados">
+        <div class="sum-card__body">
+          <div class="sum-card__num sum-card__num--white" id="count-late">–</div>
+          <div class="sum-card__label sum-card__label--white">Atrasados</div>
+        </div>
+        <div class="sum-card__icon sum-icon--red-inv">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- A Receber -->
+      <div class="sum-card sum-card--white sum-card--clickable" id="dash-card-areceber"
+           onclick="goToPedidosComFiltro('pgto-atrasado')" title="Ver pagamentos pendentes">
+        <div class="sum-card__body">
+          <div class="sum-card__num sum-card__num--blue valor-monetario" id="per-aguardando">R$ 0,00</div>
+          <div class="sum-card__label">A receber</div>
+          <div class="sum-card__sub" id="per-count-aguar"></div>
+        </div>
+        <div class="sum-card__icon sum-icon--blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+          </svg>
+        </div>
+      </div>
+
+    </section><!-- /summary-grid -->
+
+    <!-- Pedidos recentes (últimos 5, preview rápido) -->
+    <div class="dash-recent-header">
+      <h2 class="dash-recent-title">Pedidos Recentes</h2>
+      <button class="dash-ver-todos" onclick="showPage('pedidos')">Ver todos →</button>
+    </div>
+    <div id="dash-recent-list" class="orders-list"></div>
+
+  </div><!-- /section-dashboard -->
+
+  <!-- ══ SEÇÃO PEDIDOS (lista completa + filtros) ════════ -->
+  <!-- [AJUSTE 5] Lista de pedidos separada -->
+  <div id="section-pedidos" class="page-section hidden">
+
+    <!-- Período -->
+    <div class="period-bar">
+      <div class="period-shortcuts-row">
+        <button class="period-shortcut active" onclick="setPeriodShortcut('mes-atual',this)">Mês Atual</button>
+        <button class="period-shortcut" onclick="setPeriodShortcut('hoje',this)">Hoje</button>
+        <button class="period-shortcut" onclick="setPeriodShortcut('mes-anterior',this)">Mês Anterior</button>
+        <button class="period-shortcut" onclick="setPeriodShortcut('ano',this)">Ano</button>
+        <button class="period-shortcut" onclick="setPeriodShortcut('todos',this)">Todos</button>
+      </div>
+      <div class="period-date-row">
+        <input type="date" id="periodo-inicio-pedidos" class="period-input" onchange="applyPeriod()"/>
+        <span class="period-sep">→</span>
+        <input type="date" id="periodo-fim-pedidos" class="period-input" onchange="applyPeriod()"/>
+      </div>
+    </div>
+
+    <!-- [AJUSTE 6] Filtros SEM "Novo" -->
     <div class="toolbar">
       <div class="filter-scroll">
         <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
-        <button class="filter-btn filter-novo" onclick="setFilter('recebido',this)">Novo</button>
         <button class="filter-btn filter-ativos" onclick="setFilter('ativos',this)">Em Produção</button>
         <button class="filter-btn filter-finalizados" onclick="setFilter('finalizados',this)">Finalizados</button>
         <button class="filter-btn filter-late" onclick="setFilter('atrasado',this)">Atrasado</button>
