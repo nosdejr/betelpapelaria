@@ -463,7 +463,7 @@ function buildOrderCard(order) {
   // [AJUSTE 3] Layout 2 colunas: esquerda=cliente/itens | direita=datas/status
   const tipoPgtoText = order.tipo_pagamento === 'dinheiro' ? 'Dinheiro' : (order.tipo_pagamento === 'pix' ? 'PIX' : '');
   const pgtoHistLabel = jaPago
-    ? `✓ Pago${tipoPgtoText ? ' · '+tipoPgtoText : ''}`
+    ? 'Pago ✓'
     : (pgtoAtraso ? '⚠ Pgto vencido' : 'Aguardando pagamento');
   const pgtoHistClass = jaPago ? 'hist-tag hist-tag--pago' : (pgtoAtraso ? 'hist-tag hist-tag--atrasado' : 'hist-tag hist-tag--pendente');
 
@@ -1329,7 +1329,7 @@ function abrirDetalhe(id) {
   }
   acoes += `<button class="btn-action ${jaPago ? 'btn-pago-sim' : (pgtoAtraso ? 'btn-pago-atrasado' : 'btn-pago-nao')}"
     onclick="closeDetailModal();abrirModalPagamento('${order.id}',${jaPago})">
-    ${jaPago ? `✓ Recebido · ${tipoPgtoLabel}` : (pgtoAtraso ? '⚠ Receber' : 'Receber')}
+    ${jaPago ? 'Pago ✓' : (pgtoAtraso ? '⚠ Receber' : 'Receber')}
   </button>`;
   if (jaPago) {
     acoes += `<button class="btn-icone btn-cupom" onclick="closeDetailModal();emitirCupomPagamento('${order.id}')" title="Emitir recibo">
@@ -1438,26 +1438,39 @@ function renderDashFilteredList() {
     </div>`;
     return;
   }
+  // [FIX 4+6] Cards resumidos com info essencial: nome | itens reais | valor | status + pago
   container.innerHTML = lista.map(order => {
-    const late = isLate(order);
+    const late       = isLate(order);
     const pgtoAtraso = isPagamentoAtrasado(order);
+    const jaPago     = order.pago === true;
     const statusLabel = STATUS_LABEL[order.status] || order.status;
     const badgeClass  = STATUS_BADGE_CLASS[order.status] || 'badge-recebido';
     const letra = (order.cliente || '?')[0].toUpperCase();
+
+    // [FIX 4] Itens reais do Supabase — TODOS (não truncado) separados por +
     const itensResumo = order.itens_pedido?.length
-      ? order.itens_pedido.slice(0,2).map(i => `${i.quantidade}x ${i.nome || i.produtos?.nome || '?'}`).join(', ')
-        + (order.itens_pedido.length > 2 ? ` +${order.itens_pedido.length - 2}` : '')
-      : '';
+      ? order.itens_pedido
+          .map(i => `${i.quantidade}x ${i.nome || i.produtos?.nome || '?'}`)
+          .join(' + ')
+      : '—';
+
+    // [FIX 5] Status pagamento sem PIX
+    const pgtoLabel = jaPago ? 'Pago ✓' : (pgtoAtraso ? '⚠ Vencido' : 'A receber');
+    const pgtoClass = jaPago ? 'dash-tag-pago' : (pgtoAtraso ? 'dash-tag-atrasado' : 'dash-tag-pendente');
+
     return `<div class="dash-order-row ${pgtoAtraso ? 'dash-row-late' : ''} ${late ? 'dash-row-atrasado' : ''}"
-         onclick="abrirDetalhe('${order.id}')" title="Ver detalhe do pedido">
+         onclick="abrirDetalhe('${order.id}')" title="Ver detalhe">
       <div class="dash-order-avatar">${letra}</div>
       <div class="dash-order-info">
         <div class="dash-order-name">${escapeHtml(order.cliente)}</div>
-        <div class="dash-order-meta">${itensResumo || ''}${order.data_entrega ? ' · 🚚 ' + formatDate(order.data_entrega) : ''}</div>
+        <div class="dash-order-itens">${escapeHtml(itensResumo)}</div>
       </div>
       <div class="dash-order-right">
         <span class="dash-order-valor">R$ ${formatCurrency(order.valor)}</span>
-        <span class="dash-order-badge badge-status ${badgeClass}">${statusLabel}</span>
+        <div class="dash-order-tags">
+          <span class="dash-tag badge-status ${badgeClass}">${statusLabel}</span>
+          <span class="dash-tag ${pgtoClass}">${pgtoLabel}</span>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -1481,6 +1494,14 @@ function renderDashboard() {
   // Sincroniza campos de data no dashboard
   ['periodo-inicio','periodo-inicio-pedidos'].forEach(id => { const el = document.getElementById(id); if (el) el.value = periodoInicio; });
   ['periodo-fim','periodo-fim-pedidos'].forEach(id => { const el = document.getElementById(id); if (el) el.value = periodoFim; });
+  // [FIX 3] Reset de highlight: só o card "todos" começa ativo
+  document.querySelectorAll('.sum-card--clickable').forEach(c => c.classList.remove('card-active-filter'));
+  const cardTodos = document.getElementById('dash-card-todos');
+  if (cardTodos) cardTodos.classList.add('card-active-filter');
+  document.querySelectorAll('.dash-chip').forEach(c => c.classList.remove('dash-chip-active'));
+  const chipTodos = document.querySelector('.dash-chip[data-f="todos"]');
+  if (chipTodos) chipTodos.classList.add('dash-chip-active');
+  dashFiltroAtivo = 'todos';
   updateSummaryCards(); // atualiza todos os cards (incl. per-total-dash)
   renderDashFilteredList(); // renderiza lista filtrada
 }
