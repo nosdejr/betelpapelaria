@@ -127,14 +127,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   isAdmin           = currentUser.email === ADMIN_EMAIL || currentUser.email === NAYARA_EMAIL;
   canManageProducts = isAdmin;
 
-  // [AJUSTE 1] Header: APENAS avatar (sem nome) + sidebar user info
+  // [FIX 1] Sem avatar no header — só sidebar user info
   const uname = currentUser.email.split('@')[0];
-  // Header: só avatar — nome NÃO aparece no header
-  const hdrAvatar = document.getElementById('header-avatar');
-  if (hdrAvatar) hdrAvatar.textContent = uname[0].toUpperCase();
-  // user-badge fica hidden (não mostra nome no header)
-  const badge = document.getElementById('user-badge');
-  if (badge) { badge.textContent = ''; badge.style.display = 'none'; }
   // Sidebar user
   const sbName = document.getElementById('sidebar-user-name');
   const sbRole = document.getElementById('sidebar-user-role');
@@ -456,14 +450,14 @@ function buildOrderCard(order) {
   const btnPgto = `<button
     class="btn-action ${jaPago ? 'btn-pago-sim' : (pgtoAtraso ? 'btn-pago-atrasado' : 'btn-pago-nao')}"
     onclick="abrirModalPagamento('${order.id}', ${jaPago})"
-    title="${jaPago ? `✓ Recebido${tipoPgtoLabel ? ' via '+tipoPgtoLabel : ''}` : 'Registrar recebimento'}"
+    title="${jaPago ? '✓ Recebido' : 'Registrar recebimento'}"
   >${jaPago ? '✓ Recebido' : (pgtoAtraso ? '⚠ Receber' : 'Receber')}</button>`; // [AJUSTE 6a] sem PIX/Dinheiro no botão
   const statusLabel = STATUS_LABEL[order.status] || order.status;
   const badgeClass  = STATUS_BADGE_CLASS[order.status] || 'badge-recebido';
   // [AJUSTE 3] Layout 2 colunas: esquerda=cliente/itens | direita=datas/status
   const tipoPgtoText = order.tipo_pagamento === 'dinheiro' ? 'Dinheiro' : (order.tipo_pagamento === 'pix' ? 'PIX' : '');
   const pgtoHistLabel = jaPago
-    ? `✓ Pago${tipoPgtoText ? ' · '+tipoPgtoText : ''}`
+    ? '✓ Pago'
     : (pgtoAtraso ? '⚠ Pgto vencido' : 'Aguardando pagamento');
   const pgtoHistClass = jaPago ? 'hist-tag hist-tag--pago' : (pgtoAtraso ? 'hist-tag hist-tag--atrasado' : 'hist-tag hist-tag--pendente');
 
@@ -568,7 +562,19 @@ function renderOrders() {
   filtered = filtered.filter(inPeriod);
 
   // Busca por cliente
-  if (search) filtered = filtered.filter(p => p.cliente.toLowerCase().includes(search));
+  if (search) filtered = filtered.filter(p => {
+    const s = search.toLowerCase();
+    return (
+      (p.cliente || '').toLowerCase().includes(s) ||
+      String(p.id || '').toLowerCase().includes(s) ||
+      String(p.valor || '').includes(s) ||
+      (p.status || '').toLowerCase().includes(s) ||
+      (p.descricao || '').toLowerCase().includes(s) ||
+      (p.itens_pedido || []).some(i =>
+        (i.nome || i.produtos?.nome || '').toLowerCase().includes(s)
+      )
+    );
+  });
 
   if (!filtered.length) {
     list.innerHTML = ''; list.classList.add('hidden');
@@ -1329,7 +1335,7 @@ function abrirDetalhe(id) {
   }
   acoes += `<button class="btn-action ${jaPago ? 'btn-pago-sim' : (pgtoAtraso ? 'btn-pago-atrasado' : 'btn-pago-nao')}"
     onclick="closeDetailModal();abrirModalPagamento('${order.id}',${jaPago})">
-    ${jaPago ? `✓ Recebido · ${tipoPgtoLabel}` : (pgtoAtraso ? '⚠ Receber' : 'Receber')}
+    ${jaPago ? '✓ Recebido' : (pgtoAtraso ? '⚠ Receber' : 'Receber')}
   </button>`;
   if (jaPago) {
     acoes += `<button class="btn-icone btn-cupom" onclick="closeDetailModal();emitirCupomPagamento('${order.id}')" title="Emitir recibo">

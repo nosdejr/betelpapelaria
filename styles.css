@@ -172,7 +172,7 @@ html { overflow-x:hidden; }
 @media (max-width:767px) { .hamburger-btn { display:flex; align-items:center; } }
 .header-logo-mobile { display:none; align-items:center; gap:6px; font-size:15px; font-weight:800; color:var(--violet); }
 @media (max-width:767px) { .header-logo-mobile { display:flex; } }
-.header-search { flex:1; display:flex; align-items:center; gap:8px; background:var(--paper); border:1.5px solid var(--border); border-radius:var(--pill); padding:8px 14px; max-width:480px; color:var(--ink-muted); transition:border-color .2s; }
+.header-search { flex:1; display:flex; align-items:center; gap:8px; background:var(--paper); border:1.5px solid var(--border); border-radius:var(--pill); padding:8px 14px; max-width: 100%; color:var(--ink-muted); transition:border-color .2s; }
 .header-search:focus-within { border-color:var(--violet); }
 .header-search input { flex:1; background:none; border:none; outline:none; font-family:inherit; font-size:13px; color:var(--ink); }
 .header-search input::placeholder { color:var(--ink-muted); }
@@ -581,13 +581,7 @@ html { overflow-x:hidden; }
   transition: background .15s;
 }
 .header-avatar-wrap:hover { background: var(--paper); }
-.header-avatar {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: var(--violet); color: #fff;
-  font-size: 13px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
+.header-avatar { display: none; } /* [FIX 1] avatar oculto */
 .header-username {
   display: none !important; /* [AJUSTE 1] Nome usuário removido do header */
 }
@@ -943,3 +937,7 @@ html { overflow-x:hidden; }
   display: flex; flex-direction: column;
   align-items: flex-end; gap: 3px; flex-shrink: 0; min-width: 90px;
 }
+
+/* [FIX 1] header-right sem avatar */
+.header-right { display: none !important; }
+.header-avatar-wrap { display: none !important; }
