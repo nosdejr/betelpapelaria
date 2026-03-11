@@ -94,7 +94,7 @@
 ═══════════════════════════════════════════════════ -->
 <div class="main-wrapper">
 
-  <!-- [LAYOUT HEADER IMAGEM3] Header sticky com busca + filtros período + notif -->
+  <!-- [AJUSTE 1] Header limpo: hambúrguer + logo + busca + avatar -->
   <header class="main-header">
     <div class="header-left">
       <button class="hamburger-btn" onclick="openSidebar()">
@@ -118,15 +118,12 @@
       <input type="search" id="search-input" placeholder="Buscar pedido, cliente…" oninput="renderOrders()"/>
     </div>
 
+    <!-- [AJUSTE 1] Só avatar/perfil no canto — sem chips de período aqui -->
     <div class="header-right">
-      <div class="header-period-chips">
-        <button class="period-chip period-shortcut" onclick="setPeriodShortcut('hoje',this)">Hoje</button>
-        <button class="period-chip period-shortcut active" onclick="setPeriodShortcut('mes-atual',this)">Mês Atual</button>
-        <button class="period-chip period-shortcut" onclick="setPeriodShortcut('mes-anterior',this)">Mês Ant.</button>
-        <button class="period-chip period-shortcut" onclick="setPeriodShortcut('ano',this)">Ano</button>
+      <div class="header-avatar-wrap" id="header-avatar-wrap">
+        <div class="header-avatar" id="header-avatar">E</div>
+        <span class="header-username" id="user-badge"></span>
       </div>
-      <span class="user-badge badge-admin" id="user-badge" style="display:none"></span>
-
     </div>
   </header>
 
@@ -150,16 +147,15 @@
       </div>
     </div>
 
-    <!-- [AJUSTE 4] 4 cards resumo clicáveis: Recebidos | Em Produção | Atrasados | A Receber -->
-    <!-- [AJUSTE 7] Cada card navega para Pedidos com filtro aplicado -->
-    <section class="summary-grid summary-grid--4">
+    <!-- [AJUSTE 2] 5 cards resumo clicáveis em 2 linhas -->
+    <section class="summary-grid summary-grid--dash">
 
-      <!-- Recebidos -->
+      <!-- Recebido -->
       <div class="sum-card sum-card--violet sum-card--clickable" id="dash-card-recebidos"
-           onclick="goToPedidosComFiltro('finalizados')" title="Ver pedidos finalizados/pagos">
+           onclick="dashFiltrar('finalizados',this)" title="Ver pedidos finalizados">
         <div class="sum-card__body">
           <div class="sum-card__num sum-card__num--violet valor-monetario" id="per-faturado">R$ 0,00</div>
-          <div class="sum-card__label">Recebido no período</div>
+          <div class="sum-card__label">Recebido</div>
           <div class="sum-card__sub" id="per-count-pago"></div>
         </div>
         <div class="sum-card__icon sum-icon--violet">
@@ -172,7 +168,7 @@
 
       <!-- Em Produção -->
       <div class="sum-card sum-card--orange sum-card--clickable" id="dash-card-producao"
-           onclick="goToPedidosComFiltro('ativos')" title="Ver pedidos em produção">
+           onclick="dashFiltrar('ativos',this)" title="Ver pedidos em produção">
         <div class="sum-card__body">
           <div class="sum-card__num sum-card__num--gold valor-monetario" id="per-pendente">R$ 0,00</div>
           <div class="sum-card__label">Em Produção</div>
@@ -188,7 +184,7 @@
 
       <!-- Atrasados -->
       <div class="sum-card sum-card--red sum-card--clickable" id="dash-card-atrasados"
-           onclick="goToPedidosComFiltro('atrasado')" title="Ver pedidos atrasados">
+           onclick="dashFiltrar('atrasado',this)" title="Ver pedidos atrasados">
         <div class="sum-card__body">
           <div class="sum-card__num sum-card__num--white" id="count-late">–</div>
           <div class="sum-card__label sum-card__label--white">Atrasados</div>
@@ -202,10 +198,10 @@
 
       <!-- A Receber -->
       <div class="sum-card sum-card--white sum-card--clickable" id="dash-card-areceber"
-           onclick="goToPedidosComFiltro('pgto-atrasado')" title="Ver pagamentos pendentes">
+           onclick="dashFiltrar('pgto-atrasado',this)" title="Ver pagamentos pendentes">
         <div class="sum-card__body">
           <div class="sum-card__num sum-card__num--blue valor-monetario" id="per-aguardando">R$ 0,00</div>
-          <div class="sum-card__label">A receber</div>
+          <div class="sum-card__label">A Receber</div>
           <div class="sum-card__sub" id="per-count-aguar"></div>
         </div>
         <div class="sum-card__icon sum-icon--blue">
@@ -215,14 +211,42 @@
         </div>
       </div>
 
+      <!-- Total geral -->
+      <div class="sum-card sum-card--white sum-card--clickable" id="dash-card-todos"
+           onclick="dashFiltrar('todos',this)" title="Ver todos os pedidos">
+        <div class="sum-card__body">
+          <div class="sum-card__num sum-card__num--violet valor-monetario" id="per-total-dash">R$ 0,00</div>
+          <div class="sum-card__label">Total no período</div>
+          <div class="sum-card__sub" id="per-count-total"></div>
+        </div>
+        <div class="sum-card__icon sum-icon--violet">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+        </div>
+      </div>
+
     </section><!-- /summary-grid -->
 
-    <!-- Pedidos recentes (últimos 5, preview rápido) -->
-    <div class="dash-recent-header">
-      <h2 class="dash-recent-title">Pedidos Recentes</h2>
-      <button class="dash-ver-todos" onclick="showPage('pedidos')">Ver todos →</button>
+    <!-- [AJUSTE 4] Lista filtrada no dashboard + filtros inline -->
+    <div class="dash-list-header" id="dash-list-header">
+      <div class="dash-list-title-row">
+        <h2 class="dash-recent-title" id="dash-list-titulo">Todos os pedidos</h2>
+        <button class="dash-ver-todos" onclick="showPage('pedidos')">Lista completa →</button>
+      </div>
+      <!-- Filtros de status no dashboard -->
+      <div class="dash-filter-chips">
+        <button class="dash-chip dash-chip-active" data-f="todos"         onclick="dashFiltrar('todos',this)">Todos</button>
+        <button class="dash-chip"                  data-f="ativos"        onclick="dashFiltrar('ativos',this)">Em Produção</button>
+        <button class="dash-chip"                  data-f="finalizados"   onclick="dashFiltrar('finalizados',this)">Finalizados</button>
+        <button class="dash-chip"                  data-f="atrasado"      onclick="dashFiltrar('atrasado',this)">Atrasados</button>
+        <button class="dash-chip"                  data-f="pgto-atrasado" onclick="dashFiltrar('pgto-atrasado',this)">Pgto Atrasado</button>
+      </div>
     </div>
-    <div id="dash-recent-list" class="orders-list"></div>
+    <!-- [AJUSTE 4] Lista filtrada dos pedidos do dashboard -->
+    <div id="dash-filtered-list" class="dash-filtered-list"></div>
 
   </div><!-- /section-dashboard -->
 
@@ -538,6 +562,51 @@
 </div>
 
 <!-- FABs -->
+
+<!-- [AJUSTE 3+4] Modal detalhe pedido — layout 2 colunas -->
+<div id="order-detail-modal" class="modal-overlay hidden" onclick="closeDetailModalOverlay(event)">
+  <div class="modal-card modal-detail">
+    <div class="modal-header">
+      <div class="detail-header-info">
+        <h2 id="detail-titulo">Pedido</h2>
+        <span class="badge-status badge-recebido" id="detail-status-badge">–</span>
+      </div>
+      <button class="modal-close" onclick="closeDetailModal()">✕</button>
+    </div>
+    <div class="detail-body">
+      <!-- Coluna esquerda: cliente + itens -->
+      <div class="detail-col detail-col-left">
+        <div class="detail-section-title">Cliente</div>
+        <div class="detail-client-block">
+          <div class="detail-avatar" id="detail-avatar">N</div>
+          <div>
+            <div class="detail-client-name" id="detail-client-name">–</div>
+            <div class="detail-client-meta" id="detail-client-meta"></div>
+          </div>
+        </div>
+        <div class="detail-section-title" style="margin-top:16px">Itens do pedido</div>
+        <div id="detail-itens-list" class="detail-itens-list"></div>
+        <div class="detail-subtotal-row">
+          <span>Total</span>
+          <span class="detail-total-val valor-monetario" id="detail-total">R$ 0,00</span>
+        </div>
+        <div id="detail-obs-wrap" class="detail-obs-wrap hidden">
+          <div class="detail-section-title">Observações</div>
+          <p class="detail-obs" id="detail-obs"></p>
+        </div>
+      </div>
+      <!-- Coluna direita: datas + histórico -->
+      <div class="detail-col detail-col-right">
+        <div class="detail-section-title">Datas</div>
+        <div class="detail-datas-list" id="detail-datas-list"></div>
+        <div class="detail-section-title" style="margin-top:16px">Histórico</div>
+        <div class="detail-historico" id="detail-historico"></div>
+      </div>
+    </div>
+    <!-- Ações na base -->
+    <div class="detail-acoes" id="detail-acoes"></div>
+  </div>
+</div>
 <button class="fab-new"             onclick="openOrderModal()"  title="Novo pedido">＋</button>
 <button class="fab-new fab-despesa" onclick="openNewExpense()"  title="Nova despesa" style="display:none">＋</button>
 

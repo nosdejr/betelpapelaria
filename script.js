@@ -127,12 +127,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   isAdmin           = currentUser.email === ADMIN_EMAIL || currentUser.email === NAYARA_EMAIL;
   canManageProducts = isAdmin;
 
-  // [LAYOUT SIDEBAR IMAGEM1] — Badge + sidebar user info
+  // [AJUSTE 1] Header avatar + sidebar user info
   const badge = document.getElementById('user-badge');
   const uname = currentUser.email.split('@')[0];
-  badge.textContent = uname;
-  badge.className   = 'user-badge ' + (isAdmin ? 'badge-admin' : 'badge-op');
-  badge.style.display = '';
+  if (badge) { badge.textContent = uname; badge.style.display = ''; }
+  // Header avatar
+  const hdrAvatar = document.getElementById('header-avatar');
+  if (hdrAvatar) hdrAvatar.textContent = uname[0].toUpperCase();
   // Sidebar user
   const sbName = document.getElementById('sidebar-user-name');
   const sbRole = document.getElementById('sidebar-user-role');
@@ -183,56 +184,49 @@ async function handleLogout() {
 // ⑥ FILTRO DE PERÍODO — aplica automaticamente ao mudar as datas
 // ────────────────────────────────────────────────────────────
 function applyPeriod() {
-  const ini = document.getElementById('periodo-inicio').value;
-  const fim = document.getElementById('periodo-fim').value;
+  // Lê do campo ativo (dashboard usa periodo-inicio, pedidos usa periodo-inicio-pedidos)
+  const elIni = document.getElementById('periodo-inicio') || document.getElementById('periodo-inicio-pedidos');
+  const elFim = document.getElementById('periodo-fim')    || document.getElementById('periodo-fim-pedidos');
+  const ini = elIni?.value;
+  const fim = elFim?.value;
   if (!ini || !fim) return;
   if (ini > fim) {
-    // Corrige automaticamente invertendo
-    document.getElementById('periodo-inicio').value = fim;
-    document.getElementById('periodo-fim').value    = ini;
-    periodoInicio = fim;
-    periodoFim    = ini;
+    periodoInicio = fim; periodoFim = ini;
   } else {
-    periodoInicio = ini;
-    periodoFim    = fim;
+    periodoInicio = ini; periodoFim = fim;
   }
+  // Sincroniza TODOS os campos de data do DOM
+  ['periodo-inicio','periodo-inicio-pedidos'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = periodoInicio;
+  });
+  ['periodo-fim','periodo-fim-pedidos'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = periodoFim;
+  });
   renderOrders();
   updateSummaryCards();
+  if (currentPage === 'dashboard') renderDashFilteredList();
 }
-// ── Atalhos rápidos de período (NOVO) ────────────────────────
-// [MELHORIA CARDS DASHBOARD] — atalho "mes-atual" adicionado (substitui card fixo)
+// ── Atalhos rápidos de período ────────────────────────
 function setPeriodShortcut(tipo, btn) {
   const hoje = new Date();
   const y = hoje.getFullYear();
   const m = hoje.getMonth();
   let ini, fim = todayDate();
-
-  if (tipo === 'hoje') {
-    ini = fim;
-  } else if (tipo === 'mes-atual') {
-    ini = `${y}-${String(m+1).padStart(2,'0')}-01`;
-  } else if (tipo === 'mes-anterior') {
-    ini = new Date(y, m - 1, 1).toISOString().split('T')[0];
-    fim = new Date(y, m, 0).toISOString().split('T')[0];
-  } else if (tipo === 'ano') {
-    ini = `${y}-01-01`;
-  } else if (tipo === 'todos') {
-    ini = '2020-01-01';
-    fim = `${y + 1}-12-31`;
-  }
-
+  if (tipo === 'hoje')         { ini = fim; }
+  else if (tipo === 'mes-atual')    { ini = `${y}-${String(m+1).padStart(2,'0')}-01`; }
+  else if (tipo === 'mes-anterior') { ini = new Date(y,m-1,1).toISOString().split('T')[0]; fim = new Date(y,m,0).toISOString().split('T')[0]; }
+  else if (tipo === 'ano')     { ini = `${y}-01-01`; }
+  else if (tipo === 'todos')   { ini = '2020-01-01'; fim = `${y+1}-12-31`; }
   if (!ini) return;
-
-  document.getElementById('periodo-inicio').value = ini;
-  document.getElementById('periodo-fim').value    = fim;
-  periodoInicio = ini;
-  periodoFim    = fim;
-
+  periodoInicio = ini; periodoFim = fim;
+  // Sincroniza TODOS os campos de data no DOM
+  ['periodo-inicio','periodo-inicio-pedidos'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ini; });
+  ['periodo-fim','periodo-fim-pedidos'].forEach(id => { const el = document.getElementById(id); if (el) el.value = fim; });
   document.querySelectorAll('.period-shortcut').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-
   renderOrders();
   updateSummaryCards();
+  if (currentPage === 'dashboard') renderDashFilteredList();
 }
 
 function inPeriod(order) {
@@ -414,6 +408,7 @@ async function loadOrders() {
   allOrders = data || [];
   renderOrders();
   updateSummaryCards();
+  if (currentPage === 'dashboard') renderDashFilteredList();
 }
 
 // [MELHORIA FLUXO PRODUÇÃO] — isLate com novos status
@@ -603,6 +598,12 @@ function updateSummaryCards() {
   if (el('per-count-pend'))  el('per-count-pend').textContent  = `${ativosPer.length} pedido${ativosPer.length!==1?'s':''}`;
   const tot = perFatVal + perAguVal + perPendVal;
   if (el('per-total')) el('per-total').textContent = `R$ ${formatCurrency(tot)}`;
+
+  // [AJUSTE 2] Atualiza card "Total geral" no dashboard
+  const allInPeriod = allOrders.filter(inPeriod);
+  const totalDash   = allInPeriod.reduce((s,o) => s + Number(o.valor||0), 0);
+  if (el('per-total-dash'))  el('per-total-dash').textContent  = `R$ ${formatCurrency(totalDash)}`;
+  if (el('per-count-total')) el('per-count-total').textContent = `${allInPeriod.length} pedido${allInPeriod.length!==1?'s':''}`;
 
   // [MELHORIA PAGAMENTOS ATRASADOS] — contador visível no filtro
   if (el('count-late'))      el('count-late').textContent      = atras.length;
@@ -1197,6 +1198,130 @@ function gerarOrcamentoPDF() {
 // ────────────────────────────────────────────────────────────
 // ⑮ FILTROS
 // ────────────────────────────────────────────────────────────
+
+// ═══════════════════════════════════════════════
+// [AJUSTE 3] MODAL DETALHE — 2 colunas
+// ═══════════════════════════════════════════════
+function abrirDetalhe(id) {
+  const order = allOrders.find(o => o.id === id);
+  if (!order) return;
+  const modal = document.getElementById('order-detail-modal');
+  if (!modal) return;
+  // Título + badge status
+  document.getElementById('detail-titulo').textContent = `Pedido · ${escapeHtml(order.cliente)}`;
+  const badgeClass = STATUS_BADGE_CLASS[order.status] || 'badge-recebido';
+  const badge = document.getElementById('detail-status-badge');
+  badge.textContent = STATUS_LABEL[order.status] || order.status;
+  badge.className = `badge-status ${badgeClass}`;
+  // Avatar + cliente
+  const letra = (order.cliente||'?')[0].toUpperCase();
+  document.getElementById('detail-avatar').textContent = letra;
+  document.getElementById('detail-client-name').textContent = order.cliente || '–';
+  document.getElementById('detail-client-meta').textContent =
+    [order.data_pedido ? `Pedido em ${formatDate(order.data_pedido)}` : '',
+     order.valor ? `R$ ${formatCurrency(order.valor)}` : ''].filter(Boolean).join(' · ');
+  // Itens
+  const itensEl = document.getElementById('detail-itens-list');
+  if (order.itens_pedido?.length) {
+    itensEl.innerHTML = order.itens_pedido.map(i => {
+      const nome = i.nome || i.produtos?.nome || '?';
+      const sub = Number(i.preco_unit||0) * Number(i.quantidade||1);
+      return `<div class="detail-item-row">
+        <div class="detail-item-info">
+          ${escapeHtml(nome)}
+          <span class="detail-item-qty">${i.quantidade}x · R$ ${formatCurrency(i.preco_unit||0)} cada</span>
+        </div>
+        <span class="detail-item-price">R$ ${formatCurrency(sub)}</span>
+      </div>`;
+    }).join('');
+  } else {
+    itensEl.innerHTML = '<p style="font-size:12px;color:var(--ink-muted)">Nenhum item registrado</p>';
+  }
+  document.getElementById('detail-total').textContent = `R$ ${formatCurrency(order.valor||0)}`;
+  // Observações
+  const obsWrap = document.getElementById('detail-obs-wrap');
+  if (order.descricao) {
+    obsWrap.classList.remove('hidden');
+    document.getElementById('detail-obs').textContent = order.descricao;
+  } else { obsWrap.classList.add('hidden'); }
+  // Datas
+  const datasEl = document.getElementById('detail-datas-list');
+  const late = isLate(order);
+  datasEl.innerHTML = [
+    { label:'📅 Criação',     val: order.data_pedido,      cls: '' },
+    { label:'🚚 Entrega prev.',val: order.data_entrega,     cls: late ? 'detail-data-val--late' : '' },
+    { label:'🏁 Entregue em', val: order.data_entrega_real, cls: 'detail-data-val' },
+  ].filter(d => d.val).map(d => `
+    <div class="detail-data-row">
+      <span class="detail-data-label">${d.label}</span>
+      <span class="detail-data-val ${d.cls}">${formatDate(d.val)}</span>
+    </div>`).join('');
+  // Histórico simplificado
+  const HIST_STEPS = [
+    { status:'recebido',    label:'Pedido recebido',     done: true },
+    { status:'em_producao', label:'Entrou em produção',  done: STATUS_ATIVOS.has(order.status) && order.status !== 'recebido' || STATUS_FINALIZADOS.has(order.status) },
+    { status:'pronto',      label:'Pronto para entrega', done: order.status === 'pronto' || STATUS_FINALIZADOS.has(order.status) },
+    { status:'entregue',    label:'Entregue ao cliente', done: STATUS_FINALIZADOS.has(order.status) },
+    { status:'pago',        label:'Pagamento confirmado',done: order.pago === true },
+  ];
+  const current = HIST_STEPS.findIndex(s => s.status === order.status);
+  document.getElementById('detail-historico').innerHTML = HIST_STEPS.map((step, i) => {
+    const cls = step.done ? 'hist-done' : (i === current ? 'hist-current' : '');
+    return `<div class="detail-hist-item ${cls}">
+      <div>
+        <div class="detail-hist-label">${step.label}</div>
+        ${step.done ? '<div class="detail-hist-sub">✓ Concluído</div>' : ''}
+      </div>
+    </div>`;
+  }).join('');
+  // Ações
+  const jaPago    = order.pago === true;
+  const eAtivo    = STATUS_ATIVOS.has(order.status);
+  const ePronte   = order.status === 'pronto';
+  const entregue  = STATUS_FINALIZADOS.has(order.status);
+  const pgtoAtraso = isPagamentoAtrasado(order);
+  const tipoPgtoLabel = order.tipo_pagamento === 'dinheiro' ? 'Dinheiro' : 'PIX';
+  const labelAv = labelBtnAvancar(order.status);
+  let acoes = '';
+  if (eAtivo && !ePronte && labelAv) {
+    acoes += `<button class="btn-action btn-avancar" onclick="closeDetailModal();avancarStatus('${order.id}','${order.status}')">${labelAv}</button>`;
+  }
+  if (ePronte) {
+    acoes += `<button class="btn-action btn-entregar" onclick="closeDetailModal();openEntregueModal('${order.id}')">Entregar</button>`;
+  }
+  if (entregue) {
+    acoes += `<button class="btn-action btn-reabrir" onclick="closeDetailModal();setStatusRecebido('${order.id}')">↩ Reabrir</button>`;
+  }
+  acoes += `<button class="btn-action ${jaPago ? 'btn-pago-sim' : (pgtoAtraso ? 'btn-pago-atrasado' : 'btn-pago-nao')}"
+    onclick="closeDetailModal();abrirModalPagamento('${order.id}',${jaPago})">
+    ${jaPago ? `✓ Recebido · ${tipoPgtoLabel}` : (pgtoAtraso ? '⚠ Receber' : 'Receber')}
+  </button>`;
+  if (jaPago) {
+    acoes += `<button class="btn-icone btn-cupom" onclick="closeDetailModal();emitirCupomPagamento('${order.id}')" title="Emitir recibo">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+    </button>`;
+  }
+  acoes += `<a class="btn-icone btn-whatsapp" href="${gerarLinkWhatsApp(order)}" target="_blank" rel="noopener" title="WhatsApp">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  </a>`;
+  acoes += `<button class="btn-icone btn-edit" onclick="closeDetailModal();openEditOrderModal('${order.id}')" title="Editar">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+  </button>`;
+  document.getElementById('detail-acoes').innerHTML = acoes;
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeDetailModal() {
+  const modal = document.getElementById('order-detail-modal');
+  if (modal) modal.classList.add('hidden');
+  document.body.style.overflow = '';
+  // Recarrega dashboard se necessário
+  if (currentPage === 'dashboard') renderDashFilteredList();
+}
+function closeDetailModalOverlay(e) {
+  if (e.target === e.currentTarget) closeDetailModal();
+}
+
 function setFilter(filter, btn) {
   currentFilter = filter;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -1232,67 +1357,97 @@ function showPage(page) {
   if (page === 'dashboard')  renderDashboard();
 }
 
-// [AJUSTE 7] Navega para lista Pedidos com filtro aplicado
-function goToPedidosComFiltro(filtro) {
-  // Destaca card ativo momentaneamente
+// [AJUSTE 4] Variável do filtro ativo no dashboard
+let dashFiltroAtivo = 'todos';
+
+// [AJUSTE 4] dashFiltrar — filtra lista inline no dashboard sem mudar de página
+function dashFiltrar(filtro, clickedEl) {
+  dashFiltroAtivo = filtro;
+  // Atualiza chips de filtro
+  document.querySelectorAll('.dash-chip').forEach(c => c.classList.remove('dash-chip-active'));
+  if (clickedEl && clickedEl.classList) {
+    clickedEl.classList.add('dash-chip-active');
+  } else {
+    const chip = document.querySelector(`.dash-chip[data-f="${filtro}"]`);
+    if (chip) chip.classList.add('dash-chip-active');
+  }
+  // Atualiza destaque dos cards
   document.querySelectorAll('.sum-card--clickable').forEach(c => c.classList.remove('card-active-filter'));
-  const cardMap = {
-    'finalizados':   'dash-card-recebidos',
-    'ativos':        'dash-card-producao',
-    'atrasado':      'dash-card-atrasados',
-    'pgto-atrasado': 'dash-card-areceber',
-  };
+  const cardMap = { 'finalizados':'dash-card-recebidos', 'ativos':'dash-card-producao',
+                    'atrasado':'dash-card-atrasados', 'pgto-atrasado':'dash-card-areceber',
+                    'todos':'dash-card-todos' };
   const cardEl = document.getElementById(cardMap[filtro]);
   if (cardEl) cardEl.classList.add('card-active-filter');
+  // Título dinâmico
+  const tituloMap = { 'todos':'Todos os pedidos', 'finalizados':'Pedidos finalizados',
+    'ativos':'Em produção', 'atrasado':'Pedidos atrasados', 'pgto-atrasado':'Pagamento pendente' };
+  const titulo = document.getElementById('dash-list-titulo');
+  if (titulo) titulo.textContent = tituloMap[filtro] || 'Pedidos';
+  renderDashFilteredList();
+}
 
+// [AJUSTE 4] Renderiza lista filtrada no dashboard (rows clicáveis que abrem detalhe)
+function renderDashFilteredList() {
+  const container = document.getElementById('dash-filtered-list');
+  if (!container) return;
+  let lista = [...allOrders].filter(inPeriod);
+  if      (dashFiltroAtivo === 'atrasado')     lista = lista.filter(isLate);
+  else if (dashFiltroAtivo === 'pgto-atrasado') lista = lista.filter(isPagamentoAtrasado);
+  else if (dashFiltroAtivo === 'ativos')        lista = lista.filter(p => STATUS_ATIVOS.has(p.status));
+  else if (dashFiltroAtivo === 'finalizados')   lista = lista.filter(p => STATUS_FINALIZADOS.has(p.status));
+  // Ordena por data desc
+  lista.sort((a,b) => ((b.data_pedido||b.created_at||'') > (a.data_pedido||a.created_at||'')) ? 1 : -1);
+  if (!lista.length) {
+    container.innerHTML = `<div class="empty-state" style="padding:24px">
+      <p class="empty-title" style="font-size:14px">Nenhum pedido neste filtro</p>
+    </div>`;
+    return;
+  }
+  container.innerHTML = lista.map(order => {
+    const late = isLate(order);
+    const pgtoAtraso = isPagamentoAtrasado(order);
+    const statusLabel = STATUS_LABEL[order.status] || order.status;
+    const badgeClass  = STATUS_BADGE_CLASS[order.status] || 'badge-recebido';
+    const letra = (order.cliente || '?')[0].toUpperCase();
+    const itensResumo = order.itens_pedido?.length
+      ? order.itens_pedido.slice(0,2).map(i => `${i.quantidade}x ${i.nome || i.produtos?.nome || '?'}`).join(', ')
+        + (order.itens_pedido.length > 2 ? ` +${order.itens_pedido.length - 2}` : '')
+      : '';
+    return `<div class="dash-order-row ${pgtoAtraso ? 'dash-row-late' : ''} ${late ? 'dash-row-atrasado' : ''}"
+         onclick="abrirDetalhe('${order.id}')" title="Ver detalhe do pedido">
+      <div class="dash-order-avatar">${letra}</div>
+      <div class="dash-order-info">
+        <div class="dash-order-name">${escapeHtml(order.cliente)}</div>
+        <div class="dash-order-meta">${itensResumo || ''}${order.data_entrega ? ' · 🚚 ' + formatDate(order.data_entrega) : ''}</div>
+      </div>
+      <div class="dash-order-right">
+        <span class="dash-order-valor">R$ ${formatCurrency(order.valor)}</span>
+        <span class="dash-order-badge badge-status ${badgeClass}">${statusLabel}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// [AJUSTE 5] goToPedidosComFiltro mantido para compatibilidade mas agora vai p/ pedidos
+function goToPedidosComFiltro(filtro) {
   showPage('pedidos');
-  // Aplica filtro após render
   setTimeout(() => {
-    const btn = document.querySelector(`.filter-btn[data-filtro="${filtro}"]`)
-              || [...document.querySelectorAll('.filter-btn')].find(b => {
-                   const map2 = {
-                     'finalizados': 'finalizados', 'ativos': 'ativos',
-                     'atrasado': 'atrasado', 'pgto-atrasado': 'pgto-atrasado'
-                   };
-                   return b.classList.contains('filter-' + filtro) || b.classList.contains('filter-' + filtro.replace('-',''));
-                 });
-    if (btn) { setFilter(filtro, btn); }
-    else     { setFilter(filtro, document.querySelector('.filter-btn')); }
+    const btn = [...document.querySelectorAll('.filter-btn')].find(b =>
+      b.classList.contains('filter-' + filtro) ||
+      (filtro === 'ativos' && b.classList.contains('filter-ativos')) ||
+      (filtro === 'finalizados' && b.classList.contains('filter-finalizados'))
+    );
+    setFilter(filtro, btn || document.querySelector('.filter-btn'));
   }, 50);
 }
 
-// [AJUSTE 4] Renderiza dashboard: periodo bar sync + 5 pedidos recentes
+// [AJUSTE 4] Renderiza dashboard completo
 function renderDashboard() {
-  // Sincroniza IDs do painel de datas (dashboard usa mesmo periodo-inicio/fim do JS)
-  const ini = document.getElementById('periodo-inicio');
-  const fim = document.getElementById('periodo-fim');
-  if (ini) ini.value = periodoInicio;
-  if (fim) fim.value = periodoFim;
-  updateSummaryCards();
-  // Pedidos recentes: últimos 5 por data de criação
-  const recentes = [...allOrders]
-    .sort((a,b) => (b.data_pedido||b.created_at||'') > (a.data_pedido||a.created_at||'') ? 1 : -1)
-    .slice(0, 5);
-  const container = document.getElementById('dash-recent-list');
-  if (!container) return;
-  if (!recentes.length) {
-    container.innerHTML = '<p style="color:var(--ink-muted);font-size:13px;text-align:center;padding:20px">Nenhum pedido ainda</p>';
-    return;
-  }
-  // Renderiza os cards recentes (reutiliza a mesma lógica do renderOrders)
-  const prevFiltered = filteredOrders;
-  filteredOrders = recentes;
-  const fakeList = document.createElement('div');
-  const fakeEmpty = document.createElement('div');
-  fakeEmpty.className = 'hidden';
-  const savedList = document.getElementById('orders-list');
-  const savedEmpty = document.getElementById('empty-state');
-  const savedLoading = document.getElementById('loading-state');
-  // swap temporariamente
-  container.innerHTML = '';
-  filteredOrders = recentes;
-  container.innerHTML = recentes.map(order => buildOrderCard(order)).join('');
-  filteredOrders = prevFiltered;
+  // Sincroniza campos de data no dashboard
+  ['periodo-inicio','periodo-inicio-pedidos'].forEach(id => { const el = document.getElementById(id); if (el) el.value = periodoInicio; });
+  ['periodo-fim','periodo-fim-pedidos'].forEach(id => { const el = document.getElementById(id); if (el) el.value = periodoFim; });
+  updateSummaryCards(); // atualiza todos os cards (incl. per-total-dash)
+  renderDashFilteredList(); // renderiza lista filtrada
 }
 
 // ════════════════════════════════════════════════════════════

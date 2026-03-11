@@ -171,11 +171,11 @@ html { overflow-x:hidden; }
 @media (max-width:767px) { .hamburger-btn { display:flex; align-items:center; } }
 .header-logo-mobile { display:none; align-items:center; gap:6px; font-size:15px; font-weight:800; color:var(--violet); }
 @media (max-width:767px) { .header-logo-mobile { display:flex; } }
-.header-search { flex:1; display:flex; align-items:center; gap:8px; background:var(--paper); border:1.5px solid var(--border); border-radius:var(--pill); padding:8px 14px; max-width:340px; color:var(--ink-muted); transition:border-color .2s; }
+.header-search { flex:1; display:flex; align-items:center; gap:8px; background:var(--paper); border:1.5px solid var(--border); border-radius:var(--pill); padding:8px 14px; max-width:480px; color:var(--ink-muted); transition:border-color .2s; }
 .header-search:focus-within { border-color:var(--violet); }
 .header-search input { flex:1; background:none; border:none; outline:none; font-family:inherit; font-size:13px; color:var(--ink); }
 .header-search input::placeholder { color:var(--ink-muted); }
-.header-right { display:flex; align-items:center; gap:8px; margin-left:auto; flex-shrink:0; }
+.header-right { display:flex; align-items:center; gap:8px; margin-left:auto; flex-shrink:0; min-width:0; }
 .header-period-chips { display:flex; gap:4px; }
 @media (max-width:640px) { .header-period-chips { display:none; } }
 .period-chip { padding:5px 11px; border:1.5px solid var(--border); border-radius:var(--pill); background:var(--surface); font-size:12px; font-weight:500; color:var(--ink-soft); cursor:pointer; white-space:nowrap; transition:all .15s; font-family:inherit; }
@@ -574,3 +574,228 @@ html { overflow-x:hidden; }
   font-family: inherit;
 }
 .dash-ver-todos:hover { background: var(--violet-light); }
+
+/* ═══════════════════════════════════════════════
+   [AJUSTE 1] HEADER LIMPO — apenas busca + avatar
+═══════════════════════════════════════════════ */
+.header-avatar-wrap {
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer; padding: 4px 8px; border-radius: var(--r-sm);
+  transition: background .15s;
+}
+.header-avatar-wrap:hover { background: var(--paper); }
+.header-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--violet); color: #fff;
+  font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.header-username {
+  font-size: 12px; font-weight: 600; color: var(--ink-soft);
+  max-width: 90px; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Hide old period chips in header */
+.header-period-chips { display: none !important; }
+/* user-badge em header agora é só texto simples */
+#user-badge { background: none; border: none; padding: 0; font-size: 12px; color: var(--ink-soft); font-weight: 600; }
+
+/* ═══════════════════════════════════════════════
+   [AJUSTE 2] DASHBOARD SUMMARY GRID
+═══════════════════════════════════════════════ */
+.summary-grid--dash {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+@media (min-width: 560px) { .summary-grid--dash { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 900px) { .summary-grid--dash { grid-template-columns: repeat(5, 1fr); } }
+
+/* ═══════════════════════════════════════════════
+   [AJUSTE 4] DASHBOARD LISTA FILTRADA
+═══════════════════════════════════════════════ */
+.dash-list-header {
+  margin: 20px 0 12px;
+}
+.dash-list-title-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.dash-filter-chips {
+  display: flex; flex-wrap: wrap; gap: 5px;
+}
+.dash-chip {
+  padding: 5px 12px; border: 1.5px solid var(--border); border-radius: var(--pill);
+  background: var(--surface); font-size: 11.5px; font-weight: 500;
+  color: var(--ink-muted); cursor: pointer; transition: all .14s;
+  font-family: inherit; white-space: nowrap;
+}
+.dash-chip:hover { border-color: var(--violet); color: var(--violet); }
+.dash-chip-active { background: var(--violet); border-color: var(--violet); color: #fff; font-weight: 600; }
+
+/* Lista filtrada no dashboard — cards mais compactos */
+.dash-filtered-list {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: 20px;
+}
+/* Card compacto no dashboard */
+.dash-order-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 12px 14px;
+  cursor: pointer; transition: all .15s;
+  box-shadow: var(--shadow-sm);
+  animation: slideIn .2s ease-out;
+}
+.dash-order-row:hover {
+  border-color: var(--violet); box-shadow: var(--shadow-md);
+  background: #FAFAFF;
+}
+.dash-order-row.dash-row-late    { border-left: 3px solid var(--red); }
+.dash-order-row.dash-row-atrasado { border-left: 3px solid var(--orange); }
+.dash-order-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--violet-light); color: var(--violet-deep);
+  font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.dash-order-info { flex: 1; min-width: 0; }
+.dash-order-name  { font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-order-meta  { font-size: 11px; color: var(--ink-muted); margin-top: 1px; }
+.dash-order-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.dash-order-valor { font-size: 15px; font-weight: 800; color: var(--violet); font-variant-numeric: tabular-nums; }
+.dash-order-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: var(--pill); }
+
+/* ═══════════════════════════════════════════════
+   [AJUSTE 3] MODAL DETALHE — 2 colunas
+═══════════════════════════════════════════════ */
+.modal-detail {
+  max-width: 760px;
+  max-height: 90vh;
+}
+.detail-header-info {
+  display: flex; align-items: center; gap: 10px; flex: 1;
+}
+.detail-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+@media (max-width: 560px) {
+  .detail-body { grid-template-columns: 1fr; }
+}
+.detail-col { display: flex; flex-direction: column; gap: 0; }
+.detail-col-left  { /* dados do pedido */ }
+.detail-col-right { /* datas e histórico */ }
+.detail-section-title {
+  font-size: 10px; font-weight: 700; color: var(--violet);
+  text-transform: uppercase; letter-spacing: .8px;
+  margin-bottom: 8px; margin-top: 4px;
+}
+.detail-client-block {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--paper); border-radius: var(--r-sm);
+  padding: 10px 12px; border: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.detail-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--violet); color: #fff; font-size: 15px;
+  font-weight: 700; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0;
+}
+.detail-client-name { font-size: 15px; font-weight: 700; color: var(--ink); }
+.detail-client-meta { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
+.detail-itens-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+.detail-item-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 10px; background: var(--paper); border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+}
+.detail-item-info { font-size: 13px; color: var(--ink); }
+.detail-item-qty  { font-size: 11px; color: var(--ink-muted); display: block; margin-top: 1px; }
+.detail-item-price { font-size: 13px; font-weight: 700; color: var(--violet); font-variant-numeric: tabular-nums; }
+.detail-subtotal-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 10px; background: var(--violet-light);
+  border-radius: var(--r-sm); border: 1.5px solid var(--violet-border);
+  font-size: 13px; font-weight: 600;
+}
+.detail-total-val { font-size: 18px; font-weight: 800; color: var(--violet); }
+.detail-obs-wrap  { margin-top: 10px; }
+.detail-obs       { font-size: 13px; color: var(--ink-soft); background: var(--paper); border-radius: var(--r-sm); padding: 8px 10px; border: 1px solid var(--border); }
+/* Datas */
+.detail-datas-list { display: flex; flex-direction: column; gap: 6px; }
+.detail-data-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 10px; border-radius: var(--r-sm);
+  background: var(--paper); border: 1px solid var(--border);
+}
+.detail-data-label { font-size: 12px; color: var(--ink-muted); display: flex; align-items: center; gap: 5px; }
+.detail-data-val   { font-size: 13px; font-weight: 600; color: var(--ink); }
+.detail-data-val--late { color: var(--red); }
+/* Histórico */
+.detail-historico { display: flex; flex-direction: column; gap: 0; }
+.detail-hist-item {
+  display: flex; gap: 10px; padding: 6px 0;
+  border-left: 2px solid var(--border); margin-left: 8px;
+  padding-left: 14px; position: relative;
+}
+.detail-hist-item::before {
+  content: ''; position: absolute; left: -5px; top: 50%; transform: translateY(-50%);
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border);
+}
+.detail-hist-item.hist-done::before { background: var(--sage); }
+.detail-hist-item.hist-current::before { background: var(--violet); }
+.detail-hist-label  { font-size: 12px; font-weight: 600; color: var(--ink); }
+.detail-hist-sub    { font-size: 11px; color: var(--ink-muted); margin-top: 1px; }
+/* Ações detalhe */
+.detail-acoes {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding-top: 14px; border-top: 1px solid var(--border);
+}
+
+/* ═══════════════════════════════════════════════
+   [AJUSTE 3] ORDER DETAIL MODAL — fixes
+═══════════════════════════════════════════════ */
+@media (max-width: 560px) {
+  .modal-detail .detail-body {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+/* Ensure detail modal is wide enough on desktop */
+@media (min-width: 520px) {
+  .modal-detail { border-radius: var(--r); }
+}
+
+/* ═══════════════════════════════════════════════
+   [AJUSTE 4] Empty state for dash filtered list  
+═══════════════════════════════════════════════ */
+.dash-filtered-list .empty-state {
+  padding: 20px 24px;
+  background: var(--surface);
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+}
+
+/* Period bar in dashboard — clean */
+#section-dashboard .period-bar {
+  margin-bottom: 16px;
+}
+
+/* Dash card active state enhanced */
+.sum-card--clickable.card-active-filter {
+  outline: 2.5px solid var(--violet);
+  outline-offset: 2px;
+  background: #FAFAFF;
+  box-shadow: 0 0 0 4px var(--violet-glow), var(--shadow-md);
+}
+.sum-card--red.card-active-filter {
+  outline-color: rgba(255,255,255,.7);
+  background: var(--red);
+}
