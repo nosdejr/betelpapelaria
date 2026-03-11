@@ -1397,43 +1397,46 @@ let dashFiltroAtivo = 'todos';
 
 // [AJUSTE 4] dashFiltrar — filtra lista inline no dashboard sem mudar de página
 function dashFiltrar(filtro, clickedEl) {
+  // [FIX 2] TOGGLE: clique no mesmo filtro deseleciona
+  if (dashFiltroAtivo === filtro) {
+    dashFiltroAtivo = 'todos';
+    document.querySelectorAll('.sum-card--clickable').forEach(c => c.classList.remove('card-active-filter'));
+    document.querySelectorAll('.dash-chip').forEach(c => c.classList.remove('dash-chip-active'));
+    // Ativa "todos" como padrão ao limpar
+    const cardTodos = document.getElementById('dash-card-todos');
+    if (cardTodos) cardTodos.classList.add('card-active-filter');
+    const chipTodos = document.querySelector('.dash-chip[data-f="todos"]');
+    if (chipTodos) chipTodos.classList.add('dash-chip-active');
+    const titulo = document.getElementById('dash-list-titulo');
+    if (titulo) titulo.textContent = 'Todos os pedidos';
+    renderDashFilteredList();
+    return;
+  }
+
   dashFiltroAtivo = filtro;
-  // [FIX 1] Passo 1: remove ativo de TODOS os cards e chips
+
+  // Reset todos
   document.querySelectorAll('.sum-card--clickable').forEach(c => c.classList.remove('card-active-filter'));
   document.querySelectorAll('.dash-chip').forEach(c => c.classList.remove('dash-chip-active'));
 
-  // Passo 2: ativa SÓ o card e chip do filtro clicado
+  // Ativa card clicado
   const cardMap = { 'finalizados':'dash-card-recebidos', 'ativos':'dash-card-producao',
                     'atrasado':'dash-card-atrasados', 'pgto-atrasado':'dash-card-areceber',
                     'todos':'dash-card-todos' };
   const cardEl = document.getElementById(cardMap[filtro]);
   if (cardEl) cardEl.classList.add('card-active-filter');
 
-  // Ativa chip — aceita clique direto no chip ou em filho do chip
-  const chipEl = (clickedEl && clickedEl.closest)
-    ? clickedEl.closest('.dash-chip')
-    : null;
-  if (chipEl) {
-    chipEl.classList.add('dash-chip-active');
-  } else {
+  // Ativa chip correspondente
+  const chipEl = (clickedEl && clickedEl.closest) ? clickedEl.closest('.dash-chip') : null;
+  if (chipEl) chipEl.classList.add('dash-chip-active');
+  else {
     const chip = document.querySelector(`.dash-chip[data-f="${filtro}"]`);
     if (chip) chip.classList.add('dash-chip-active');
   }
 
-  // [FIX 1] has-active-filter: dim todos os outros cards quando um específico está ativo
-  // 'todos' = estado neutro (sem dimming); qualquer outro filtro = dimming nos demais
-  const grid = document.querySelector('.summary-grid--dash');
-  if (grid) {
-    if (filtro === 'todos') {
-      grid.classList.remove('has-active-filter');
-    } else {
-      grid.classList.add('has-active-filter');
-    }
-  }
-
-  // Título dinâmico
-  const tituloMap = { 'todos':'Todos os pedidos', 'finalizados':'Pedidos finalizados',
-    'ativos':'Em produção', 'atrasado':'Pedidos atrasados', 'pgto-atrasado':'Pagamento pendente' };
+  // Título
+  const tituloMap = { 'todos':'Todos os pedidos', 'finalizados':'Recebidos (pagos)',
+    'ativos':'Em produção', 'atrasado':'Pedidos atrasados', 'pgto-atrasado':'Aguardando pagamento' };
   const titulo = document.getElementById('dash-list-titulo');
   if (titulo) titulo.textContent = tituloMap[filtro] || 'Pedidos';
 
@@ -1448,7 +1451,7 @@ function renderDashFilteredList() {
   if      (dashFiltroAtivo === 'atrasado')      lista = lista.filter(isLate);
   else if (dashFiltroAtivo === 'pgto-atrasado') lista = lista.filter(isPagamentoAtrasado);
   else if (dashFiltroAtivo === 'ativos')        lista = lista.filter(p => STATUS_ATIVOS.has(p.status));
-  else if (dashFiltroAtivo === 'finalizados')   lista = lista.filter(p => STATUS_FINALIZADOS.has(p.status));
+  else if (dashFiltroAtivo === 'finalizados')   lista = lista.filter(p => p.pago === true); // [FIX 1] recebidos = pagos
   lista.sort((a,b) => ((b.data_pedido||b.created_at||'') > (a.data_pedido||a.created_at||'')) ? 1 : -1);
 
   if (!lista.length) {
