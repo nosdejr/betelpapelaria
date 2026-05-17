@@ -472,6 +472,18 @@ function openProductsModal()          { loadProducts(); document.getElementById(
 function closeProductsModal()         { document.getElementById('products-modal').classList.add('hidden'); }
 function closeProductsModalOverlay(e) { if (e.target === document.getElementById('products-modal')) closeProductsModal(); }
 
+function toggleDespesaMobilePanel(btn) {
+  const panel = document.getElementById('desp-period-mobile-panel');
+  if (!panel) return;
+  panel.classList.toggle('hidden');
+}
+
+function toggleFinMobilePanel(btn) {
+  const panel = document.getElementById('fin-period-mobile-panel');
+  if (!panel) return;
+  panel.classList.toggle('hidden');
+}
+
 // ────────────────────────────────────────────────────────────
 // ⑧ ITENS DO PEDIDO
 // ────────────────────────────────────────────────────────────
@@ -617,12 +629,21 @@ function buildCompactOrderRow(order, opts = {}) {
 
   const cardClass = ['order-card-compact', late && !isOrderEntregue(order) ? 'order-card-compact--late' : '', pgtoAtraso ? 'order-card-compact--pgto-late' : ''].filter(Boolean).join(' ');
 
+  const itens = order.itens_pedido || [];
+  const itensResumo = itens.length
+    ? itens.map(i => (i.nome || (i.produtos && i.produtos.nome) || 'Item')).join(', ')
+    : '';
+  const itensHtml = itensResumo
+    ? '  <div class="order-card-compact__items">' + escapeHtml(itensResumo) + '</div>'
+    : '';
+
   return [
     '<article class="' + cardClass + '" onclick="abrirDetalhe(\'' + order.id + '\')" role="button" tabindex="0">',
     '  <div class="order-card-compact__row">',
     '    <h3 class="order-card-compact__name">' + escapeHtml(order.cliente) + '</h3>',
     '    <span class="order-card-compact__valor">R$ ' + formatCurrency(order.valor) + '</span>',
     '  </div>',
+    itensHtml,
     '  <div class="order-card-compact__meta">',
     '    <span class="order-card-compact__date">' + entregaTxt + '</span>',
     '    <div class="order-card-compact__badges">',
@@ -1479,7 +1500,7 @@ function setupNavTabs() {
 function showPage(page) {
   closeSidebar();
   currentPage = page;
-  const pages = ['dashboard','pedidos','despesas','financeiro'];
+  const pages = ['dashboard','pedidos','despesas','financeiro','produtos'];
   pages.forEach(p => {
     const el = document.getElementById('section-' + p);
     if (el) el.classList.toggle('hidden', p !== page);
@@ -1495,6 +1516,7 @@ function showPage(page) {
   if (page === 'financeiro') updateFinanceiro();
   if (page === 'despesas')   renderExpenses();
   if (page === 'dashboard')  renderDashboard();
+  if (page === 'produtos')   loadProducts();
 }
 
 // [AJUSTE 4] Variável do filtro ativo no dashboard
@@ -1661,7 +1683,11 @@ function setDespesaShortcut(tipo, btn) {
   despesaFiltroIni = range.ini;
   despesaFiltroFim = range.fim;
   document.getElementById('desp-period-custom')?.classList.add('hidden');
+  document.getElementById('desp-period-mobile-panel')?.classList.add('hidden');
   document.querySelectorAll('.desp-shortcut').forEach(b => b.classList.toggle('active', b === btn));
+  const labelMap = { 'mes-atual': 'Mês Atual', 'mes-anterior': 'Mês Anterior', 'todos': 'Todos' };
+  const lbl = document.getElementById('desp-period-label-mobile');
+  if (lbl && labelMap[tipo]) lbl.textContent = labelMap[tipo];
   renderExpenses();
 }
 
@@ -1772,7 +1798,11 @@ function setFinShortcut(tipo, btn) {
   finIni = range.ini;
   finFim = range.fim;
   document.getElementById('fin-period-custom')?.classList.add('hidden');
+  document.getElementById('fin-period-mobile-panel')?.classList.add('hidden');
   document.querySelectorAll('.fin-shortcut').forEach(b => b.classList.toggle('active', b === btn));
+  const labelMap = { 'mes-atual': 'Mês Atual', 'mes-anterior': 'Mês Anterior', 'todos': 'Todos' };
+  const lbl = document.getElementById('fin-period-label-mobile');
+  if (lbl && labelMap[tipo]) lbl.textContent = labelMap[tipo];
   updateFinanceiro();
 }
 
