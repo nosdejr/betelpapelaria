@@ -617,23 +617,12 @@ function buildCompactOrderRow(order, opts = {}) {
 
   const cardClass = ['order-card-compact', late && !isOrderEntregue(order) ? 'order-card-compact--late' : '', pgtoAtraso ? 'order-card-compact--pgto-late' : ''].filter(Boolean).join(' ');
 
-  // Resumo dos itens em uma linha
-  const itens = order.itens_pedido || [];
-  const itensSummary = itens.length
-    ? itens.map(i => {
-        const nome = i.nome || i.produtos?.nome || 'Item';
-        const qty  = i.quantidade || i.qty || 1;
-        return qty > 1 ? `${qty}× ${nome}` : nome;
-      }).join(', ')
-    : '';
-
   return [
     '<article class="' + cardClass + '" onclick="abrirDetalhe(\'' + order.id + '\')" role="button" tabindex="0">',
     '  <div class="order-card-compact__row">',
     '    <h3 class="order-card-compact__name">' + escapeHtml(order.cliente) + '</h3>',
     '    <span class="order-card-compact__valor">R$ ' + formatCurrency(order.valor) + '</span>',
     '  </div>',
-    itensSummary ? '  <div class="order-card-compact__items">' + escapeHtml(itensSummary) + '</div>' : '',
     '  <div class="order-card-compact__meta">',
     '    <span class="order-card-compact__date">' + entregaTxt + '</span>',
     '    <div class="order-card-compact__badges">',
@@ -1486,11 +1475,11 @@ function setupNavTabs() {
   showPage('dashboard'); // [AJUSTE 5] inicia no dashboard
 }
 
-// [AJUSTE 4+5+7] showPage conhece dashboard, pedidos, despesas, financeiro
+// [AJUSTE 4+5+7] showPage conhece dashboard, pedidos, despesas, financeiro, produtos
 function showPage(page) {
   closeSidebar();
   currentPage = page;
-  const pages = ['dashboard','pedidos','despesas','financeiro'];
+  const pages = ['dashboard','pedidos','despesas','financeiro','produtos'];
   pages.forEach(p => {
     const el = document.getElementById('section-' + p);
     if (el) el.classList.toggle('hidden', p !== page);
@@ -1506,6 +1495,8 @@ function showPage(page) {
   if (page === 'financeiro') updateFinanceiro();
   if (page === 'despesas')   renderExpenses();
   if (page === 'dashboard')  renderDashboard();
+  if (page === 'pedidos')    renderOrders();
+  if (page === 'produtos')   loadProducts();
 }
 
 // [AJUSTE 4] Variável do filtro ativo no dashboard
@@ -1886,163 +1877,4 @@ function translateError(msg) {
   if (msg.includes('Invalid login credentials')) return 'E-mail ou senha incorretos.';
   if (msg.includes('Email not confirmed'))        return 'Confirme seu e-mail antes de entrar.';
   return 'Ocorreu um erro. Tente novamente.';
-}
-
-// ── Sheets mobile para Despesas e Financeiro ─────────────────
-
-function openDespesaSheet() {
-  document.getElementById('desp-sheet').classList.remove('hidden');
-}
-function closeDespesaSheet() {
-  document.getElementById('desp-sheet').classList.add('hidden');
-}
-function pickDespesaFromSheet(tipo, btn) {
-  document.querySelectorAll('.desp-sheet-option').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  // reusar lógica existente: simular clique no botão desktop correspondente
-  const deskBtn = document.querySelector(`.desp-shortcut[data-period="${tipo}"]`);
-  setDespesaShortcut(tipo, deskBtn || btn);
-  // atualizar label mobile
-  const lbl = document.querySelector('.desp-label-mobile');
-  if (lbl) lbl.textContent = btn.textContent;
-  closeDespesaSheet();
-}
-function applyDespesaSheetCustom() {
-  const ini = document.getElementById('desp-sheet-ini').value;
-  const fim = document.getElementById('desp-sheet-fim').value;
-  if (!ini || !fim) return;
-  // sync para os inputs do desktop e disparar
-  const dIni = document.getElementById('desp-ini');
-  const dFim = document.getElementById('desp-fim');
-  if (dIni) dIni.value = ini;
-  if (dFim) dFim.value = fim;
-  applyDespesaPeriod();
-  const lbl = document.querySelector('.desp-label-mobile');
-  if (lbl) lbl.textContent = 'Personalizado';
-  document.querySelectorAll('.desp-sheet-option').forEach(b => b.classList.remove('active'));
-}
-
-function openFinSheet() {
-  document.getElementById('fin-sheet').classList.remove('hidden');
-}
-function closeFinSheet() {
-  document.getElementById('fin-sheet').classList.add('hidden');
-}
-function pickFinFromSheet(tipo, btn) {
-  document.querySelectorAll('.fin-sheet-option').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const deskBtn = document.querySelector(`.fin-shortcut[data-period="${tipo}"]`);
-  setFinShortcut(tipo, deskBtn || btn);
-  const lbl = document.querySelector('.fin-label-mobile');
-  if (lbl) lbl.textContent = btn.textContent;
-  closeFinSheet();
-}
-function applyFinSheetCustom() {
-  const ini = document.getElementById('fin-sheet-ini').value;
-  const fim = document.getElementById('fin-sheet-fim').value;
-  if (!ini || !fim) return;
-  const fIni = document.getElementById('fin-ini');
-  const fFim = document.getElementById('fin-fim');
-  if (fIni) fIni.value = ini;
-  if (fFim) fFim.value = fim;
-  applyFinPeriod();
-  const lbl = document.querySelector('.fin-label-mobile');
-  if (lbl) lbl.textContent = 'Personalizado';
-  document.querySelectorAll('.fin-sheet-option').forEach(b => b.classList.remove('active'));
-}
-
-// ── Produtos como página (não modal) ────────────────────────
-
-// Extender showPage para incluir 'produtos'
-(function() {
-  const _origShow = showPage;
-  showPage = function(page) {
-    if (page === 'produtos') {
-      closeSidebar();
-      const allPages = ['dashboard','pedidos','despesas','financeiro','produtos'];
-      allPages.forEach(p => {
-        const el = document.getElementById('section-' + p);
-        if (el) el.classList.toggle('hidden', p !== page);
-      });
-      document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.page === page));
-      const fabP = document.querySelector('.fab-new:not(.fab-despesa)');
-      const fabD = document.querySelector('.fab-despesa');
-      if (fabP) fabP.style.display = 'none';
-      if (fabD) fabD.style.display = 'none';
-      loadProducts().then(() => renderProductsPage());
-      return;
-    }
-    _origShow(page);
-  };
-})();
-
-function renderProductsPage() {
-  const list = document.getElementById('products-list-page');
-  if (!list) return;
-  if (!allProducts || !allProducts.length) {
-    list.innerHTML = '<div class="empty-state"><p class="empty-title">Nenhum produto cadastrado.</p></div>';
-    return;
-  }
-  list.innerHTML = allProducts.map(p => `
-    <div class="product-item">
-      <div class="product-info">
-        <span class="product-name">${escapeHtml(p.nome)}</span>
-        ${p.descricao ? `<span class="product-desc">${escapeHtml(p.descricao)}</span>` : ''}
-      </div>
-      <span class="product-price">R$ ${formatCurrency(p.preco)}</span>
-      <div class="product-actions">
-        <button type="button" class="btn-icon-sm" onclick="editProductPage(${p.id})" title="Editar">✏️</button>
-        <button type="button" class="btn-icon-sm btn-icon-del" onclick="deleteProductPage(${p.id})" title="Excluir">🗑️</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function clearProductFormPage() {
-  document.getElementById('product-id-page').value = '';
-  document.getElementById('prod-nome-page').value = '';
-  document.getElementById('prod-preco-page').value = '';
-  document.getElementById('prod-descricao-page').value = '';
-}
-
-function editProductPage(id) {
-  const p = allProducts.find(x => x.id === id);
-  if (!p) return;
-  document.getElementById('product-id-page').value = p.id;
-  document.getElementById('prod-nome-page').value = p.nome;
-  document.getElementById('prod-preco-page').value = p.preco;
-  document.getElementById('prod-descricao-page').value = p.descricao || '';
-  document.getElementById('prod-nome-page').focus();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-async function deleteProductPage(id) {
-  if (!confirm('Excluir este produto?')) return;
-  const { error } = await db.from('produtos').delete().eq('id', id);
-  if (error) { alert('Erro ao excluir: ' + error.message); return; }
-  await loadProducts();
-  renderProductsPage();
-}
-
-async function handleSaveProductPage(event) {
-  event.preventDefault();
-  const btn  = document.getElementById('btn-save-product-page');
-  const id   = document.getElementById('product-id-page').value;
-  const nome = document.getElementById('prod-nome-page').value.trim();
-  const preco = parseFloat(document.getElementById('prod-preco-page').value);
-  const desc  = document.getElementById('prod-descricao-page').value.trim();
-  if (!nome || isNaN(preco)) return;
-  btn.disabled = true;
-  const payload = { nome, preco, descricao: desc || null };
-  let error;
-  if (id) {
-    ({ error } = await db.from('produtos').update(payload).eq('id', id));
-  } else {
-    ({ error } = await db.from('produtos').insert(payload));
-  }
-  btn.disabled = false;
-  if (error) { alert('Erro: ' + error.message); return; }
-  clearProductFormPage();
-  await loadProducts();
-  renderProductsPage();
 }
