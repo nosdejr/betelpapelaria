@@ -1475,11 +1475,11 @@ function setupNavTabs() {
   showPage('dashboard'); // [AJUSTE 5] inicia no dashboard
 }
 
-// [AJUSTE 4+5+7] showPage conhece dashboard, pedidos, despesas, financeiro, produtos
+// [AJUSTE 4+5+7] showPage conhece dashboard, pedidos, despesas, financeiro
 function showPage(page) {
   closeSidebar();
   currentPage = page;
-  const pages = ['dashboard','pedidos','despesas','financeiro','produtos'];
+  const pages = ['dashboard','pedidos','despesas','financeiro'];
   pages.forEach(p => {
     const el = document.getElementById('section-' + p);
     if (el) el.classList.toggle('hidden', p !== page);
@@ -1495,8 +1495,6 @@ function showPage(page) {
   if (page === 'financeiro') updateFinanceiro();
   if (page === 'despesas')   renderExpenses();
   if (page === 'dashboard')  renderDashboard();
-  if (page === 'pedidos')    renderOrders();
-  if (page === 'produtos')   loadProducts();
 }
 
 // [AJUSTE 4] Variável do filtro ativo no dashboard

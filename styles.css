@@ -459,7 +459,7 @@ body {
 
 @media (max-width: 767px) {
   .bottom-nav { display: flex; }
-  .fab-new { bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 16px); right: 16px; z-index: 260; }
+  .fab-new { bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 12px); right: 16px; }
 }
 
 /* ── FAB ─────────────────────────────────────── */
@@ -467,7 +467,7 @@ body {
   position: fixed; bottom: 22px; right: 18px; width: 52px; height: 52px;
   border-radius: 50%; background: var(--violet); color: #fff; border: none;
   font-size: 26px; cursor: pointer; box-shadow: 0 4px 20px var(--violet-glow);
-  display: flex; align-items: center; justify-content: center; z-index: 260;
+  display: flex; align-items: center; justify-content: center; z-index: 200;
   transition: transform .12s, background .12s;
 }
 .fab-new:hover { background: var(--violet-dark); }
