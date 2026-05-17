@@ -2,17 +2,16 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <meta name="theme-color" content="#F7F6FA"/>
   <title>Papelaria BETEL</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="styles.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css?v=10"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body class="dashboard-body">
 
-<!-- ═══════════════════════════════════════════════════
-     [LAYOUT SIDEBAR IMAGEM1] Sidebar roxa fixa
-═══════════════════════════════════════════════════ -->
+<!-- Sidebar — desktop -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="sidebar-logo-icon">
@@ -28,43 +27,26 @@
   </div>
 
   <nav class="sidebar-nav">
-    <div class="sidebar-section-label">MENU</div>
-
+    <div class="sidebar-section-label">Menu</div>
     <button class="sidebar-item nav-tab active" data-page="dashboard" onclick="showPage('dashboard')">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-      </svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
       Dashboard
     </button>
     <button class="sidebar-item nav-tab" data-page="pedidos" onclick="showPage('pedidos')">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-      </svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       Pedidos
     </button>
-
     <button class="sidebar-item nav-tab" data-page="despesas" onclick="showPage('despesas')">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-      </svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       Despesas
     </button>
-
     <button class="sidebar-item nav-tab" data-page="financeiro" onclick="showPage('financeiro')">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
-      </svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       Financeiro
     </button>
-
-    <div class="sidebar-section-label" style="margin-top:14px">CONFIG</div>
-
+    <div class="sidebar-section-label" style="margin-top:12px">Config</div>
     <button class="sidebar-item" id="btn-products-nav" onclick="openProductsModal()" style="display:none">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-      </svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
       Produtos
     </button>
   </nav>
@@ -78,319 +60,254 @@
       </div>
     </div>
     <button class="sidebar-logout-btn" onclick="handleLogout()" title="Sair">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-        <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-      </svg>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     </button>
   </div>
 </aside>
 
-<!-- overlay mobile sidebar -->
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
-
-<!-- ═══════════════════════════════════════════════════
-     MAIN WRAPPER
-═══════════════════════════════════════════════════ -->
 <div class="main-wrapper">
 
-  <!-- [AJUSTE 1] Header limpo: hambúrguer + logo + busca + avatar -->
   <header class="main-header">
     <div class="header-left">
-      <button class="hamburger-btn" onclick="openSidebar()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
-      </button>
-      <div class="header-logo-mobile">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-          <polyline points="9 22 9 12 15 12 15 22"/>
-        </svg>
-        BETEL
+      <div class="header-brand">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>BETEL</span>
       </div>
     </div>
-
     <div class="header-search">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <input type="search" id="search-input" placeholder="Buscar pedido, cliente…" oninput="renderOrders()"/>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" id="search-input" placeholder="Buscar pedido ou cliente…" oninput="onSearchInput()"/>
     </div>
-
-    <!-- [AJUSTE 1] Header direito: só avatar — sem nome -->
     <div class="header-right">
-      <div class="header-avatar-wrap" id="header-avatar-wrap">
-        <div class="header-avatar" id="header-avatar">E</div>
-        <!-- [AJUSTE 1] username removido — user-badge hidden, só para compatibilidade JS -->
-        <span id="user-badge" style="display:none"></span>
-      </div>
+      <div class="header-avatar" id="header-avatar">E</div>
+      <span id="user-badge" style="display:none"></span>
     </div>
   </header>
 
-  <!-- ══ SEÇÃO DASHBOARD (cards resumo clicáveis) ══════ -->
-  <!-- [AJUSTE 4+5] Dashboard separado da lista de pedidos -->
+  <!-- ══ DASHBOARD ══ -->
   <div id="section-dashboard" class="page-section">
 
-    <!-- Período -->
-    <div class="period-bar">
-      <div class="period-shortcuts-row">
-        <button class="period-shortcut active" onclick="setPeriodShortcut('mes-atual',this)">Mês Atual</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('hoje',this)">Hoje</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('mes-anterior',this)">Mês Anterior</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('ano',this)">Ano</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('todos',this)">Todos</button>
+    <div class="period-picker" id="period-picker-dash">
+      <div class="period-picker__desktop">
+        <button type="button" class="period-pill active" data-period="mes-atual" onclick="setPeriodShortcut('mes-atual',this)">Mês Atual</button>
+        <button type="button" class="period-pill" data-period="mes-anterior" onclick="setPeriodShortcut('mes-anterior',this)">Mês Anterior</button>
+        <button type="button" class="period-pill" data-period="todos" onclick="setPeriodShortcut('todos',this)">Todos</button>
+        <button type="button" class="period-pill period-pill--custom" data-period="custom" onclick="togglePeriodCustom('dash')">Personalizado</button>
       </div>
-      <div class="period-date-row">
+      <button type="button" class="period-picker__mobile" onclick="openPeriodSheet()" aria-label="Filtrar período">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span id="period-label-mobile">Mês Atual</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="period-custom hidden" id="period-custom-dash">
         <input type="date" id="periodo-inicio" class="period-input" onchange="applyPeriod()"/>
-        <span class="period-sep">→</span>
+        <span class="period-sep">até</span>
         <input type="date" id="periodo-fim" class="period-input" onchange="applyPeriod()"/>
       </div>
     </div>
 
-    <!-- [AJUSTE 2] 5 cards resumo clicáveis em 2 linhas -->
-    <section class="summary-grid summary-grid--dash">
+    <button type="button" class="dash-alert hidden" id="dash-late-alert" onclick="dashFiltrar('atrasado', this)">
+      <span class="dash-alert__icon">!</span>
+      <span id="dash-late-text">Pedidos atrasados</span>
+    </button>
 
-      <!-- Recebido -->
-      <div class="sum-card sum-card--violet sum-card--clickable" id="dash-card-recebidos"
-           onclick="dashFiltrar('finalizados',this)" title="Ver pedidos finalizados">
-        <div class="sum-card__body">
-          <div class="sum-card__num sum-card__num--violet valor-monetario" id="per-faturado">R$ 0,00</div>
-          <div class="sum-card__label">Recebido</div>
-          <div class="sum-card__sub" id="per-count-pago"></div>
-        </div>
-        <div class="sum-card__icon sum-icon--violet">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="1" x2="12" y2="23"/>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-          </svg>
-        </div>
-      </div>
+    <section class="stats-row summary-grid--dash">
+      <button type="button" class="stat-card stat-card--clickable" id="dash-card-recebidos"
+              onclick="dashFiltrar('finalizados',this)" title="Ver recebidos">
+        <span class="stat-card__label">Recebido</span>
+        <span class="stat-card__value valor-monetario" id="per-faturado">R$ 0,00</span>
+        <span class="stat-card__meta" id="per-count-pago"></span>
+      </button>
+      <button type="button" class="stat-card stat-card--clickable" id="dash-card-areceber"
+              onclick="dashFiltrar('a-receber',this)" title="Ver a receber">
+        <span class="stat-card__label">A Receber</span>
+        <span class="stat-card__value valor-monetario" id="per-aguardando">R$ 0,00</span>
+        <span class="stat-card__meta" id="per-count-aguar"></span>
+      </button>
+      <button type="button" class="stat-card stat-card--clickable stat-card--accent" id="dash-card-total"
+              onclick="dashFiltrar('todos',this)" title="Ver todos">
+        <span class="stat-card__label">Total</span>
+        <span class="stat-card__value valor-monetario" id="per-total-dash">R$ 0,00</span>
+        <span class="stat-card__meta" id="per-count-total"></span>
+      </button>
+    </section>
 
-      <!-- Em Produção -->
-      <div class="sum-card sum-card--orange sum-card--clickable" id="dash-card-producao"
-           onclick="dashFiltrar('ativos',this)" title="Ver pedidos em produção">
-        <div class="sum-card__body">
-          <div class="sum-card__num sum-card__num--gold valor-monetario" id="per-pendente">R$ 0,00</div>
-          <div class="sum-card__label">Em Produção</div>
-          <div class="sum-card__sub" id="per-count-pend"></div>
-        </div>
-        <div class="sum-card__icon sum-icon--orange">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
-          </svg>
-        </div>
-      </div>
+    <!-- IDs legados (ocultos) para compatibilidade JS -->
+    <span id="per-pendente" class="hidden"></span>
+    <span id="per-count-pend" class="hidden"></span>
+    <span id="count-late" class="hidden"></span>
+    <span id="dash-card-producao" class="hidden"></span>
+    <span id="dash-card-atrasados" class="hidden"></span>
+    <span id="dash-card-todos" class="hidden"></span>
 
-      <!-- Atrasados -->
-      <div class="sum-card sum-card--red sum-card--clickable" id="dash-card-atrasados"
-           onclick="dashFiltrar('atrasado',this)" title="Ver pedidos atrasados">
-        <div class="sum-card__body">
-          <div class="sum-card__num sum-card__num--white" id="count-late">–</div>
-          <div class="sum-card__label sum-card__label--white">Atrasados</div>
-        </div>
-        <div class="sum-card__icon sum-icon--red-inv">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-          </svg>
-        </div>
-      </div>
-
-      <!-- A Receber -->
-      <div class="sum-card sum-card--white sum-card--clickable" id="dash-card-areceber"
-           onclick="dashFiltrar('pgto-atrasado',this)" title="Ver pagamentos pendentes">
-        <div class="sum-card__body">
-          <div class="sum-card__num sum-card__num--blue valor-monetario" id="per-aguardando">R$ 0,00</div>
-          <div class="sum-card__label">A Receber</div>
-          <div class="sum-card__sub" id="per-count-aguar"></div>
-        </div>
-        <div class="sum-card__icon sum-icon--blue">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
-          </svg>
-        </div>
-      </div>
-
-      <!-- Total geral -->
-      <div class="sum-card sum-card--white sum-card--clickable" id="dash-card-todos"
-           onclick="dashFiltrar('todos',this)" title="Ver todos os pedidos">
-        <div class="sum-card__body">
-          <div class="sum-card__num sum-card__num--violet valor-monetario" id="per-total-dash">R$ 0,00</div>
-          <div class="sum-card__label">Total no período</div>
-          <div class="sum-card__sub" id="per-count-total"></div>
-        </div>
-        <div class="sum-card__icon sum-icon--violet">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-          </svg>
-        </div>
-      </div>
-
-    </section><!-- /summary-grid -->
-
-    <!-- [AJUSTE 4] Lista filtrada no dashboard + filtros inline -->
-    <div class="dash-list-header" id="dash-list-header">
-      <div class="dash-list-title-row">
-        <h2 class="dash-recent-title" id="dash-list-titulo">Todos os pedidos</h2>
-        <button class="dash-ver-todos" onclick="showPage('pedidos')">Lista completa →</button>
-      </div>
-      <!-- Filtros via cards acima -->
+    <div class="section-head" id="dash-list-header">
+      <h2 class="section-head__title" id="dash-list-titulo">Pedidos recentes</h2>
+      <button type="button" class="section-head__link" onclick="showPage('pedidos')">Ver todos</button>
     </div>
-    <!-- [AJUSTE 4] Lista filtrada dos pedidos do dashboard -->
-    <div id="dash-filtered-list" class="dash-filtered-list"></div>
+    <div id="dash-filtered-list" class="order-list-compact"></div>
 
-  </div><!-- /section-dashboard -->
+  </div>
 
-  <!-- ══ SEÇÃO PEDIDOS (lista completa + filtros) ════════ -->
-  <!-- [AJUSTE 5] Lista de pedidos separada -->
-  <div id="section-pedidos" class="page-section hidden">
+  <!-- ══ PEDIDOS ══ -->
+  <div id="section-pedidos" class="page-section page-section--app hidden">
 
-    <!-- Período -->
-    <div class="period-bar">
-      <div class="period-shortcuts-row">
-        <button class="period-shortcut active" onclick="setPeriodShortcut('mes-atual',this)">Mês Atual</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('hoje',this)">Hoje</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('mes-anterior',this)">Mês Anterior</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('ano',this)">Ano</button>
-        <button class="period-shortcut" onclick="setPeriodShortcut('todos',this)">Todos</button>
+    <div class="period-picker" id="period-picker-pedidos">
+      <div class="period-picker__desktop">
+        <button type="button" class="period-pill active" data-period="mes-atual" onclick="setPeriodShortcut('mes-atual',this)">Mês Atual</button>
+        <button type="button" class="period-pill" data-period="mes-anterior" onclick="setPeriodShortcut('mes-anterior',this)">Mês Anterior</button>
+        <button type="button" class="period-pill" data-period="todos" onclick="setPeriodShortcut('todos',this)">Todos</button>
+        <button type="button" class="period-pill period-pill--custom" data-period="custom" onclick="togglePeriodCustom('pedidos')">Personalizado</button>
       </div>
-      <div class="period-date-row">
+      <button type="button" class="period-picker__mobile" onclick="openPeriodSheet()" aria-label="Filtrar período">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span class="period-label-mobile-sync">Mês Atual</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="period-custom hidden" id="period-custom-pedidos">
         <input type="date" id="periodo-inicio-pedidos" class="period-input" onchange="applyPeriod()"/>
-        <span class="period-sep">→</span>
+        <span class="period-sep">até</span>
         <input type="date" id="periodo-fim-pedidos" class="period-input" onchange="applyPeriod()"/>
       </div>
     </div>
 
-    <!-- [AJUSTE 6] Filtros SEM "Novo" -->
-    <div class="toolbar">
-      <div class="filter-scroll">
-        <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
-        <button class="filter-btn filter-ativos" onclick="setFilter('ativos',this)">Em Produção</button>
-        <button class="filter-btn filter-finalizados" onclick="setFilter('finalizados',this)">Finalizados</button>
-        <button class="filter-btn filter-late" onclick="setFilter('atrasado',this)">Atrasado</button>
-        <button class="filter-btn filter-pgto-atrasado" id="btn-filter-pgto-atrasado"
-                onclick="setFilter('pgto-atrasado',this)">
-          Pgto Atrasado
-          <span class="filter-count" id="count-pgto-atras">0</span>
-        </button>
+    <div class="filter-bar">
+      <div class="filter-pills" id="order-filters">
+        <button type="button" class="filter-pill active" data-filter="todos" onclick="setFilter('todos',this)">Todos</button>
+        <button type="button" class="filter-pill" data-filter="em-andamento" onclick="setFilter('em-andamento',this)">Em andamento</button>
+        <button type="button" class="filter-pill" data-filter="entregue" onclick="setFilter('entregue',this)">Entregue</button>
       </div>
-      <span class="toolbar-total">Total: <strong class="valor-monetario" id="per-total">R$ 0,00</strong></span>
+      <span class="filter-bar__total">Total <strong class="valor-monetario" id="per-total">R$ 0,00</strong></span>
     </div>
 
-    <!-- Lista pedidos -->
+    <!-- Filtros legados (ocultos) -->
+    <span id="count-pgto-atras" class="hidden">0</span>
+    <button id="btn-filter-pgto-atrasado" class="hidden filter-btn filter-pgto-atrasado"></button>
+
     <div id="loading-state" class="empty-state">
       <div class="spinner"></div>
       <p>Carregando pedidos…</p>
     </div>
     <div id="empty-state" class="empty-state hidden">
-      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--ink-muted);margin-bottom:12px">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-      </svg>
       <p class="empty-title">Nenhum pedido</p>
-      <p class="empty-sub">Toque em <strong>+</strong> para adicionar.</p>
+      <p class="empty-sub">Toque em <strong>+</strong> para criar um pedido.</p>
     </div>
-    <div id="orders-list" class="orders-list hidden"></div>
+    <div id="orders-list" class="order-list-compact hidden"></div>
 
-  </div><!-- /section-pedidos -->
+  </div>
 
-  <!-- ══ SEÇÃO DESPESAS ══════════════════════════════ -->
-  <div id="section-despesas" class="page-section hidden">
-    <div class="page-header">
+  <!-- ══ DESPESAS ══ -->
+  <div id="section-despesas" class="page-section page-section--app hidden">
+    <div class="section-head section-head--page">
       <div>
         <h1 class="page-title">Despesas</h1>
-        <p class="page-subtitle">Controle de saídas financeiras</p>
-      </div>
-      <div class="page-header-right">
-        <div class="period-shortcuts-row">
-          <button class="desp-shortcut period-shortcut" onclick="setDespesaShortcut('hoje',this)">Hoje</button>
-          <button class="desp-shortcut period-shortcut" onclick="setDespesaShortcut('mes-atual',this)">Mês Atual</button>
-          <button class="desp-shortcut period-shortcut" onclick="setDespesaShortcut('mes-anterior',this)">Mês Anterior</button>
-          <button class="desp-shortcut period-shortcut" onclick="setDespesaShortcut('todos',this)">Todos</button>
-        </div>
-        <div class="period-date-row" style="margin-top:6px">
-          <input type="date" id="desp-ini" class="period-input" onchange="applyDespesaPeriod()"/>
-          <span class="period-sep">→</span>
-          <input type="date" id="desp-fim" class="period-input" onchange="applyDespesaPeriod()"/>
-        </div>
+        <p class="page-subtitle">Saídas do período</p>
       </div>
     </div>
-    <div class="desp-total-card">
-      <span class="desp-total-label">Total no período</span>
-      <span class="desp-total-value valor-monetario" id="desp-total-val">R$ 0,00</span>
+    <div class="period-picker app-panel">
+      <div class="period-picker__desktop">
+        <button type="button" class="desp-shortcut period-pill active" data-period="mes-atual" onclick="setDespesaShortcut('mes-atual',this)">Mês Atual</button>
+        <button type="button" class="desp-shortcut period-pill" data-period="mes-anterior" onclick="setDespesaShortcut('mes-anterior',this)">Mês Anterior</button>
+        <button type="button" class="desp-shortcut period-pill" data-period="todos" onclick="setDespesaShortcut('todos',this)">Todos</button>
+        <button type="button" class="desp-shortcut period-pill period-pill--custom" data-period="personalizado" onclick="setDespesaShortcut('personalizado',this)">Personalizado</button>
+      </div>
+      <div class="period-custom hidden" id="desp-period-custom">
+        <input type="date" id="desp-ini" class="period-input" onchange="applyDespesaPeriod()"/>
+        <span class="period-sep">até</span>
+        <input type="date" id="desp-fim" class="period-input" onchange="applyDespesaPeriod()"/>
+      </div>
+    </div>
+    <div class="stat-card stat-card--hero stat-card--inline">
+      <span class="stat-card__label">Total no período</span>
+      <span class="stat-card__value stat-card__value--danger valor-monetario" id="desp-total-val">R$ 0,00</span>
     </div>
     <div id="expenses-list" class="expenses-list"></div>
   </div>
 
-  <!-- ══ SEÇÃO FINANCEIRO ════════════════════════════ -->
-  <div id="section-financeiro" class="page-section hidden">
-    <div class="page-header">
+  <!-- ══ FINANCEIRO ══ -->
+  <div id="section-financeiro" class="page-section page-section--app hidden">
+    <div class="section-head section-head--page">
       <div>
         <h1 class="page-title">Financeiro</h1>
-        <p class="page-subtitle">Resumo de entradas e saídas</p>
-      </div>
-      <div class="page-header-right">
-        <div class="period-shortcuts-row">
-          <button class="fin-shortcut period-shortcut" onclick="setFinShortcut('mes-atual',this)">Mês Atual</button>
-          <button class="fin-shortcut period-shortcut" onclick="setFinShortcut('mes-anterior',this)">Mês Anterior</button>
-          <button class="fin-shortcut period-shortcut" onclick="setFinShortcut('ano',this)">Ano</button>
-          <button class="fin-shortcut period-shortcut" onclick="setFinShortcut('todos',this)">Todos</button>
-        </div>
-        <div class="period-date-row" style="margin-top:6px">
-          <input type="date" id="fin-ini" class="period-input" onchange="applyFinPeriod()"/>
-          <span class="period-sep">→</span>
-          <input type="date" id="fin-fim" class="period-input" onchange="applyFinPeriod()"/>
-        </div>
+        <p class="page-subtitle">Entradas e saídas</p>
       </div>
     </div>
-    <div class="fin-cards">
-      <div class="fin-card fin-card--in">
-        <span class="fin-card__label">Entradas</span>
-        <span class="fin-card__value valor-monetario" id="fin-entradas">R$ 0,00</span>
+    <div class="period-picker app-panel">
+      <div class="period-picker__desktop">
+        <button type="button" class="fin-shortcut period-pill active" data-period="mes-atual" onclick="setFinShortcut('mes-atual',this)">Mês Atual</button>
+        <button type="button" class="fin-shortcut period-pill" data-period="mes-anterior" onclick="setFinShortcut('mes-anterior',this)">Mês Anterior</button>
+        <button type="button" class="fin-shortcut period-pill" data-period="todos" onclick="setFinShortcut('todos',this)">Todos</button>
+        <button type="button" class="fin-shortcut period-pill period-pill--custom" data-period="personalizado" onclick="setFinShortcut('personalizado',this)">Personalizado</button>
       </div>
-      <div class="fin-card fin-card--out">
-        <span class="fin-card__label">Saídas</span>
-        <span class="fin-card__value valor-monetario" id="fin-saidas">R$ 0,00</span>
-      </div>
-      <div class="fin-card fin-card--result" id="fin-resultado-card">
-        <span class="fin-card__label" id="fin-resultado-label">Resultado</span>
-        <span class="fin-card__value valor-monetario" id="fin-resultado">R$ 0,00</span>
+      <div class="period-custom hidden" id="fin-period-custom">
+        <input type="date" id="fin-ini" class="period-input" onchange="applyFinPeriod()"/>
+        <span class="period-sep">até</span>
+        <input type="date" id="fin-fim" class="period-input" onchange="applyFinPeriod()"/>
       </div>
     </div>
-    <div class="fin-bar-wrap">
-      <div class="fin-bar-tags">
-        <span class="fin-bar-tag tag--in">Entradas</span>
-        <span class="fin-bar-tag tag--out">Saídas</span>
-      </div>
-      <div class="fin-bar">
-        <div class="fin-bar__in" id="fin-bar-e" style="width:50%"></div>
-        <div class="fin-bar__out" id="fin-bar-s" style="width:50%"></div>
-      </div>
+    <section class="stats-row stats-row--3 fin-summary">
+      <div class="stat-card"><span class="stat-card__label">Entradas</span><span class="stat-card__value stat-card__value--success valor-monetario" id="fin-entradas">R$ 0,00</span></div>
+      <div class="stat-card"><span class="stat-card__label">Saídas</span><span class="stat-card__value stat-card__value--danger valor-monetario" id="fin-saidas">R$ 0,00</span></div>
+      <div class="stat-card stat-card--accent" id="fin-resultado-card"><span class="stat-card__label" id="fin-resultado-label">Resultado</span><span class="stat-card__value valor-monetario" id="fin-resultado">R$ 0,00</span></div>
+    </section>
+    <div class="fin-chart-card fin-bar-wrap">
+      <div class="fin-bar-tags"><span class="fin-bar-tag tag--in">Entradas</span><span class="fin-bar-tag tag--out">Saídas</span></div>
+      <div class="fin-bar"><div class="fin-bar__in" id="fin-bar-e" style="width:50%"></div><div class="fin-bar__out" id="fin-bar-s" style="width:50%"></div></div>
     </div>
   </div>
 
-</div><!-- /main-wrapper -->
+</div>
 
-<!-- ═══════════════════════════════════════════════
-     MODAIS — todos preservados com IDs intactos
-═══════════════════════════════════════════════ -->
+<!-- Bottom sheet — período (mobile) -->
+<div id="period-sheet" class="sheet-overlay hidden" onclick="closePeriodSheetOnOverlay(event)">
+  <div class="sheet" role="dialog" aria-label="Período">
+    <div class="sheet__handle"></div>
+    <h3 class="sheet__title">Período</h3>
+    <div class="sheet__options">
+      <button type="button" class="sheet-option active" data-period="mes-atual" onclick="pickPeriodFromSheet('mes-atual')">Mês Atual</button>
+      <button type="button" class="sheet-option" data-period="mes-anterior" onclick="pickPeriodFromSheet('mes-anterior')">Mês Anterior</button>
+      <button type="button" class="sheet-option" data-period="todos" onclick="pickPeriodFromSheet('todos')">Todos</button>
+    </div>
+    <p class="sheet__subtitle">Personalizado</p>
+    <div class="sheet__dates">
+      <input type="date" id="sheet-periodo-inicio" class="period-input"/>
+      <span class="period-sep">até</span>
+      <input type="date" id="sheet-periodo-fim" class="period-input"/>
+    </div>
+    <button type="button" class="btn-primary sheet__apply" onclick="applyPeriodFromSheet()">Aplicar</button>
+  </div>
+</div>
 
-<!-- Modal Pedido -->
+<!-- Navegação inferior — mobile -->
+<nav class="bottom-nav" id="bottom-nav" aria-label="Navegação principal">
+  <button type="button" class="bottom-nav__item nav-tab active" data-page="dashboard" onclick="showPage('dashboard')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    <span>Início</span>
+  </button>
+  <button type="button" class="bottom-nav__item nav-tab" data-page="pedidos" onclick="showPage('pedidos')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    <span>Pedidos</span>
+  </button>
+  <button type="button" class="bottom-nav__item nav-tab" data-page="despesas" onclick="showPage('despesas')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <span>Despesas</span>
+  </button>
+  <button type="button" class="bottom-nav__item nav-tab" data-page="financeiro" onclick="showPage('financeiro')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span>Financeiro</span>
+  </button>
+</nav>
+
+<!-- Modais (IDs preservados) -->
 <div id="order-modal" class="modal-overlay hidden" onclick="closeModalOnOverlay(event)">
   <div class="modal-card">
     <div class="modal-header">
       <h2 id="modal-title">Novo Pedido</h2>
-      <button class="modal-close" onclick="closeOrderModal()">✕</button>
+      <button type="button" class="modal-close" onclick="closeOrderModal()">✕</button>
     </div>
     <div id="modal-message" class="auth-message hidden"></div>
     <form id="order-form" onsubmit="handleSaveOrder(event)">
       <input type="hidden" id="order-id"/>
-      <div class="field-group">
-        <label>Cliente *</label>
-        <input type="text" id="field-cliente" placeholder="Nome do cliente" required/>
-      </div>
+      <div class="field-group"><label>Cliente *</label><input type="text" id="field-cliente" placeholder="Nome do cliente" required/></div>
       <div class="section-title">Itens do pedido</div>
       <div class="item-add-row">
         <select id="item-product-select" class="item-select"><option value="">Selecione um produto…</option></select>
@@ -398,30 +315,22 @@
         <button type="button" class="btn-add-item" onclick="addItemFromSelect()">＋</button>
       </div>
       <div class="item-add-row">
-        <input type="text"   id="item-custom-name"  class="item-custom-name"  placeholder="Item avulso…"/>
+        <input type="text" id="item-custom-name" class="item-custom-name" placeholder="Item avulso…"/>
         <input type="number" id="item-custom-price" class="item-custom-price" placeholder="R$" min="0" step="0.01"/>
-        <input type="number" id="item-custom-qty"   class="item-qty"          placeholder="Qtd" min="1" value="1"/>
+        <input type="number" id="item-custom-qty" class="item-qty" placeholder="Qtd" min="1" value="1"/>
         <button type="button" class="btn-add-item" onclick="addCustomItem()">＋</button>
       </div>
       <div id="items-list" class="items-list"></div>
-      <div class="order-total-row">
-        <span>Total:</span>
-        <span class="order-total-value valor-monetario" id="order-total-display">R$ 0,00</span>
-      </div>
-      <div class="field-group">
-        <label>Observações</label>
-        <textarea id="field-descricao" placeholder="Observações…" rows="2"></textarea>
-      </div>
+      <div class="order-total-row"><span>Total:</span><span class="order-total-value valor-monetario" id="order-total-display">R$ 0,00</span></div>
+      <div class="field-group"><label>Observações</label><textarea id="field-descricao" placeholder="Observações…" rows="2"></textarea></div>
       <div class="fields-row">
         <div class="field-group"><label>Data do pedido</label><input type="date" id="field-data-pedido"/></div>
         <div class="field-group"><label>Entrega prevista</label><input type="date" id="field-data-entrega"/></div>
       </div>
       <div class="field-group">
-        <label>Status de produção</label>
+        <label>Status do pedido</label>
         <select id="field-status" onchange="onStatusChange()">
-          <option value="recebido">Recebido</option>
-          <option value="em_producao">Em Produção</option>
-          <option value="pronto">Pronto</option>
+          <option value="em_andamento">Em andamento</option>
           <option value="entregue">Entregue</option>
         </select>
       </div>
@@ -431,9 +340,7 @@
         <div id="comprovante-field" class="field-group hidden">
           <label id="comprovante-label">Comprovante</label>
           <div class="upload-area" id="upload-area" onclick="document.getElementById('field-comprovante').click()">
-            <div class="upload-icon">📎</div>
-            <div class="upload-text">Toque para selecionar</div>
-            <div class="upload-hint">JPG, PNG ou PDF</div>
+            <div class="upload-icon">📎</div><div class="upload-text">Toque para selecionar</div><div class="upload-hint">JPG, PNG ou PDF</div>
           </div>
           <input type="file" id="field-comprovante" accept="image/*,application/pdf" style="display:none" onchange="onComprovanteSelected(event)"/>
           <div id="comprovante-preview" class="comprovante-preview hidden"></div>
@@ -442,22 +349,16 @@
       </div>
       <div class="modal-actions">
         <button type="button" class="btn-secondary" onclick="closeOrderModal()">Cancelar</button>
-        <button type="button" class="btn-outline"   onclick="gerarOrcamentoPDF()">Orçamento</button>
-        <button type="submit" class="btn-primary"   id="btn-save">
-          <span class="btn-text">Salvar</span><span class="btn-loader hidden">⟳</span>
-        </button>
+        <button type="button" class="btn-outline" onclick="gerarOrcamentoPDF()">Orçamento</button>
+        <button type="submit" class="btn-primary" id="btn-save"><span class="btn-text">Salvar</span><span class="btn-loader hidden">⟳</span></button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- [CORREÇÃO TIPO PAGAMENTO] Modal Pagamento PIX/Dinheiro -->
 <div id="pgto-modal" class="modal-overlay hidden" onclick="closePgtoModalOverlay(event)">
   <div class="modal-card modal-card-small">
-    <div class="modal-header">
-      <h2>Registrar Recebimento</h2>
-      <button class="modal-close" onclick="closePgtoModal()">✕</button>
-    </div>
+    <div class="modal-header"><h2>Registrar Recebimento</h2><button type="button" class="modal-close" onclick="closePgtoModal()">✕</button></div>
     <div class="pgto-resumo">
       <div class="pgto-resumo-row"><span class="pgto-label">Cliente</span><span id="pgto-modal-cliente" class="pgto-valor-nome"></span></div>
       <div class="pgto-resumo-row"><span class="pgto-label">Valor</span><span id="pgto-modal-valor" class="pgto-valor-total"></span></div>
@@ -465,12 +366,8 @@
     <div class="field-group" style="margin-top:14px">
       <label>Forma de recebimento</label>
       <div class="pgto-tipo-row">
-        <button type="button" class="pgto-tipo-btn pgto-tipo-pix active" onclick="setPgtoTipo('pix',this)">
-          <span class="pgto-tipo-icon">💸</span> PIX
-        </button>
-        <button type="button" class="pgto-tipo-btn pgto-tipo-dinheiro" onclick="setPgtoTipo('dinheiro',this)">
-          <span class="pgto-tipo-icon">💵</span> Dinheiro
-        </button>
+        <button type="button" class="pgto-tipo-btn pgto-tipo-pix active" onclick="setPgtoTipo('pix',this)"><span class="pgto-tipo-icon">💸</span> PIX</button>
+        <button type="button" class="pgto-tipo-btn pgto-tipo-dinheiro" onclick="setPgtoTipo('dinheiro',this)"><span class="pgto-tipo-icon">💵</span> Dinheiro</button>
       </div>
       <input type="hidden" id="pgto-tipo-select" value="pix"/>
     </div>
@@ -490,13 +387,9 @@
   </div>
 </div>
 
-<!-- Modal Despesa -->
 <div id="expense-modal" class="modal-overlay hidden" onclick="closeExpenseModalOverlay(event)">
   <div class="modal-card modal-card-small">
-    <div class="modal-header">
-      <h2 id="desp-modal-title">Nova Despesa</h2>
-      <button class="modal-close" onclick="closeExpenseModal()">✕</button>
-    </div>
+    <div class="modal-header"><h2 id="desp-modal-title">Nova Despesa</h2><button type="button" class="modal-close" onclick="closeExpenseModal()">✕</button></div>
     <form id="expense-form" onsubmit="handleSaveExpense(event)">
       <input type="hidden" id="desp-form-id"/>
       <div class="field-group"><label>Data *</label><input type="date" id="desp-form-data" required/></div>
@@ -504,26 +397,22 @@
       <div class="field-group"><label>Valor (R$) *</label><input type="number" id="desp-form-valor" placeholder="0,00" min="0" step="0.01" required/></div>
       <div class="modal-actions">
         <button type="button" class="btn-secondary" onclick="closeExpenseModal()">Cancelar</button>
-        <button type="submit" class="btn-primary" id="btn-save-expense">
-          <span class="btn-text">Salvar</span><span class="btn-loader hidden">⟳</span>
-        </button>
+        <button type="submit" class="btn-primary" id="btn-save-expense"><span class="btn-text">Salvar</span><span class="btn-loader hidden">⟳</span></button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Modal Comprovante -->
 <div id="receipt-modal" class="modal-overlay hidden" onclick="closeReceiptModal()">
   <div class="modal-card modal-card-img">
-    <div class="modal-header"><h2>Comprovante</h2><button class="modal-close" onclick="closeReceiptModal()">✕</button></div>
+    <div class="modal-header"><h2>Comprovante</h2><button type="button" class="modal-close" onclick="closeReceiptModal()">✕</button></div>
     <div id="receipt-content"></div>
   </div>
 </div>
 
-<!-- Modal Produtos -->
 <div id="products-modal" class="modal-overlay hidden" onclick="closeProductsModalOverlay(event)">
   <div class="modal-card">
-    <div class="modal-header"><h2>Produtos</h2><button class="modal-close" onclick="closeProductsModal()">✕</button></div>
+    <div class="modal-header"><h2>Produtos</h2><button type="button" class="modal-close" onclick="closeProductsModal()">✕</button></div>
     <form id="product-form" onsubmit="handleSaveProduct(event)">
       <input type="hidden" id="product-id"/>
       <div class="fields-row">
@@ -533,9 +422,7 @@
       <div class="field-group"><label>Descrição</label><input type="text" id="prod-descricao" placeholder="Opcional"/></div>
       <div class="modal-actions">
         <button type="button" class="btn-secondary" onclick="clearProductForm()">Limpar</button>
-        <button type="submit" class="btn-primary" id="btn-save-product">
-          <span class="btn-text">Salvar produto</span><span class="btn-loader hidden">⟳</span>
-        </button>
+        <button type="submit" class="btn-primary" id="btn-save-product"><span class="btn-text">Salvar produto</span><span class="btn-loader hidden">⟳</span></button>
       </div>
     </form>
     <hr class="divider"/>
@@ -543,53 +430,41 @@
   </div>
 </div>
 
-<!-- Modal Excluir -->
 <div id="delete-modal" class="modal-overlay hidden" onclick="closeDeleteModalOnOverlay(event)">
   <div class="modal-card modal-card-small">
-    <div class="modal-header"><h2>Confirmar exclusão</h2><button class="modal-close" onclick="closeDeleteModal()">✕</button></div>
+    <div class="modal-header"><h2>Confirmar exclusão</h2><button type="button" class="modal-close" onclick="closeDeleteModal()">✕</button></div>
     <p class="delete-confirm-text">Esta ação não pode ser desfeita.</p>
     <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
-      <button class="btn-danger"    onclick="confirmDelete()">Excluir</button>
+      <button type="button" class="btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
+      <button type="button" class="btn-danger" onclick="confirmDelete()">Excluir</button>
     </div>
   </div>
 </div>
 
-<!-- FABs -->
-
-<!-- [AJUSTE 3+4] Modal detalhe pedido — layout 2 colunas -->
 <div id="order-detail-modal" class="modal-overlay hidden" onclick="closeDetailModalOverlay(event)">
   <div class="modal-card modal-detail">
     <div class="modal-header">
       <div class="detail-header-info">
         <h2 id="detail-titulo">Pedido</h2>
-        <span class="badge-status badge-recebido" id="detail-status-badge">–</span>
+        <span class="badge-status badge-andamento" id="detail-status-badge">–</span>
       </div>
-      <button class="modal-close" onclick="closeDetailModal()">✕</button>
+      <button type="button" class="modal-close" onclick="closeDetailModal()">✕</button>
     </div>
     <div class="detail-body">
-      <!-- Coluna esquerda: cliente + itens -->
       <div class="detail-col detail-col-left">
         <div class="detail-section-title">Cliente</div>
         <div class="detail-client-block">
           <div class="detail-avatar" id="detail-avatar">N</div>
-          <div>
-            <div class="detail-client-name" id="detail-client-name">–</div>
-            <div class="detail-client-meta" id="detail-client-meta"></div>
-          </div>
+          <div><div class="detail-client-name" id="detail-client-name">–</div><div class="detail-client-meta" id="detail-client-meta"></div></div>
         </div>
-        <div class="detail-section-title" style="margin-top:16px">Itens do pedido</div>
+        <div class="detail-section-title" style="margin-top:16px">Itens</div>
         <div id="detail-itens-list" class="detail-itens-list"></div>
-        <div class="detail-subtotal-row">
-          <span>Total</span>
-          <span class="detail-total-val valor-monetario" id="detail-total">R$ 0,00</span>
-        </div>
+        <div class="detail-subtotal-row"><span>Total</span><span class="detail-total-val valor-monetario" id="detail-total">R$ 0,00</span></div>
         <div id="detail-obs-wrap" class="detail-obs-wrap hidden">
           <div class="detail-section-title">Observações</div>
           <p class="detail-obs" id="detail-obs"></p>
         </div>
       </div>
-      <!-- Coluna direita: datas + histórico -->
       <div class="detail-col detail-col-right">
         <div class="detail-section-title">Datas</div>
         <div class="detail-datas-list" id="detail-datas-list"></div>
@@ -597,14 +472,14 @@
         <div class="detail-historico" id="detail-historico"></div>
       </div>
     </div>
-    <!-- Ações na base -->
     <div class="detail-acoes" id="detail-acoes"></div>
   </div>
 </div>
-<button class="fab-new"             onclick="openOrderModal()"  title="Novo pedido">＋</button>
-<button class="fab-new fab-despesa" onclick="openNewExpense()"  title="Nova despesa" style="display:none">＋</button>
+
+<button type="button" class="fab-new" onclick="openOrderModal()" title="Novo pedido">＋</button>
+<button type="button" class="fab-new fab-despesa" onclick="openNewExpense()" title="Nova despesa" style="display:none">＋</button>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js"></script>
+<script src="script.js?v=10"></script>
 </body>
 </html>
