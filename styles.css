@@ -466,7 +466,6 @@ body {
 
 @media (max-width: 767px) {
   .bottom-nav { display: flex; }
-  .fab-new, .fab-despesa { bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 16px); right: 16px; }
 }
 
 /* ── FAB ─────────────────────────────────────── */
@@ -480,6 +479,10 @@ body {
 .fab-new:hover { background: var(--violet-dark); }
 .fab-new:active { transform: scale(.94); }
 .fab-despesa { background: var(--success); box-shadow: 0 4px 16px rgba(13, 155, 110, 0.25); }
+
+@media (max-width: 767px) {
+  .fab-new, .fab-despesa { bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 16px) !important; right: 16px; }
+}
 
 /* ── FORMS / BUTTONS ─────────────────────────── */
 .field-group { display: flex; flex-direction: column; gap: 5px; flex: 1; }

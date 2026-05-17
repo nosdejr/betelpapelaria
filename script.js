@@ -167,7 +167,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (hdrAv) hdrAv.textContent = uname[0].toUpperCase();
 
   // [MELHORIA PERMISSÕES NAYARA] — botão de produtos para ambos os usuários
-  if (canManageProducts) document.getElementById('btn-products-nav').style.display = 'flex';
+  if (canManageProducts) {
+    document.getElementById('btn-products-nav').style.display = 'flex';
+    const mobileBtn = document.getElementById('btn-products-nav-mobile');
+    if (mobileBtn) mobileBtn.style.display = 'flex';
+  }
 
   // Período padrão = mês atual
   const range = periodRangeForShortcut('mes-atual');
