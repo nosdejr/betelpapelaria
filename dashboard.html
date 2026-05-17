@@ -45,7 +45,7 @@
       Financeiro
     </button>
     <div class="sidebar-section-label" style="margin-top:12px">Config</div>
-    <button class="sidebar-item" id="btn-products-nav" onclick="openProductsModal()" style="display:none">
+    <button class="sidebar-item" id="btn-products-nav" onclick="showPage('produtos')" style="display:none">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
       Produtos
     </button>
@@ -79,8 +79,8 @@
       <input type="search" id="search-input" placeholder="Buscar pedido ou cliente…" oninput="onSearchInput()"/>
     </div>
     <div class="header-right">
-      <div class="header-avatar" id="header-avatar">E</div>
       <span id="user-badge" style="display:none"></span>
+      <span id="header-avatar" style="display:none">E</span>
     </div>
   </header>
 
@@ -210,6 +210,11 @@
         <button type="button" class="desp-shortcut period-pill" data-period="todos" onclick="setDespesaShortcut('todos',this)">Todos</button>
         <button type="button" class="desp-shortcut period-pill period-pill--custom" data-period="personalizado" onclick="setDespesaShortcut('personalizado',this)">Personalizado</button>
       </div>
+      <button type="button" class="period-picker__mobile" onclick="openDespesaSheet()" aria-label="Filtrar período despesas">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span class="desp-label-mobile">Mês Atual</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
       <div class="period-custom hidden" id="desp-period-custom">
         <input type="date" id="desp-ini" class="period-input" onchange="applyDespesaPeriod()"/>
         <span class="period-sep">até</span>
@@ -238,6 +243,11 @@
         <button type="button" class="fin-shortcut period-pill" data-period="todos" onclick="setFinShortcut('todos',this)">Todos</button>
         <button type="button" class="fin-shortcut period-pill period-pill--custom" data-period="personalizado" onclick="setFinShortcut('personalizado',this)">Personalizado</button>
       </div>
+      <button type="button" class="period-picker__mobile" onclick="openFinSheet()" aria-label="Filtrar período financeiro">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span class="fin-label-mobile">Mês Atual</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
       <div class="period-custom hidden" id="fin-period-custom">
         <input type="date" id="fin-ini" class="period-input" onchange="applyFinPeriod()"/>
         <span class="period-sep">até</span>
@@ -253,6 +263,32 @@
       <div class="fin-bar-tags"><span class="fin-bar-tag tag--in">Entradas</span><span class="fin-bar-tag tag--out">Saídas</span></div>
       <div class="fin-bar"><div class="fin-bar__in" id="fin-bar-e" style="width:50%"></div><div class="fin-bar__out" id="fin-bar-s" style="width:50%"></div></div>
     </div>
+  </div>
+
+  <!-- ══ PRODUTOS (página, admin only) ══ -->
+  <div id="section-produtos" class="page-section page-section--app hidden">
+    <div class="section-head section-head--page">
+      <div>
+        <h1 class="page-title">Produtos</h1>
+        <p class="page-subtitle">Catálogo de itens</p>
+      </div>
+    </div>
+    <div class="app-panel" style="margin-bottom:16px">
+      <form id="product-form-page" onsubmit="handleSaveProductPage(event)" style="display:flex;flex-direction:column;gap:12px">
+        <h3 style="font-size:14px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.5px">Novo produto</h3>
+        <input type="hidden" id="product-id-page"/>
+        <div class="fields-row">
+          <div class="field-group" style="flex:2"><label>Nome *</label><input type="text" id="prod-nome-page" placeholder="Ex: Caderno A5" required/></div>
+          <div class="field-group"><label>Preço *</label><input type="number" id="prod-preco-page" placeholder="0,00" min="0" step="0.01" required/></div>
+        </div>
+        <div class="field-group"><label>Descrição</label><input type="text" id="prod-descricao-page" placeholder="Opcional"/></div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="clearProductFormPage()">Limpar</button>
+          <button type="submit" class="btn-primary" id="btn-save-product-page"><span class="btn-text">Salvar produto</span><span class="btn-loader hidden">⟳</span></button>
+        </div>
+      </form>
+    </div>
+    <div id="products-list-page" class="products-list"></div>
   </div>
 
 </div>
@@ -274,6 +310,46 @@
       <input type="date" id="sheet-periodo-fim" class="period-input"/>
     </div>
     <button type="button" class="btn-primary sheet__apply" onclick="applyPeriodFromSheet()">Aplicar</button>
+  </div>
+</div>
+
+<!-- Bottom sheet Despesas -->
+<div id="desp-sheet" class="sheet-overlay hidden" onclick="if(event.target===this)closeDespesaSheet()">
+  <div class="sheet" role="dialog" aria-label="Período Despesas">
+    <div class="sheet__handle"></div>
+    <h3 class="sheet__title">Período — Despesas</h3>
+    <div class="sheet__options">
+      <button type="button" class="desp-sheet-option sheet-option active" data-period="mes-atual" onclick="pickDespesaFromSheet('mes-atual',this)">Mês Atual</button>
+      <button type="button" class="desp-sheet-option sheet-option" data-period="mes-anterior" onclick="pickDespesaFromSheet('mes-anterior',this)">Mês Anterior</button>
+      <button type="button" class="desp-sheet-option sheet-option" data-period="todos" onclick="pickDespesaFromSheet('todos',this)">Todos</button>
+    </div>
+    <p class="sheet__subtitle">Personalizado</p>
+    <div class="sheet__dates">
+      <input type="date" id="desp-sheet-ini" class="period-input" onchange="applyDespesaSheetCustom()"/>
+      <span class="period-sep">até</span>
+      <input type="date" id="desp-sheet-fim" class="period-input" onchange="applyDespesaSheetCustom()"/>
+    </div>
+    <button type="button" class="btn-primary sheet__apply" onclick="closeDespesaSheet()">Aplicar</button>
+  </div>
+</div>
+
+<!-- Bottom sheet Financeiro -->
+<div id="fin-sheet" class="sheet-overlay hidden" onclick="if(event.target===this)closeFinSheet()">
+  <div class="sheet" role="dialog" aria-label="Período Financeiro">
+    <div class="sheet__handle"></div>
+    <h3 class="sheet__title">Período — Financeiro</h3>
+    <div class="sheet__options">
+      <button type="button" class="fin-sheet-option sheet-option active" data-period="mes-atual" onclick="pickFinFromSheet('mes-atual',this)">Mês Atual</button>
+      <button type="button" class="fin-sheet-option sheet-option" data-period="mes-anterior" onclick="pickFinFromSheet('mes-anterior',this)">Mês Anterior</button>
+      <button type="button" class="fin-sheet-option sheet-option" data-period="todos" onclick="pickFinFromSheet('todos',this)">Todos</button>
+    </div>
+    <p class="sheet__subtitle">Personalizado</p>
+    <div class="sheet__dates">
+      <input type="date" id="fin-sheet-ini" class="period-input" onchange="applyFinSheetCustom()"/>
+      <span class="period-sep">até</span>
+      <input type="date" id="fin-sheet-fim" class="period-input" onchange="applyFinSheetCustom()"/>
+    </div>
+    <button type="button" class="btn-primary sheet__apply" onclick="closeFinSheet()">Aplicar</button>
   </div>
 </div>
 
